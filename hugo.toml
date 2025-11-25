@@ -71,6 +71,14 @@ preloader = "" # use .png , .svg or .gif format
 # PocketBase
 [params.pocketbase]
   url = "http://127.0.0.1:8090"
+  
+  [params.pocketbase.oauth]
+    [params.pocketbase.oauth.google]
+      enable = true
+    [params.pocketbase.oauth.kakao]
+      enable = true
+    [params.pocketbase.oauth.naver]
+      enable = true
 
 
 

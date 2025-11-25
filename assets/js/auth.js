@@ -29,6 +29,32 @@ const Auth = (function () {
         if (signupForm) {
             signupForm.addEventListener('submit', handleSignup);
             setupEmailAutocomplete(signupForm);
+
+
+        }
+
+        // OAuth2 Login Handlers (Global)
+        const oauthButtons = document.querySelectorAll('.oauth-btn');
+        oauthButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const provider = e.target.dataset.provider;
+                handleOAuth2Login(provider);
+            });
+        });
+    }
+
+    async function handleOAuth2Login(provider) {
+        try {
+            const authData = await pb.collection('users').authWithOAuth2({ provider: provider });
+
+            // Optional: update user data if needed, or just redirect
+            // const meta = authData.meta;
+            // if (meta) { ... }
+
+            window.location.href = '/';
+        } catch (error) {
+            const messageEl = document.getElementById('auth-message');
+            showMessage(messageEl, `Login with ${provider} failed: ` + error.message, 'text-danger');
         }
     }
 
