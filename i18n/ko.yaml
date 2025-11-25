@@ -1,0 +1,11 @@
+- id: "add_to_cart"
+  translation: "장바구니에 추가"
+  
+- id: "send"
+  translation: "보내기"
+  
+- id: "subscribe"
+  translation: "구독하기"
+  
+- id: "read_more"
+  translation: "더 읽기"

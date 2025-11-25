@@ -1,0 +1,53 @@
+<!-- Cart Overlay -->
+<div id="cart-overlay" onclick="Cart.toggleDrawer()"></div>
+
+<!-- Cart Drawer -->
+<div id="cart-drawer">
+  <!-- Header -->
+  <div class="cart-header">
+    <div class="d-flex align-items-center">
+      <h3>🛒 장바구니</h3>
+      <span class="cart-count" id="cart-item-count">0</span>
+    </div>
+    <button onclick="Cart.toggleDrawer()" class="close-btn" aria-label="Close cart">
+      ×
+    </button>
+  </div>
+
+  <!-- Items Container -->
+  <div id="cart-items-container">
+    <div class="cart-loading">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- Mustache Template -->
+  {{ partial "cart-template.html" . }}
+
+  <!-- Footer -->
+  <div class="cart-footer" style="display: none;" id="cart-footer">
+    <div class="cart-summary">
+      <div class="summary-row">
+        <span>소계</span>
+        <span class="amount" id="cart-subtotal">₩0</span>
+      </div>
+      <div class="summary-row total">
+        <span>총액</span>
+        <span class="amount" id="cart-total">₩0</span>
+      </div>
+    </div>
+
+    <button onclick="Cart.checkout()" class="checkout-btn" id="checkout-btn">
+      💳 주문하기
+    </button>
+  </div>
+</div>
+
+<script>
+  // Initialize cart on page load
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.ShopConfig && window.Cart) {
+      Cart.init(window.ShopConfig);
+    }
+  });
+</script>

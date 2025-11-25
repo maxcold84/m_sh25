@@ -1,0 +1,18 @@
+{{/* Fixed whitespace with variables */}}
+{{ $login := "login" }}
+{{ $signup := "signup" }}
+<li class="nav-item" id="auth-login-link">
+    <a class="nav-link" href="{{ $login | relLangURL }}">{{- if eq .Site.Language.Lang "ko" }}로그인{{ else }}Login{{ end
+        -}}</a>
+</li>
+<li class="nav-item" id="auth-signup-link">
+    <a class="nav-link" href="{{ $signup | relLangURL }}">{{- if eq .Site.Language.Lang "ko" }}회원가입{{ else }}Sign Up{{
+        end -}}</a>
+</li>
+<li class="nav-item" id="auth-logout-link" style="display: none;">
+    <a class="nav-link" href="#" onclick="Auth.logout(); return false;">{{- if eq .Site.Language.Lang "ko" }}로그아웃{{ else
+        }}Logout{{ end -}}</a>
+</li>
+<li class="nav-item" id="auth-profile-link" style="display: none;">
+    <a class="nav-link" href="#">{{- if eq .Site.Language.Lang "ko" }}프로필{{ else }}Profile{{ end -}}</a>
+</li>

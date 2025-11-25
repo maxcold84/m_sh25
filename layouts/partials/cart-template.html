@@ -1,0 +1,59 @@
+<!-- Mustache Template -->
+<script id="cart-template" type="x-tmpl-mustache">
+    [[^items]]
+    <div class="empty-cart">
+      <div class="empty-icon">🛍️</div>
+      <h4>장바구니가 비어있습니다</h4>
+      <p>쇼핑을 시작해보세요!</p>
+    </div>
+    [[/items]]
+
+    [[#items]]
+    <div class="cart-item" data-item-id="[[id]]">
+      <div class="item-content">
+        [[#image]]
+        <img src="[[image]]" alt="[[name]]" class="item-image" loading="lazy">
+        [[/image]]
+        [[^image]]
+        <div class="item-image" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 24px;">
+          🛍️
+        </div>
+        [[/image]]
+        
+        <div class="item-details">
+          <h4 class="item-name">[[name]]</h4>
+          <div class="item-price">[[formattedPrice]]</div>
+        </div>
+      </div>
+      
+      <div class="item-actions">
+        <div class="quantity-controls">
+          <button onclick="Cart.changeQuantity('[[id]]', -1)" 
+                  [[#isMinQuantity]]disabled[[/isMinQuantity]]
+                  aria-label="Decrease quantity">
+            -
+          </button>
+          <span class="quantity-value">[[quantity]]</span>
+          <button onclick="Cart.changeQuantity('[[id]]', 1)" 
+                  aria-label="Increase quantity">
+            +
+          </button>
+        </div>
+        
+        <button onclick="Cart.removeItem('[[id]]')" 
+                class="remove-btn" 
+                aria-label="Remove item">
+          🗑️
+        </button>
+      </div>
+    </div>
+    [[/items]]
+
+    [[#hasItems]]
+    <div class="cart-extras" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+        <p style="text-align: center; color: #666; font-size: 0.9em; margin-bottom: 15px;">
+            주문하기 버튼을 누르면 주문/결제 페이지로 이동합니다.
+        </p>
+    </div>
+    [[/hasItems]]
+</script>

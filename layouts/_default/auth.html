@@ -1,0 +1,80 @@
+{{ define "main" }}
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="p-5 shadow-sm border rounded-lg">
+                    <h2 class="text-center mb-4">{{ .Title }}</h2>
+
+                    {{ if eq .Params.authType "login" }}
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" list="emailDomains" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="remember-email">
+                            <label class="form-check-label" for="remember-email">Remember Email</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block mt-4">Login</button>
+                        <p class="mt-3 text-center">
+                            Don't have an account? <a href="{{ " signup" | relLangURL }}">Sign Up</a>
+                        </p>
+                    </form>
+                    {{ else if eq .Params.authType "signup" }}
+                    <form id="signup-form">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" list="emailDomains" required>
+                            <div id="email-suggestion" class="mt-2" style="display: none;">
+                                <small class="text-muted">혹시 <a href="#" id="email-suggestion-link"
+                                        class="text-primary"></a>을(를) 의미하셨나요?</small>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="passwordConfirm">Confirm Password</label>
+                            <input type="password" class="form-control" id="passwordConfirm" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block mt-4">Sign Up</button>
+                        <p class="mt-3 text-center">
+                            Already have an account? <a href="{{ " login" | relLangURL }}">Login</a>
+                        </p>
+                    </form>
+                    {{ end }}
+
+                    <div id="auth-message" class="mt-3 text-center" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Email domain datalist -->
+<datalist id="emailDomains">
+    <option value="@gmail.com"></option>
+    <option value="@naver.com"></option>
+    <option value="@daum.net"></option>
+    <option value="@outlook.com"></option>
+    <option value="@kakao.com"></option>
+    <option value="@hanmail.net"></option>
+    <option value="@nate.com"></option>
+</datalist>
+
+<!-- Mailcheck.js for email typo correction -->
+<script src="https://cdn.jsdelivr.net/npm/mailcheck@1.1.2/src/mailcheck.min.js"></script>
+
+{{ $authScript := resources.Get "js/auth.js" }}
+<script src="{{ $authScript.Permalink }}"></script>
+{{ end }}
