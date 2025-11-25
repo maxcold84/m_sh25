@@ -1,5 +1,5 @@
 ################################### Default Configuration ############################
-baseurl = "/"
+baseurl = ""
 title = "Vex | hugo landing page template"
 theme = "vex-hugo-main"
 # post excert

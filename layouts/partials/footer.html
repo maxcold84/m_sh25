@@ -13,7 +13,7 @@
           <ul class="list-inline footer-menu">
             {{ range site.Menus.footer }}
             <li class="list-inline-item">
-              <a href="{{ .URL | absLangURL }}">{{ .Name }}</a>
+              <a href="{{ .URL | relLangURL }}">{{ .Name }}</a>
             </li>
             {{ end }}
           </ul>

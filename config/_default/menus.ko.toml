@@ -3,17 +3,17 @@
 
 [[main]]
 name = "홈"
-url = "ko/"
+url = "/"
 weight = 1
 
 [[main]]
 name = "제품"
-url = "products/"
+url = "products"
 weight = 2
 
 [[main]]
 name = "블로그"
-url = "blog/"
+url = "blog"
 weight = 3
 
 [[main]]
@@ -23,26 +23,26 @@ weight = 4
 
 [[main]]
 name = "연락처"
-url = "contact/"
+url = "contact"
 weight = 5
 
 # footer menu
 [[footer]]
 name = "블로그"
-url = "blog/"
+url = "blog"
 weight = 1
 
 [[footer]]
 name = "연락처"
-url = "contact/"
+url = "contact"
 weight = 2
 
 [[footer]]
 name = "이용 약관"
-url = "terms-conditions/"
+url = "terms-conditions"
 weight = 3
 
 [[footer]]
 name = "개인정보 처리방침"
-url = "privacy-policy/"
+url = "privacy-policy"
 weight = 4

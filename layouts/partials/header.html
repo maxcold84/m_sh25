@@ -20,7 +20,7 @@
           {{ range site.Menus.main }}
           <li class="nav-item">
             <a class="nav-link"
-              href="{{if .Pre}}{{site.BaseURL | relLangURL}}{{.Pre}}{{ .URL }}{{else}}{{.URL | absLangURL}}{{end}}">{{
+              href="{{if .Pre}}{{site.BaseURL | relLangURL}}{{.Pre}}{{ .URL }}{{else}}{{.URL | relLangURL}}{{end}}">{{
               .Name }}</a>
           </li>
           {{ end }}

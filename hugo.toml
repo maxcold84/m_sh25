@@ -1,5 +1,5 @@
 ########################### Default parameters ##########################
-defaultContentLanguage = "en"
+defaultContentLanguage = "ko"
 defaultContentLanguageInSubdir = true
 
 [languages]

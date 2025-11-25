@@ -214,13 +214,13 @@ const Cart = {
         }
 
         // Redirect to checkout page with language support
+        // Get the current base URL and language from the page
+        const baseUrl = window.location.origin;
+        const currentPath = window.location.pathname;
         const lang = document.documentElement.lang || 'en';
-        // If defaultContentLanguageInSubdir is true, we always need the lang prefix
-        // Assuming 'ko' for Korean and 'en' for English based on hugo.toml
 
-        // Simple check: if we are already in a lang path, preserve it.
-        // Or just use the lang attribute which Hugo sets.
-        window.location.href = `/${lang}/checkout`;
+        // Build the checkout URL with language prefix
+        window.location.href = `${baseUrl}/${lang}/checkout/`;
         this.toggleDrawer(false);
     },
 
