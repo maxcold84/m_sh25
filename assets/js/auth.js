@@ -184,6 +184,7 @@ const Auth = (function () {
 
     function logout() {
         pb.authStore.clear();
+        localStorage.removeItem('cart_id'); // Clear cart reference
         window.location.href = '/login';
     }
 

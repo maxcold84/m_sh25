@@ -606,6 +606,10 @@
                     }
                 };
 
+                if (currentUser) {
+                    orderData.user = currentUser.id;
+                }
+
                 await pb.collection('orders').create(orderData);
 
                 for (const item of cartItems) {

@@ -4,17 +4,116 @@ const pb = new PocketBase('http://127.0.0.1:8090');
 
 // Cart State Management
 const Cart = {
-    init(config) {
+    async init(config) {
         console.log('Cart initialized with config:', config);
         this.config = config;
+
+        // If logged in, ensure we have the correct cart (and merge if needed)
+        if (pb.authStore.isValid) {
+            await this.getOrCreateCart();
+        }
+
         this.renderCart();
+
+        // Listen for auth changes to sync cart
+        pb.authStore.onChange(async () => {
+            console.log('Auth state changed in Cart, syncing...');
+            if (pb.authStore.isValid) {
+                // Logged In: Merge/Fetch user cart
+                await this.getOrCreateCart();
+            } else {
+                // Logged Out: Clear local reference to user cart
+                localStorage.removeItem('cart_id');
+            }
+            this.renderCart();
+        });
     },
 
     async getOrCreateCart() {
+        // 1. Check if user is logged in
+        if (pb.authStore.isValid) {
+            const userId = pb.authStore.model.id;
+            console.log('User logged in:', userId);
+
+            try {
+                // Try to find existing cart for user
+                const carts = await pb.collection('carts').getList(1, 1, {
+                    filter: `user="${userId}"`,
+                    sort: '-created'
+                });
+
+                if (carts.items.length > 0) {
+                    const userCart = carts.items[0];
+                    console.log('Found existing user cart:', userCart.id);
+
+                    // Check if we have a local guest cart to merge
+                    const localCartId = localStorage.getItem('cart_id');
+                    if (localCartId && localCartId !== userCart.id) {
+                        console.log('Merging local cart into user cart...');
+                        await this.mergeCarts(localCartId, userCart.id);
+                        localStorage.removeItem('cart_id'); // Clear local cart ref
+                    }
+
+                    localStorage.setItem('cart_id', userCart.id);
+                    return userCart;
+                } else {
+                    // No user cart exists. 
+                    // Check if we have a local guest cart to assign
+                    const localCartId = localStorage.getItem('cart_id');
+                    if (localCartId) {
+                        console.log('Assigning local cart to user:', localCartId);
+                        try {
+                            const updatedCart = await pb.collection('carts').update(localCartId, {
+                                user: userId
+                            });
+                            return updatedCart;
+                        } catch (e) {
+                            console.error('Failed to assign cart to user, creating new one and merging:', e);
+
+                            // Create new cart for user
+                            const newCart = await pb.collection('carts').create({
+                                session_id: crypto.randomUUID(),
+                                user: userId
+                            });
+
+                            // Try to merge items from the old guest cart to the new user cart
+                            await this.mergeCarts(localCartId, newCart.id);
+
+                            localStorage.setItem('cart_id', newCart.id);
+                            return newCart;
+                        }
+                    }
+
+                    // Create new cart for user
+                    console.log('Creating new cart for user...');
+                    const newCart = await pb.collection('carts').create({
+                        session_id: crypto.randomUUID(),
+                        user: userId
+                    });
+                    localStorage.setItem('cart_id', newCart.id);
+                    return newCart;
+                }
+            } catch (e) {
+                console.error('Error handling user cart:', e);
+                // Fallback to guest logic if something fails
+            }
+        }
+
+        // 2. Guest Logic (Existing)
         let cartId = localStorage.getItem('cart_id');
         if (cartId) {
             try {
-                return await pb.collection('carts').getOne(cartId);
+                const cart = await pb.collection('carts').getOne(cartId);
+
+                // Security Check: If we are a guest, but this cart belongs to a user, 
+                // we should NOT access it. It likely belongs to a previously logged-in user.
+                if (cart.user && cart.user !== '') {
+                    console.log('Found user cart while in guest mode. Clearing and creating new guest cart.');
+                    localStorage.removeItem('cart_id');
+                    // Fall through to create new cart
+                } else {
+                    return cart;
+                }
             } catch (e) {
                 console.error('Error fetching cart:', e);
                 console.log('Cart not found, creating new one');
@@ -22,10 +121,11 @@ const Cart = {
             }
         }
 
-        console.log('Creating new cart...');
+        console.log('Creating new guest cart...');
         try {
             const cart = await pb.collection('carts').create({
-                session_id: crypto.randomUUID()
+                session_id: crypto.randomUUID(),
+                user: '' // Explicitly empty for guests
             });
             localStorage.setItem('cart_id', cart.id);
             console.log('New cart created:', cart.id);
@@ -33,6 +133,45 @@ const Cart = {
         } catch (e) {
             console.error('Failed to create cart:', e);
             throw e;
+        }
+    },
+
+    async mergeCarts(fromCartId, toCartId) {
+        try {
+            // Get items from source cart
+            const items = await pb.collection('cart_items').getFullList({
+                filter: `cart="${fromCartId}"`
+            });
+
+            console.log(`Merging ${items.length} items from ${fromCartId} to ${toCartId}`);
+
+            for (const item of items) {
+                // Check if item already exists in target cart
+                const existingItems = await pb.collection('cart_items').getList(1, 1, {
+                    filter: `cart="${toCartId}" && product_id="${item.product_id}"`
+                });
+
+                if (existingItems.items.length > 0) {
+                    // Update quantity
+                    const targetItem = existingItems.items[0];
+                    await pb.collection('cart_items').update(targetItem.id, {
+                        quantity: targetItem.quantity + item.quantity
+                    });
+                    // Delete source item
+                    await pb.collection('cart_items').delete(item.id);
+                } else {
+                    // Move item to target cart
+                    await pb.collection('cart_items').update(item.id, {
+                        cart: toCartId
+                    });
+                }
+            }
+
+            // Delete the old cart if empty/abandoned (optional, but good for cleanup)
+            // await pb.collection('carts').delete(fromCartId); 
+
+        } catch (e) {
+            console.error('Error merging carts:', e);
         }
     },
 
