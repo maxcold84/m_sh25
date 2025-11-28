@@ -41,10 +41,16 @@
                     <span id="guide" class="text-xs text-gray-500 mt-1" style="display:none;"></span>
                 </div>
 
-                <div class="flex items-center gap-2 pt-2">
-                    <input type="checkbox" id="save-address"
-                        class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
-                    <label for="save-address" class="text-sm text-gray-600">다음에도 사용할게요</label>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="save-address"
+                            class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                        <label for="save-address" class="text-sm text-gray-600">다음에도 사용할게요</label>
+                    </div>
+                    <button type="button" id="load-member-info"
+                        class="text-sm bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors border border-blue-200">
+                        회원 정보 불러오기
+                    </button>
                 </div>
             </form>
         </section>
@@ -273,6 +279,7 @@
         const payBtn = document.getElementById('pay-button');
         const shippingForm = document.getElementById('shipping-form');
         const paymentMethodsContainer = document.getElementById('payment-methods');
+        const loadMemberInfoBtn = document.getElementById('load-member-info');
 
         const formatPrice = (price) => new Intl.NumberFormat('ko-KR').format(price) + '원';
 
@@ -409,21 +416,7 @@
         }
 
         function autofillShippingAddress() {
-            if (!currentUser) return;
-
-            // Autofill shipping form with user data
-            const receiverInput = shippingForm.querySelector('input[name="receiver"]');
-            const phoneInput = shippingForm.querySelector('input[name="phone"]');
-
-            if (receiverInput && currentUser.name) {
-                receiverInput.value = currentUser.name;
-            }
-
-            if (phoneInput && currentUser.phone) {
-                phoneInput.value = currentUser.phone;
-            }
-
-            // Try to load saved address from localStorage
+            // Try to load saved address from localStorage first (priority)
             const savedAddress = localStorage.getItem('saved_shipping_address');
             if (savedAddress) {
                 try {
@@ -436,6 +429,50 @@
                     console.warn('Failed to parse saved address:', e);
                 }
             }
+
+            if (!currentUser) return;
+
+            // Autofill name/phone from user profile if empty
+            const receiverInput = shippingForm.querySelector('input[name="receiver"]');
+            const phoneInput = shippingForm.querySelector('input[name="phone"]');
+
+            if (receiverInput && !receiverInput.value && currentUser.name) {
+                receiverInput.value = currentUser.name;
+            }
+
+            if (phoneInput && !phoneInput.value && currentUser.phone) {
+                phoneInput.value = currentUser.phone;
+            }
+        }
+
+        // New function to load member info explicitly
+        function loadMemberInfo() {
+            if (!currentUser) {
+                showToast('로그인이 필요합니다.', true);
+                return;
+            }
+
+            const receiverInput = shippingForm.querySelector('input[name="receiver"]');
+            const phoneInput = shippingForm.querySelector('input[name="phone"]');
+            const postcodeInput = document.getElementById('postcode');
+            const addressInput = document.getElementById('address');
+            const detailAddressInput = document.getElementById('detailAddress');
+            const extraAddressInput = document.getElementById('extraAddress');
+
+            if (currentUser.name) receiverInput.value = currentUser.name;
+            if (currentUser.phone) phoneInput.value = currentUser.phone;
+
+            // Assuming these fields exist in user profile
+            if (currentUser.postcode) postcodeInput.value = currentUser.postcode;
+            if (currentUser.address) addressInput.value = currentUser.address;
+            if (currentUser.detailAddress) detailAddressInput.value = currentUser.detailAddress;
+            if (currentUser.extraAddress) extraAddressInput.value = currentUser.extraAddress;
+
+            showToast('회원 정보를 불러왔습니다.');
+        }
+
+        if (loadMemberInfoBtn) {
+            loadMemberInfoBtn.addEventListener('click', loadMemberInfo);
         }
 
         function renderCart() {
@@ -608,6 +645,7 @@
 
                 if (currentUser) {
                     orderData.user = currentUser.id;
+                    // Removed logic that updates user profile address here
                 }
 
                 await pb.collection('orders').create(orderData);
@@ -627,7 +665,7 @@
             }
         });
 
-        // Save address when checkbox is checked
+        // Save address when checkbox is checked (Local Storage)
         document.getElementById('save-address').addEventListener('change', function (e) {
             if (e.target.checked) {
                 const formData = new FormData(shippingForm);
