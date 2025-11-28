@@ -9,6 +9,21 @@ const Auth = (function () {
             updateAuthUI();
         });
 
+        // Handle Tab Switching
+        const hash = window.location.hash;
+        if (hash === '#signup') {
+            $('#authTab a[href="#signup"]').tab('show');
+        } else {
+            $('#authTab a[href="#login"]').tab('show');
+        }
+
+        // Update hash on tab click
+        $('#authTab a').on('click', function (e) {
+            e.preventDefault();
+            $(this).tab('show');
+            window.location.hash = this.hash;
+        });
+
         // Handle Login Form
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
@@ -17,7 +32,7 @@ const Auth = (function () {
             // Load saved email
             const savedEmail = localStorage.getItem('savedEmail');
             if (savedEmail) {
-                const emailInput = document.getElementById('email');
+                const emailInput = document.getElementById('login-email');
                 const rememberCheckbox = document.getElementById('remember-email');
                 if (emailInput) emailInput.value = savedEmail;
                 if (rememberCheckbox) rememberCheckbox.checked = true;
@@ -29,8 +44,6 @@ const Auth = (function () {
         if (signupForm) {
             signupForm.addEventListener('submit', handleSignup);
             setupEmailAutocomplete(signupForm);
-
-
         }
 
         // OAuth2 Login Handlers (Global)
@@ -59,7 +72,7 @@ const Auth = (function () {
     }
 
     function setupEmailAutocomplete(form) {
-        const emailInput = form.querySelector('#email');
+        const emailInput = form.querySelector('#signup-email');
         const suggestionDiv = document.getElementById('email-suggestion');
         const suggestionLink = document.getElementById('email-suggestion-link');
 
@@ -132,8 +145,8 @@ const Auth = (function () {
 
     async function handleLogin(e) {
         e.preventDefault();
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
         const rememberCheckbox = document.getElementById('remember-email');
         const messageEl = document.getElementById('auth-message');
 
@@ -153,10 +166,10 @@ const Auth = (function () {
 
     async function handleSignup(e) {
         e.preventDefault();
-        const name = document.getElementById('name').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const passwordConfirm = document.getElementById('passwordConfirm').value;
+        const name = document.getElementById('signup-name').value;
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        const passwordConfirm = document.getElementById('signup-passwordConfirm').value;
         const messageEl = document.getElementById('auth-message');
 
         if (password !== passwordConfirm) {
@@ -185,7 +198,7 @@ const Auth = (function () {
     function logout() {
         pb.authStore.clear();
         localStorage.removeItem('cart_id'); // Clear cart reference
-        window.location.href = '/login';
+        window.location.href = (typeof loginUrl !== 'undefined') ? loginUrl : '/login';
     }
 
     function showMessage(el, message, className) {

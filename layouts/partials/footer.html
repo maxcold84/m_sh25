@@ -35,3 +35,10 @@
 <!-- Main Script -->
 {{ $script := resources.Get "js/script.js" }}
 <script src="{{ $script.Permalink }}"></script>
+
+<!-- Auth Script -->
+<script>
+  const loginUrl = "{{ "login" | relLangURL }}";
+</script>
+{{ $authScript := resources.Get "js/auth.js" }}
+<script src="{{ $authScript.Permalink }}"></script>
