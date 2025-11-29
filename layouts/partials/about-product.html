@@ -23,7 +23,20 @@
           <p>{{ .content | markdownify }}</p>
           {{ if .button.enable }}
           {{ with .button }}
-          <a href="{{ .link | absURL }}" class="btn btn-main btn-main-sm">{{ .label }}</a>
+          <div class="d-flex gap-2 justify-content-center justify-content-md-start">
+            <a href="{{ .link | absURL }}" class="btn btn-main btn-main-sm">{{ .label }}</a>
+            {{ with $.ProductData }}
+            <button class="btn btn-primary btn-main-sm" onclick="event.preventDefault(); Cart.addItem({
+                      id: '{{.Title | urlize}}__{{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}}',
+                      name: '{{.Title}}',
+                      price: {{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}},
+                      image: '{{range first 1 .Params.images}}{{.|absURL}}{{end}}',
+                      options: {}
+                    })">
+              🛒 장바구니 추가
+            </button>
+            {{ end }}
+          </div>
           {{ end }}
           {{ end }}
         </div>
@@ -37,7 +50,20 @@
           <p>{{ .content | markdownify }}</p>
           {{ if .button.enable }}
           {{ with .button }}
-          <a href="{{ .link | absURL }}" class="btn btn-main btn-main-sm">{{ .label }}</a>
+          <div class="d-flex gap-2 justify-content-center justify-content-md-start">
+            <a href="{{ .link | absURL }}" class="btn btn-main btn-main-sm">{{ .label }}</a>
+            {{ with $.ProductData }}
+            <button class="btn btn-primary btn-main-sm" onclick="event.preventDefault(); Cart.addItem({
+                      id: '{{.Title | urlize}}__{{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}}',
+                      name: '{{.Title}}',
+                      price: {{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}},
+                      image: '{{range first 1 .Params.images}}{{.|absURL}}{{end}}',
+                      options: {}
+                    })">
+              🛒 장바구니 추가
+            </button>
+            {{ end }}
+          </div>
           {{ end }}
           {{ end }}
         </div>

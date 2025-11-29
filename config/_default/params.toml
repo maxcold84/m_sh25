@@ -1,6 +1,0 @@
-[portone]
-  store_id = "store-9f6b78d6-2b0d-4a7c-96c4-7e4adb83bed9"
-  [portone.channels]
-    inicis = "channel-key-54930405-2c88-4283-9be0-298b3d1c117a"
-    kakaopay = "channel-key-3f5d70b2-ea6a-4261-a72b-23745a45524b"
-    # Add other channels here as needed 

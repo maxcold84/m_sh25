@@ -16,10 +16,10 @@
               <a href="{{ .Permalink }}" class="gallery-popup">
                 <i class="tf-ion-plus-round"></i>
               </a>
-              <button class="btn btn-sm btn-primary mt-2"
-                style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10; white-space: nowrap;"
+              <button class="btn btn-primary btn-main-sm"
+                style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 10; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"
                 onclick="event.preventDefault(); Cart.addItem({
-                        id: '{{.Title | urlize}}__{{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}}',
+                        id: '{{.File.BaseFileName}}',
                         name: '{{.Title}}',
                         price: {{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}},
                         image: '{{range first 1 .Params.images}}{{.|absURL}}{{end}}',

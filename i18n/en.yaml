@@ -9,12 +9,33 @@
   
 - id: "read_more"
   translation: "Read More"
-  
-- id: "subscribe"
-  translation: "Subscribe"
-  
-- id: "subscribe"
-  translation: "Subscribe"
-  
-- id: "subscribe"
-  translation: "Subscribe"
+
+- id: "login"
+  translation: "Login"
+
+- id: "signup"
+  translation: "Sign Up"
+
+- id: "email"
+  translation: "Email"
+
+- id: "password"
+  translation: "Password"
+
+- id: "confirm_password"
+  translation: "Confirm Password"
+
+- id: "remember_email"
+  translation: "Remember Email"
+
+- id: "name"
+  translation: "Name"
+
+- id: "or_continue_with"
+  translation: "Or continue with"
+
+- id: "email_suggestion_prefix"
+  translation: "Did you mean "
+
+- id: "email_suggestion_suffix"
+  translation: "?"
