@@ -1,0 +1,510 @@
+<script>
+    const layer = document.getElementById('daum-layer');
+    const container = document.getElementById('daum-postcode-container');
+
+    function closePostcode() {
+        layer.classList.add('hidden');
+    }
+
+    function openPostcode() {
+        new daum.Postcode({
+            oncomplete: function (data) {
+                var roadAddr = data.roadAddress;
+                var extraRoadAddr = '';
+
+                if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+                    extraRoadAddr += data.bname;
+                }
+                if (data.buildingName !== '' && data.apartment === 'Y') {
+                    extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                }
+                if (extraRoadAddr !== '') {
+                    extraRoadAddr = ' (' + extraRoadAddr + ')';
+                }
+
+                document.getElementById('postcode').value = data.zonecode;
+
+                if (data.userSelectedType === 'R') {
+                    document.getElementById("address").value = roadAddr;
+                } else {
+                    document.getElementById("address").value = data.jibunAddress;
+                }
+
+                if (roadAddr !== '') {
+                    document.getElementById("extraAddress").value = extraRoadAddr;
+                } else {
+                    document.getElementById("extraAddress").value = '';
+                }
+
+                var guideTextBox = document.getElementById("guide");
+                if (data.autoRoadAddress) {
+                    var expRoadAddr = data.autoRoadAddress + extraRoadAddr;
+                    guideTextBox.innerHTML = '(예상 도로명 주소 : ' + expRoadAddr + ')';
+                    guideTextBox.style.display = ' block';
+                } else if (data.autoJibunAddress) {
+                    var expJibunAddr = data.autoJibunAddress;
+                    guideTextBox.innerHTML = '(예상 지번 주소 : ' + expJibunAddr + ')';
+                    guideTextBox.style.display = 'block';
+                } else {
+                    guideTextBox.innerHTML = '';
+                    guideTextBox.style.display = 'none';
+                }
+
+                document.getElementById("detailAddress").focus();
+                closePostcode();
+            },
+            width: '100%',
+            height: '100%',
+            maxSuggestItems: 5
+        }).embed(container);
+
+        layer.classList.remove('hidden');
+    }
+</script>
+
+<!-- Mailcheck.js for email typo correction -->
+<script src="https://cdn.jsdelivr.net/npm/mailcheck@1.1.2/src/mailcheck.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('DOM loaded, checking dependencies...');
+
+        // Check if PocketBase is loaded
+        if (typeof PocketBase === 'undefined') {
+            console.error('PocketBase is not loaded!');
+            alert('시스템 초기화 오류: PocketBase 로딩 실패');
+            return;
+        }
+
+        // Check if ShopConfig is defined
+        if (typeof window.ShopConfig === 'undefined') {
+            console.error('ShopConfig is not defined!');
+            alert('시스템 초기화 오류: ShopConfig가 정의되지 않음');
+            return;
+        }
+
+        console.log('Dependencies OK, initializing...');
+
+        const pb = new PocketBase('http://127.0.0.1:8090');
+        const currentUser = pb.authStore.model;
+
+        let cartItems = [];
+        let totalAmount = 0;
+
+        const cartContainer = document.getElementById('cart-items');
+        const totalEl = document.getElementById('total-amount');
+        const payBtn = document.getElementById('pay-button');
+        const shippingForm = document.getElementById('shipping-form');
+        const paymentMethodsContainer = document.getElementById('payment-methods');
+        const loadMemberInfoBtn = document.getElementById('load-member-info');
+
+        const formatPrice = (price) => new Intl.NumberFormat('ko-KR').format(price) + '원';
+
+        const showToast = (msg, isError = false) => {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg text-sm transition-opacity duration-300 pointer-events-none z-50 ${isError ? 'bg-red-600 text-white' : 'bg-gray-800 text-white'}`;
+            toast.style.opacity = '1';
+            setTimeout(() => toast.style.opacity = '0', 3000);
+        };
+
+        function initPaymentMethods() {
+            if (!window.ShopConfig.channels) {
+                console.error('ShopConfig.channels not found!');
+                return;
+            }
+
+            const channels = window.ShopConfig.channels;
+            let html = '';
+            let isFirst = true;
+
+            for (const [key, value] of Object.entries(channels)) {
+                let label = key.toUpperCase();
+                if (key === 'inicis') label = 'KG 이니시스';
+                if (key === 'kakaopay') label = '카카오페이';
+                if (key === 'korean_payment') label = '한국결제 네트워크';
+
+                html += `
+                <label class="cursor-pointer border rounded-lg p-3 flex items-center gap-2 hover:bg-gray-50 transition-colors ${isFirst ? 'border-blue-500 ring-1 ring-blue-500' : ''}">
+                    <input type="radio" name="payment-method" value="${key}" class="text-blue-600 focus:ring-blue-500" ${isFirst ? 'checked' : ''}>
+                    <span class="text-sm font-medium text-gray-700">${label}</span>
+                </label>
+            `;
+                isFirst = false;
+            }
+
+            paymentMethodsContainer.innerHTML = html;
+
+            const inputs = paymentMethodsContainer.querySelectorAll('input[name="payment-method"]');
+            inputs.forEach(input => {
+                input.addEventListener('change', (e) => {
+                    inputs.forEach(i => i.closest('label').classList.remove('border-blue-500', 'ring-1', 'ring-blue-500'));
+                    e.target.closest('label').classList.add('border-blue-500', 'ring-1', 'ring-blue-500');
+                    updatePaymentForms(e.target.value);
+                });
+            });
+
+            const checked = paymentMethodsContainer.querySelector('input:checked');
+            if (checked) updatePaymentForms(checked.value);
+        }
+
+        function setupEmailAutocomplete(emailInputId, suggestionDivId) {
+            const emailInput = document.getElementById(emailInputId);
+            const suggestionDiv = document.getElementById(suggestionDivId);
+
+            if (!emailInput || !suggestionDiv) return;
+
+            // Check for Mailcheck library
+            if (typeof Mailcheck === 'undefined') {
+                console.warn('Mailcheck.js not loaded');
+                return;
+            }
+
+            const suggestionLink = suggestionDiv.querySelector('a');
+
+            emailInput.addEventListener('blur', function () {
+                const email = emailInput.value.trim();
+                if (!email) {
+                    suggestionDiv.style.display = 'none';
+                    return;
+                }
+
+                Mailcheck.run({
+                    email: email,
+                    domains: ['gmail.com', 'naver.com', 'daum.net', 'kakao.com', 'outlook.com', 'hanmail.net', 'nate.com'],
+                    topLevelDomains: ['com', 'net', 'org', 'kr'],
+                    suggested: function (suggestion) {
+                        suggestionLink.textContent = suggestion.full;
+                        suggestionDiv.style.display = 'block';
+
+                        suggestionLink.onclick = function (e) {
+                            e.preventDefault();
+                            emailInput.value = suggestion.full;
+                            suggestionDiv.style.display = 'none';
+                        };
+                    },
+                    empty: function () {
+                        suggestionDiv.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        function updatePaymentForms(selectedChannel) {
+            document.querySelectorAll('.payment-form').forEach(el => el.classList.add('hidden'));
+            const form = document.getElementById(`form-${selectedChannel}`);
+            if (form) form.classList.remove('hidden');
+
+            // Autofill user data when form is shown
+            if (currentUser) {
+                if (selectedChannel === 'inicis') {
+                    document.getElementById('inicis-name').value = currentUser.name || '';
+                    document.getElementById('inicis-email').value = currentUser.email || '';
+                    document.getElementById('inicis-phone').value = currentUser.phone || '';
+                } else if (selectedChannel === 'korean_payment') {
+                    document.getElementById('korean-name').value = currentUser.name || '';
+                    document.getElementById('korean-email').value = currentUser.email || '';
+                    document.getElementById('korean-phone').value = currentUser.phone || '';
+                }
+            }
+        }
+
+        async function loadCart() {
+            try {
+                const cartId = localStorage.getItem('cart_id');
+                if (!cartId) {
+                    cartContainer.innerHTML = '<div class="text-center py-8 text-gray-500">장바구니가 비어있습니다.</div>';
+                    return;
+                }
+
+                const records = await pb.collection('cart_items').getFullList({
+                    filter: `cart="${cartId}"`,
+                    expand: 'product_id',
+                    sort: '-created',
+                });
+
+                console.log('Loaded cart records:', records);
+                cartItems = records;
+                renderCart();
+            } catch (err) {
+                console.error('Failed to load cart:', err);
+                cartContainer.innerHTML = '<div class="text-center py-8 text-red-500">장바구니를 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        function autofillShippingAddress() {
+            // Try to load saved address from localStorage first (priority)
+            const savedAddress = localStorage.getItem('saved_shipping_address');
+            if (savedAddress) {
+                try {
+                    const address = JSON.parse(savedAddress);
+                    document.getElementById('postcode').value = address.postcode || '';
+                    document.getElementById('address').value = address.address || '';
+                    document.getElementById('detailAddress').value = address.detailAddress || '';
+                    document.getElementById('extraAddress').value = address.extraAddress || '';
+                } catch (e) {
+                    console.warn('Failed to parse saved address:', e);
+                }
+            }
+
+            if (!currentUser) return;
+
+            // Autofill name/phone from user profile if empty
+            const receiverInput = shippingForm.querySelector('input[name="receiver"]');
+            const phoneInput = shippingForm.querySelector('input[name="phone"]');
+
+            if (receiverInput && !receiverInput.value && currentUser.name) {
+                receiverInput.value = currentUser.name;
+            }
+
+            if (phoneInput && !phoneInput.value && currentUser.phone) {
+                phoneInput.value = currentUser.phone;
+            }
+        }
+
+        // New function to load member info explicitly
+        function loadMemberInfo() {
+            if (!currentUser) {
+                showToast('로그인이 필요합니다.', true);
+                return;
+            }
+
+            const receiverInput = shippingForm.querySelector('input[name="receiver"]');
+            const phoneInput = shippingForm.querySelector('input[name="phone"]');
+            const postcodeInput = document.getElementById('postcode');
+            const addressInput = document.getElementById('address');
+            const detailAddressInput = document.getElementById('detailAddress');
+            const extraAddressInput = document.getElementById('extraAddress');
+
+            if (currentUser.name) receiverInput.value = currentUser.name;
+            if (currentUser.phone) phoneInput.value = currentUser.phone;
+
+            // Assuming these fields exist in user profile
+            if (currentUser.postcode) postcodeInput.value = currentUser.postcode;
+            if (currentUser.address) addressInput.value = currentUser.address;
+            if (currentUser.detailAddress) detailAddressInput.value = currentUser.detailAddress;
+            if (currentUser.extraAddress) extraAddressInput.value = currentUser.extraAddress;
+
+            showToast('회원 정보를 불러왔습니다.');
+        }
+
+        if (loadMemberInfoBtn) {
+            loadMemberInfoBtn.addEventListener('click', loadMemberInfo);
+        }
+
+        function renderCart() {
+            if (cartItems.length === 0) {
+                cartContainer.innerHTML = '<div class="text-center py-8 text-gray-500">장바구니가 비어있습니다.</div>';
+                totalAmount = 0;
+                updateTotal();
+                return;
+            }
+
+            let html = '';
+            let total = 0;
+
+            cartItems.forEach(item => {
+                // 제품 정보는 expand.product_id에 있거나 item에 직접 저장됨
+                const product = item.expand?.product_id;
+
+                // product가 없으면 item에서 직접 정보를 가져옴
+                const productName = product ? product.name : item.name;
+                const productPrice = product ? product.price : item.price;
+                const productImages = product ? product.images : null;
+
+                if (!productName) {
+                    console.warn('Product info missing for item:', item);
+                    return;
+                }
+
+                const price = productPrice || 0;
+                const qty = item.quantity || 1;
+                const subtotal = price * qty;
+                total += subtotal;
+
+                const imageFilename = productImages && productImages.length > 0 ? productImages[0] : null;
+                let imageUrl;
+                if (imageFilename && product) {
+                    imageUrl = pb.files.getUrl(product, imageFilename, { thumb: '80x80' });
+                } else if (item.image) {
+                    imageUrl = item.image;
+                } else {
+                    imageUrl = 'https://via.placeholder.com/80';
+                }
+
+                html += `
+                <div class="flex gap-4 py-4">
+                    <img src="${imageUrl}" alt="${productName}" class="w-20 h-20 object-cover rounded-lg bg-gray-100 flex-shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-medium text-gray-900 truncate">${productName}</h3>
+                        <p class="text-sm text-gray-500 mt-1">수량: ${qty}개</p>
+                        <p class="font-bold text-gray-900 mt-2">${formatPrice(subtotal)}</p>
+                    </div>
+                </div>
+            `;
+            });
+
+            cartContainer.innerHTML = html;
+            totalAmount = total;
+            updateTotal();
+        }
+
+        function updateTotal() {
+            totalEl.textContent = formatPrice(totalAmount);
+            payBtn.disabled = totalAmount === 0;
+        }
+
+        payBtn.addEventListener('click', async () => {
+            const formData = new FormData(shippingForm);
+            const shippingInfo = {
+                receiver: formData.get('receiver'),
+                phone: formData.get('phone'),
+                postcode: formData.get('postcode'),
+                address: formData.get('address'),
+                detailAddress: formData.get('detailAddress'),
+                extraAddress: formData.get('extraAddress'),
+            };
+
+            if (!shippingInfo.receiver || !shippingInfo.phone || !shippingInfo.postcode || !shippingInfo.address) {
+                showToast('배송지 정보를 모두 입력해주세요.', true);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            if (cartItems.length === 0) {
+                showToast('주문할 상품이 없습니다.', true);
+                return;
+            }
+
+            const paymentMethodEl = document.querySelector('input[name="payment-method"]:checked');
+            if (!paymentMethodEl) {
+                showToast('결제 수단을 선택해주세요.', true);
+                return;
+            }
+
+            const selectedChannel = paymentMethodEl.value;
+            const customerData = {};
+
+            if (selectedChannel === 'inicis') {
+                const name = document.getElementById('inicis-name').value.trim();
+                const email = document.getElementById('inicis-email').value.trim();
+                const phone = document.getElementById('inicis-phone').value.trim();
+
+                if (!name) return showToast('결제자 이름을 입력해주세요.', true);
+                if (!email) return showToast('결제자 이메일을 입력해주세요.', true);
+                if (!phone) return showToast('결제자 휴대폰 번호를 입력해주세요.', true);
+
+                customerData.fullName = name;
+                customerData.email = email;
+                customerData.phoneNumber = phone;
+            } else if (selectedChannel === 'korean_payment') {
+                const name = document.getElementById('korean-name').value.trim();
+                const email = document.getElementById('korean-email').value.trim();
+                const phone = document.getElementById('korean-phone').value.trim();
+
+                if (!name) return showToast('결제자 이름을 입력해주세요.', true);
+                if (!email) return showToast('결제자 이메일을 입력해주세요.', true);
+                if (!phone) return showToast('결제자 휴대폰 번호를 입력해주세요.', true);
+
+                customerData.fullName = name;
+                customerData.email = email;
+                customerData.phoneNumber = phone;
+            }
+
+            payBtn.disabled = true;
+            payBtn.textContent = '처리중...';
+
+            try {
+                const paymentId = `ord${crypto.randomUUID().replace(/-/g, '').substring(0, 29)}`;
+                const channelKey = window.ShopConfig.channels[selectedChannel];
+
+                let payMethod = "CARD";
+                if (selectedChannel === 'kakaopay') payMethod = "EASY_PAY";
+
+                // 제품 이름 가져오기
+                const orderName = cartItems.map(i => {
+                    const product = i.expand?.product_id;
+                    return product ? product.name : (i.name || '상품');
+                }).join(', ');
+
+                const requestData = {
+                    storeId: window.ShopConfig.storeId,
+                    channelKey: channelKey,
+                    paymentId: paymentId,
+                    orderName: orderName,
+                    totalAmount: totalAmount,
+                    currency: "KRW",
+                    payMethod: payMethod,
+                    customer: customerData,
+                    redirectUrl: window.location.origin + "/payment/complete",
+                };
+
+                const response = await PortOne.requestPayment(requestData);
+
+                if (response.code != null) {
+                    throw new Error(response.message);
+                }
+
+                const orderData = {
+                    payment_id: paymentId,
+                    total_amount: totalAmount,
+                    status: 'paid',
+                    items: cartItems.map(item => ({
+                        product_id: item.product_id,
+                        qty: item.quantity,
+                        price: item.expand?.product_id?.price || item.price
+                    })),
+                    buyer_details: {
+                        ...response,
+                        shipping_info: shippingInfo
+                    }
+                };
+
+                if (currentUser) {
+                    orderData.user = currentUser.id;
+                    // Removed logic that updates user profile address here
+                }
+
+                await pb.collection('orders').create(orderData);
+
+                for (const item of cartItems) {
+                    await pb.collection('cart_items').delete(item.id);
+                }
+
+                alert('결제가 완료되었습니다!');
+                window.location.href = '/';
+
+            } catch (err) {
+                console.error('Payment failed:', err);
+                showToast(`결제 실패: ${err.message}`, true);
+                payBtn.disabled = false;
+                payBtn.textContent = '결제하기';
+            }
+        });
+
+        // Save address when checkbox is checked (Local Storage)
+        document.getElementById('save-address').addEventListener('change', function (e) {
+            if (e.target.checked) {
+                const formData = new FormData(shippingForm);
+                const addressData = {
+                    postcode: formData.get('postcode'),
+                    address: formData.get('address'),
+                    detailAddress: formData.get('detailAddress'),
+                    extraAddress: formData.get('extraAddress')
+                };
+                localStorage.setItem('saved_shipping_address', JSON.stringify(addressData));
+            } else {
+                localStorage.removeItem('saved_shipping_address');
+            }
+        });
+
+        console.log('Initializing checkout page...');
+        initPaymentMethods();
+        loadCart();
+        autofillShippingAddress();
+
+        // Setup email autocomplete for payment forms
+        setupEmailAutocomplete('inicis-email', 'inicis-email-suggestion');
+        setupEmailAutocomplete('korean-email', 'korean-email-suggestion');
+    });
+</script>
