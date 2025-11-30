@@ -15,6 +15,11 @@
         }}Logout{{ end -}}</a>
 </li>
 <li class="nav-item" id="auth-profile-link" style="display: none;">
-    <a class="nav-link" href="{{ $profile | relLangURL }}">{{- if eq .Site.Language.Lang "ko" }}프로필{{ else }}Profile{{
-        end -}}</a>
+    <a class="nav-link" href="{{ $profile | relLangURL }}" style="padding-top: 0; padding-bottom: 0;">
+        <div class="d-flex align-items-center">
+            <img id="nav-avatar-img" src="" alt="Avatar" class="rounded-circle mr-2"
+                style="width: 30px; height: 30px; object-fit: cover; display: none;">
+            <i id="nav-avatar-icon" class="tf-ion-android-person" style="font-size: 24px; display: none;"></i>
+        </div>
+    </a>
 </li>

@@ -18,6 +18,11 @@ const Profile = (function () {
         if (saveBtn) {
             saveBtn.addEventListener('click', handleSave);
         }
+
+        const changePasswordBtn = document.getElementById('change-password-btn');
+        if (changePasswordBtn) {
+            changePasswordBtn.addEventListener('click', handlePasswordChange);
+        }
     }
 
     async function loadUserProfile() {
@@ -82,6 +87,56 @@ const Profile = (function () {
         } finally {
             saveBtn.disabled = false;
             saveBtn.textContent = '저장하기';
+        }
+    }
+
+    async function handlePasswordChange() {
+        const changeBtn = document.getElementById('change-password-btn');
+        const currentUser = pb.authStore.model;
+
+        if (!currentUser) {
+            showToast('로그인이 필요합니다.', true);
+            return;
+        }
+
+        const oldPassword = document.getElementById('oldPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const newPasswordConfirm = document.getElementById('newPasswordConfirm').value;
+
+        if (!oldPassword || !newPassword || !newPasswordConfirm) {
+            showToast('모든 필드를 입력해주세요.', true);
+            return;
+        }
+
+        if (newPassword !== newPasswordConfirm) {
+            showToast('새 비밀번호가 일치하지 않습니다.', true);
+            return;
+        }
+
+        // Disable button
+        changeBtn.disabled = true;
+        changeBtn.textContent = '변경중...';
+
+        try {
+            await pb.collection('users').update(currentUser.id, {
+                oldPassword: oldPassword,
+                password: newPassword,
+                passwordConfirm: newPasswordConfirm
+            });
+
+            showToast('비밀번호가 성공적으로 변경되었습니다.', false);
+
+            // Clear inputs
+            document.getElementById('oldPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('newPasswordConfirm').value = '';
+
+        } catch (error) {
+            console.error('Failed to change password:', error);
+            showToast('비밀번호 변경 실패: ' + error.message, true);
+        } finally {
+            changeBtn.disabled = false;
+            changeBtn.textContent = '비밀번호 변경';
         }
     }
 

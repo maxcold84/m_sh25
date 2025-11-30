@@ -119,17 +119,33 @@ const Auth = (function () {
         const logoutLink = document.getElementById('auth-logout-link');
         const profileLink = document.getElementById('auth-profile-link');
 
+        // Avatar elements
+        const avatarImg = document.getElementById('nav-avatar-img');
+        const avatarIcon = document.getElementById('nav-avatar-icon');
+
         if (isLoggedIn) {
             if (loginLink) loginLink.style.display = 'none';
             if (signupLink) signupLink.style.display = 'none';
             if (logoutLink) logoutLink.style.display = 'block';
             if (profileLink) {
                 profileLink.style.display = 'block';
-                const userName = pb.authStore.model.name || pb.authStore.model.email;
-                profileLink.querySelector('a').innerText = userName;
+
+                const user = pb.authStore.model;
+                if (user.avatar) {
+                    const avatarUrl = pb.files.getUrl(user, user.avatar);
+                    if (avatarImg) {
+                        avatarImg.src = avatarUrl;
+                        avatarImg.style.display = 'block';
+                    }
+                    if (avatarIcon) avatarIcon.style.display = 'none';
+                } else {
+                    if (avatarImg) avatarImg.style.display = 'none';
+                    if (avatarIcon) avatarIcon.style.display = 'block';
+                }
 
                 // Show welcome toast only if it hasn't been shown in this session
                 if (!sessionStorage.getItem('welcomeShown')) {
+                    const userName = user.name || user.email;
                     showToast(`환영합니다, ${userName}님!`);
                     sessionStorage.setItem('welcomeShown', 'true');
                 }
