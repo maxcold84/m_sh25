@@ -1,0 +1,151 @@
+{{ define "main" }}
+
+<section class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>상품 관리</h2>
+                    <button id="add-product-btn" class="btn btn-main" onclick="AdminProducts.openAddModal()">
+                        <i class="tf-ion-plus-round"></i> 상품 추가
+                    </button>
+                </div>
+
+                <!-- Auth Check -->
+                <div id="admin-auth-check" class="alert alert-warning" style="display: none;">
+                    상품을 관리하려면 관리자로 로그인해야 합니다. <a href="/ko/login">여기서 로그인하세요</a>.
+                </div>
+
+                <!-- Product List -->
+                <div id="admin-product-list" class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>이미지</th>
+                                <th>상품명</th>
+                                <th>가격</th>
+                                <th>상태</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="product-table-body">
+                            <!-- Products will be loaded here -->
+                        </tbody>
+                    </table>
+                    <div id="loading-spinner" class="text-center py-4">
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only">로딩 중...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Product Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productModalLabel">상품 추가</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="닫기">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="product-form">
+                    <input type="hidden" id="product-id">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="product-title">상품명</label>
+                                <input type="text" class="form-control" id="product-title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="product-slug">슬러그 (URL)</label>
+                                <input type="text" class="form-control" id="product-slug" required
+                                    placeholder="자동 생성됨 (수정 가능)">
+                                <small class="form-text text-muted">상품명 입력 시 자동 생성됩니다. 필요시 직접 수정하세요.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-description">설명</label>
+                        <textarea class="form-control" id="product-description" rows="3"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="product-price">가격</label>
+                                <input type="number" class="form-control" id="product-price" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="product-discount">할인가</label>
+                                <input type="number" class="form-control" id="product-discount">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="product-order">정렬 순서</label>
+                                <input type="number" class="form-control" id="product-order" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="product-colors">색상 (쉼표로 구분)</label>
+                                <input type="text" class="form-control" id="product-colors" placeholder="빨강, 파랑, 초록">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="product-sizes">사이즈 (쉼표로 구분)</label>
+                                <input type="text" class="form-control" id="product-sizes" placeholder="S, M, L, XL">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-images">이미지</label>
+                        <input type="file" class="form-control-file" id="product-images" multiple accept="image/*">
+                        <div id="current-images" class="mt-2 d-flex flex-wrap">
+                            <!-- Current images will be shown here -->
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="product-enabled" checked>
+                        <label class="form-check-label" for="product-enabled">활성화</label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-language">언어</label>
+                        <select class="form-control" id="product-language">
+                            <option value="ko">한국어</option>
+                            <option value="en">영어</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+                <button type="button" class="btn btn-main" onclick="AdminProducts.saveProduct()">저장</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ $adminScript := resources.Get "js/admin-products.js" }}
+<script src="{{ $adminScript.Permalink }}"></script>
+
+{{ end }}

@@ -9,29 +9,172 @@
           <h2>{{ $data.homepage.products.title | markdownify }}</h2>
         </div>
 
-        <div class="product-slider">
-          {{ range (where .Site.RegularPages "Section" "products") }}
-          <div class="block">
-            <div class="gallery-overlay">
-              <a href="{{ .Permalink }}" class="gallery-popup">
-                <i class="tf-ion-plus-round"></i>
-              </a>
-              <button class="btn btn-primary btn-main-sm"
-                style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 10; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"
-                onclick="event.preventDefault(); Cart.addItem({
-                        id: '{{.File.BaseFileName}}',
-                        name: '{{.Title}}',
-                        price: {{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}},
-                        image: '{{range first 1 .Params.images}}{{.|absURL}}{{end}}',
-                        options: {}
-                      })">
-                🛒 장바구니 추가
-              </button>
+        <div class="product-slider-wrapper" style="position: relative; overflow: hidden;">
+          <div id="product-slider-container" class="product-slider"
+            style="display: flex; gap: 15px; will-change: transform;">
+            <!-- Products will be loaded here -->
+            <div class="text-center" style="width: 100%;">
+              <div class="spinner-border" role="status">
+                <span class="sr-only">로딩 중...</span>
+              </div>
             </div>
-            <img class="img-fluid" src="{{range first 1 .Params.images}}{{.|absURL}}{{end}}" alt="{{.Title}}">
           </div>
-          {{ end }}
         </div>
+
+        <script>
+          document.addEventListener('DOMContentLoaded', async function () {
+            const container = document.getElementById('product-slider-container');
+            const wrapper = document.querySelector('.product-slider-wrapper');
+            let animationFrame = null;
+            let currentPosition = 0;
+            let speed = 0.5; // pixels per frame
+            let isPaused = false;
+            let isHovering = false;
+            let productWidth = 0;
+            let totalWidth = 0;
+
+            function createProductElement(product) {
+              const imageUrl = (product.images && product.images.length > 0)
+                ? productsApi.getImageUrl(product, product.images[0], '300x300')
+                : 'https://via.placeholder.com/300x300?text=No+Image';
+
+              const finalPrice = product.discount_price || product.price;
+
+              const block = document.createElement('div');
+              block.className = 'block';
+              block.style.cssText = 'flex: 0 0 250px; min-width: 250px;';
+              block.innerHTML = `
+                <div class="gallery-overlay">
+                  <a href="/ko/products/view/?slug=${product.slug}" class="gallery-popup">
+                    <i class="tf-ion-plus-round"></i>
+                  </a>
+                  <button class="btn btn-primary btn-main-sm cart-btn"
+                    style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 10; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                    🛒 장바구니 추가
+                  </button>
+                </div>
+                <img class="img-fluid" src="${imageUrl}" alt="${product.title}" onerror="this.src='https://via.placeholder.com/300x300?text=Error'">
+                <div class="product-info text-center mt-2">
+                  <h4 class="mb-1">${product.title}</h4>
+                  <p class="price">
+                    ${product.discount_price ?
+                  `{{ site.Params.currency }}${product.discount_price.toLocaleString()} <s class="text-muted">{{ site.Params.currency }}${product.price.toLocaleString()}</s>` :
+                  `{{ site.Params.currency }}${product.price.toLocaleString()}`
+                }
+                  </p>
+                </div>
+              `;
+
+              // Add cart functionality
+              const cartBtn = block.querySelector('.cart-btn');
+              if (cartBtn) {
+                cartBtn.addEventListener('click', function (e) {
+                  e.preventDefault();
+                  if (typeof Cart !== 'undefined' && Cart.addItem) {
+                    Cart.addItem({
+                      id: product.id,
+                      name: product.title,
+                      price: finalPrice,
+                      image: imageUrl,
+                      options: {}
+                    });
+                  } else {
+                    console.error('Cart is not defined');
+                    alert('장바구니 기능을 사용할 수 없습니다.');
+                  }
+                });
+              }
+
+              return block;
+            }
+
+            function animate() {
+              if (!isPaused && !isHovering) {
+                currentPosition -= speed;
+
+                // Reset position when we've scrolled past one set of products
+                if (Math.abs(currentPosition) >= totalWidth) {
+                  currentPosition = 0;
+                }
+
+                container.style.transform = `translateX(${currentPosition}px)`;
+              }
+
+              animationFrame = requestAnimationFrame(animate);
+            }
+
+            // Mouse hover - pause auto-scroll
+            wrapper.addEventListener('mouseenter', function () {
+              isHovering = true;
+            });
+
+            wrapper.addEventListener('mouseleave', function () {
+              isHovering = false;
+            });
+
+            // Mouse wheel - manual scroll control
+            wrapper.addEventListener('wheel', function (e) {
+              if (isHovering) {
+                e.preventDefault();
+
+                // Scroll horizontally based on wheel delta
+                // deltaY is typically the vertical scroll amount
+                const scrollAmount = e.deltaY * 2; // multiply for more sensitivity
+                currentPosition -= scrollAmount;
+
+                // Keep position within bounds for smooth looping
+                if (currentPosition > 0) {
+                  currentPosition -= totalWidth;
+                } else if (Math.abs(currentPosition) >= totalWidth * 2) {
+                  currentPosition += totalWidth;
+                }
+
+                container.style.transform = `translateX(${currentPosition}px)`;
+              }
+            }, { passive: false });
+
+            try {
+              console.log('Loading products for homepage...');
+              const result = await productsApi.getList({ perPage: 20, sort: '-order,-created' });
+
+              if (result.items && result.items.length > 0) {
+                console.log('Processing products:', result.items);
+                container.innerHTML = ''; // Clear loading spinner
+                container.style.display = 'flex';
+                container.style.gap = '15px';
+
+                // Add products multiple times for seamless loop
+                const repeatCount = Math.max(3, Math.ceil(20 / result.items.length));
+
+                for (let i = 0; i < repeatCount; i++) {
+                  result.items.forEach(product => {
+                    const block = createProductElement(product);
+                    container.appendChild(block);
+                  });
+                }
+
+                // Calculate total width for one set of products
+                setTimeout(() => {
+                  const firstItem = container.querySelector('.block');
+                  if (firstItem) {
+                    productWidth = firstItem.offsetWidth + 15; // including gap
+                    totalWidth = productWidth * result.items.length;
+
+                    // Start animation
+                    animate();
+                    console.log('Infinite scroll slider started with wheel control');
+                  }
+                }, 100);
+              } else {
+                console.log('No products found');
+                container.innerHTML = '<p class="text-center" style="width: 100%;">등록된 상품이 없습니다.</p>';
+              }
+            } catch (error) {
+              console.error('Failed to load products:', error);
+              container.innerHTML = '<p class="text-center text-danger" style="width: 100%;">상품을 불러오는 중 오류가 발생했습니다: ' + error.message + '</p>';
+            }
+          });
+        </script>
       </div>
     </div>
   </div>

@@ -2,42 +2,173 @@
 
 <section class="section">
   <div class="container">
-    <div class="row">
-      <div class="col-md-5 mb-4 mb-md-0">
-        <!-- product image slider -->
-        <div class="product-image-slider">
-          {{ range .Params.images }}
-          <div data-image="{{ . | absURL }}">
-            {{ partial "image.html" (dict "Src" . "Alt" "product-image" "Class" "img-fluid w-100" ) }}
-          </div>
-          {{ end }}
+    <div id="product-detail-container">
+      <div class="text-center py-5">
+        <div class="spinner-border" role="status">
+          <span class="sr-only">Loading...</span>
         </div>
-      </div>
-      <div class="col-lg-6 col-md-7 offset-lg-1">
-        <h1 class="mb-4">{{ .Title }}</h1>
-        {{ with .Params.colors }}<p><strong>Colors: </strong>{{ delimit . ", " | title}}</p>{{ end }}
-        {{ with .Params.sizes }}<p><strong>Sizes: </strong>{{ delimit . ", " | title}}</p>{{ end }}
-        <p class="price py-4">{{if
-          .Params.discount_price}}{{site.Params.currency}}{{.Params.discount_price}}{{else}}{{site.Params.currency}}{{.Params.price}}{{end}}
-          {{if .Params.discount_price}}<s class="price">{{site.Params.currency}}{{ .Params.price }}</s>{{end}}
-        </p>
-        <button class="btn btn-main mb-5" onclick="Cart.addItem({
-            id: '{{.File.BaseFileName}}',
-            name: '{{.Title}}',
-            price: {{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}},
-            image: '{{with .Params.Images}} {{range first 1 . }}{{. | absURL}}{{end}}{{end}}',
-            options: {
-              {{ if .Params.colors }}color: '{{ index .Params.colors 0 }}',{{ end }}
-              {{ if .Params.sizes }}size: '{{ index .Params.sizes 0 }}'{{ end }}
-            }
-          })">
-          🛒 장바구니에 추가
-        </button>
-
-        <div class="content">{{.Content}}</div>
       </div>
     </div>
   </div>
 </section>
+
+<script id="product-detail-template" type="x-tmpl-mustache">
+<div class="row">
+  <div class="col-md-5 mb-4 mb-md-0">
+    <!-- product image slider -->
+    <div class="product-image-slider">
+      {{`{{#images}}`}}
+      <div data-image="{{`{{url}}`}}">
+        <img class="img-fluid w-100" src="{{`{{url}}`}}" alt="product-image">
+      </div>
+      {{`{{/images}}`}}
+    </div>
+  </div>
+  <div class="col-lg-6 col-md-7 offset-lg-1">
+    <h1 class="mb-4">{{`{{title}}`}}</h1>
+    {{`{{#colors}}`}}<p><strong>Colors: </strong>{{`{{.}}`}}</p>{{`{{/colors}}`}}
+    {{`{{#sizes}}`}}<p><strong>Sizes: </strong>{{`{{.}}`}}</p>{{`{{/sizes}}`}}
+    <p class="price py-4">
+      {{`{{#discount_price}}`}}
+      {{site.Params.currency}}{{`{{discount_price}}`}}
+      <s class="price">{{site.Params.currency}}{{`{{price}}`}}</s>
+      {{`{{/discount_price}}`}}
+      {{`{{^discount_price}}`}}
+      {{site.Params.currency}}{{`{{price}}`}}
+      {{`{{/discount_price}}`}}
+    </p>
+    <button class="btn btn-main mb-5" onclick="Cart.addItem({
+        id: '{{`{{id}}`}}',
+        name: '{{`{{title}}`}}',
+        price: {{`{{finalPrice}}`}},
+        image: '{{`{{mainImage}}`}}',
+        options: {
+          {{`{{#firstColor}}`}}color: '{{`{{firstColor}}`}}',{{`{{/firstColor}}`}}
+          {{`{{#firstSize}}`}}size: '{{`{{firstSize}}`}}'{{`{{/firstSize}}`}}
+        }
+      })">
+      🛒 장바구니에 추가
+    </button>
+
+    <div class="content">{{`{{description}}`}}</div>
+  </div>
+</div>
+</script>
+
+<section class="section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <h3 class="mb-4">Customer Reviews</h3>
+
+        <!-- Review Submission Form -->
+        <div id="review-form-container" class="mb-5">
+          <div id="review-auth-message" class="alert alert-info" style="display: none;">
+            Please <a href="/login">log in</a> to write a review.
+          </div>
+
+          <form id="review-form" style="display: none;">
+            <div class="form-group">
+              <label>Rating</label>
+              <div class="rating-stars mb-2">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="rating" id="rating5" value="5" checked>
+                  <label class="form-check-label text-warning" for="rating5">★★★★★</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="rating" id="rating4" value="4">
+                  <label class="form-check-label text-warning" for="rating4">★★★★☆</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="rating" id="rating3" value="3">
+                  <label class="form-check-label text-warning" for="rating3">★★★☆☆</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="rating" id="rating2" value="2">
+                  <label class="form-check-label text-warning" for="rating2">★★☆☆☆</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="rating" id="rating1" value="1">
+                  <label class="form-check-label text-warning" for="rating1">★☆☆☆☆</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="review-content">Your Review</label>
+              <textarea class="form-control" id="review-content" rows="3"
+                placeholder="Write your review here..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-main btn-small">Submit Review</button>
+          </form>
+        </div>
+
+        <!-- Reviews List -->
+        <div id="review-list">
+          <!-- Reviews will be loaded here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{{ $reviewsScript := resources.Get "js/reviews.js" }}
+<script src="{{ $reviewsScript.Permalink }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const slug = urlParams.get('slug');
+    const container = document.getElementById('product-detail-container');
+    const template = document.getElementById('product-detail-template').innerHTML;
+
+    if (!slug) {
+      container.innerHTML = '<div class="text-center text-danger">상품 정보를 찾을 수 없습니다.</div>';
+      return;
+    }
+
+    try {
+      const product = await productsApi.getBySlug(slug);
+
+      if (product) {
+        // Process data for template
+        const images = product.images.map(img => ({
+          url: productsApi.getImageUrl(product, img, '800x800')
+        }));
+
+        const data = {
+          ...product,
+          images: images,
+          mainImage: images.length > 0 ? images[0].url : '',
+          finalPrice: product.discount_price || product.price,
+          colors: product.colors ? (Array.isArray(product.colors) ? product.colors : JSON.parse(product.colors)) : [],
+          sizes: product.sizes ? (Array.isArray(product.sizes) ? product.sizes : JSON.parse(product.sizes)) : [],
+          firstColor: product.colors && product.colors.length > 0 ? product.colors[0] : null,
+          firstSize: product.sizes && product.sizes.length > 0 ? product.sizes[0] : null
+        };
+
+        const rendered = Mustache.render(template, data);
+        container.innerHTML = rendered;
+
+        // Initialize slider
+        if (window.jQuery && window.jQuery.fn.slick) {
+          window.jQuery('.product-image-slider').slick({
+            dots: true,
+            infinite: true,
+            speed: 300,
+            slidesToShow: 1,
+            adaptiveHeight: true
+          });
+        }
+
+        // Initialize Reviews
+        Reviews.init(product.id); // Use ID for reviews, not slug
+      } else {
+        container.innerHTML = '<div class="text-center">상품을 찾을 수 없습니다.</div>';
+      }
+    } catch (error) {
+      console.error('Failed to load product:', error);
+      container.innerHTML = '<div class="text-center text-danger">상품 정보를 불러오는 중 오류가 발생했습니다.</div>';
+    }
+  });
+</script>
 
 {{ end }}

@@ -66,4 +66,7 @@
   {{ $cart := resources.Get "js/cart.js" }}
   <script src="{{ $cart.Permalink }}?v={{ now.Unix }}"></script>
 
+  {{ $productsApi := resources.Get "js/products-api.js" }}
+  <script src="{{ $productsApi.Permalink }}?v={{ now.Unix }}"></script>
+
 </head>
