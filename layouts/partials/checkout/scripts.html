@@ -324,10 +324,12 @@
 
                 const imageFilename = productImages && productImages.length > 0 ? productImages[0] : null;
                 let imageUrl;
-                if (imageFilename && product) {
-                    imageUrl = pb.files.getUrl(product, imageFilename, { thumb: '80x80' });
-                } else if (item.image) {
+
+                // Prioritize the image URL stored in the cart item (which is processed by Hugo)
+                if (item.image) {
                     imageUrl = item.image;
+                } else if (imageFilename && product) {
+                    imageUrl = pb.files.getUrl(product, imageFilename, { thumb: '80x80' });
                 } else {
                     imageUrl = 'https://via.placeholder.com/80';
                 }
@@ -336,12 +338,11 @@
                 <div class="flex gap-4 py-4">
                     <img src="${imageUrl}" alt="${productName}" class="w-20 h-20 object-cover rounded-lg bg-gray-100 flex-shrink-0">
                     <div class="flex-1 min-w-0">
-                        <h3 class="font-medium text-gray-900 truncate">${productName}</h3>
                         <p class="text-sm text-gray-500 mt-1">수량: ${qty}개</p>
                         <p class="font-bold text-gray-900 mt-2">${formatPrice(subtotal)}</p>
-                    </div>
-                </div>
-            `;
+                    </div >
+                </div >
+                    `;
             });
 
             cartContainer.innerHTML = html;
@@ -415,7 +416,7 @@
             payBtn.textContent = '처리중...';
 
             try {
-                const paymentId = `ord${crypto.randomUUID().replace(/-/g, '').substring(0, 29)}`;
+                const paymentId = `ord${crypto.randomUUID().replace(/-/g, '').substring(0, 29)} `;
                 const channelKey = window.ShopConfig.channels[selectedChannel];
 
                 let payMethod = "CARD";

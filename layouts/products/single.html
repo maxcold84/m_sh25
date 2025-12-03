@@ -58,11 +58,39 @@
             {{ end }}
           </p>
 
+          {{ $cartImage := "" }}
+          {{ if .Params.mainImage }}
+          {{ $cartImage = .Params.mainImage }}
+          {{/* Check if it's already a full path or just a filename */}}
+          {{ $imagePath := .Params.mainImage }}
+          {{ if not (strings.Contains $imagePath "/") }}
+          {{ $imagePath = printf "images/products/%s" $imagePath }}
+          {{ end }}
+
+          {{ $img := resources.Get (strings.TrimPrefix "/" $imagePath) }}
+          {{ if $img }}
+          {{ $cartImage = $img.RelPermalink }}
+          {{ end }}
+          {{ else if and .Params.images (gt (len .Params.images) 0) }}
+          {{ $firstImg := index .Params.images 0 }}
+          {{ $cartImage = $firstImg }}
+
+          {{ $imagePath := $firstImg }}
+          {{ if not (strings.Contains $imagePath "/") }}
+          {{ $imagePath = printf "images/products/%s" $imagePath }}
+          {{ end }}
+
+          {{ $img := resources.Get (strings.TrimPrefix "/" $imagePath) }}
+          {{ if $img }}
+          {{ $cartImage = $img.RelPermalink }}
+          {{ end }}
+          {{ end }}
+
           <button class="btn btn-main mb-5" onclick="Cart.addItem({
               id: '{{ .Params.id }}',
               name: '{{ .Title }}',
               price: {{ if .Params.discount_price }}{{ .Params.discount_price }}{{ else }}{{ .Params.price }}{{ end }},
-              image: '{{ .Params.mainImage }}',
+              image: '{{ $cartImage }}',
               options: {
                 {{ with .Params.colors }}{{ if gt (len .) 0 }}color: '{{ index . 0 }}',{{ end }}{{ end }}
                 {{ with .Params.sizes }}{{ if gt (len .) 0 }}size: '{{ index . 0 }}'{{ end }}{{ end }}
@@ -93,11 +121,11 @@
                 <label for="review-rating">평점</label>
                 <select class="form-control" id="review-rating" required>
                   <option value="">선택하세요</option>
-                  <option value="5">⭐⭐⭐⭐⭐ (5점)</option>
-                  <option value="4">⭐⭐⭐⭐ (4점)</option>
-                  <option value="3">⭐⭐⭐ (3점)</option>
-                  <option value="2">⭐⭐ (2점)</option>
-                  <option value="1">⭐ (1점)</option>
+                  <option value="5">⭐⭐⭐⭐⭐</option>
+                  <option value="4">⭐⭐⭐⭐</option>
+                  <option value="3">⭐⭐⭐</option>
+                  <option value="2">⭐⭐</option>
+                  <option value="1">⭐</option>
                 </select>
               </div>
               <div class="form-group">
