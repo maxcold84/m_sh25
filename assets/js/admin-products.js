@@ -59,6 +59,7 @@ const AdminProducts = {
                     <td>
                         <button class="btn btn-sm btn-info" onclick="AdminProducts.openEditModal('${product.id}')">수정</button>
                         <button class="btn btn-sm btn-danger" onclick="AdminProducts.deleteProduct('${product.id}')">삭제</button>
+                        <a href="/ko/products/${product.slug}/" target="_blank" class="btn btn-sm btn-success">상세페이지</a>
                     </td>
                 `;
                 tableBody.appendChild(tr);
