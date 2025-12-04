@@ -7,10 +7,13 @@ discount_price: 66622
 description: "잘잘잘 작성되나요"
 images:
   - "yt3wma2l0zpy6kv_0_showcase_3_hu_b44270504e1c361f_3mgjpdy47b.webp"
+pbImages:
+  - "http://127.0.0.1:8090/api/files/pbc_4092854851/yt3wma2l0zpy6kv/showcase_3_hu_b44270504e1c361f_3mgjpdy47b.webp"
 mainImage: "yt3wma2l0zpy6kv_0_showcase_3_hu_b44270504e1c361f_3mgjpdy47b.webp"
 colors: []
 sizes: []
 id: "yt3wma2l0zpy6kv"
+pbCollectionId: "pbc_4092854851"
 layout: "single"
 ---
 

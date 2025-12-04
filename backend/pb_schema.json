@@ -1271,8 +1271,8 @@
             {
                 "hidden": false,
                 "id": "file_images_001",
-                "maxSelect": 10,
-                "maxSize": 5242880,
+                "maxSelect": 20,
+                "maxSize": 20971520,
                 "mimeTypes": [
                     "image/jpeg",
                     "image/png",

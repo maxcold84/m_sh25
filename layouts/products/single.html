@@ -5,36 +5,85 @@
     <div id="product-detail-container">
       <div class="row">
         <div class="col-md-5 mb-4 mb-md-0">
-          <!-- product image slider with Hugo image processing -->
-          <div class="product-image-slider">
+          <!-- Product Image Slider -->
+          <div class="product-image-slider" id="product-slider">
+            {{ $imagesLen := 0 }}
+            {{ $pbImagesLen := 0 }}
+            {{ $processedImages := slice }}
+            {{ with .Params.images }}{{ $imagesLen = len . }}{{ end }}
+            {{ with .Params.pbImages }}{{ $pbImagesLen = len . }}{{ end }}
+
+            {{/* First, try to process Hugo images */}}
             {{ range .Params.images }}
             {{ $imagePath := printf "images/products/%s" . }}
             {{ $img := resources.Get $imagePath }}
-
             {{ if $img }}
-            <!-- Hugo image processing: WebP with responsive sizes -->
-            {{ $large := $img.Resize "1200x webp q85" }}
-            {{ $medium := $img.Resize "800x webp q85" }}
-            {{ $small := $img.Resize "400x webp q85" }}
+            {{ $processedImages = $processedImages | append $img }}
+            {{ end }}
+            {{ end }}
 
-            <div data-image="{{ $medium.RelPermalink }}">
+            {{/* Display processed Hugo images */}}
+            {{ if gt (len $processedImages) 0 }}
+            {{ range $processedImages }}
+            {{ $large := .Resize "1200x webp q85" }}
+            {{ $medium := .Resize "800x webp q85" }}
+            {{ $small := .Resize "400x webp q85" }}
+            <div class="slide-item" data-image="{{ $medium.RelPermalink }}">
               <picture>
                 <source srcset="{{ $small.RelPermalink }} 400w,
-                              {{ $medium.RelPermalink }} 800w,
-                              {{ $large.RelPermalink }} 1200w" type="image/webp"
+                                  {{ $medium.RelPermalink }} 800w,
+                                  {{ $large.RelPermalink }} 1200w" type="image/webp"
                   sizes="(max-width: 600px) 400px, (max-width: 1000px) 800px, 1200px">
                 <img class="img-fluid w-100" src="{{ $medium.RelPermalink }}" alt="{{ $.Title }}" loading="lazy">
               </picture>
             </div>
+            {{ end }}
             {{ else }}
-            <!-- Fallback if image not found in assets -->
-            <div data-image="{{ . }}">
+            {{/* Fallback: Use PocketBase images directly */}}
+            {{ with .Params.pbImages }}
+            {{ range . }}
+            <div class="slide-item" data-image="{{ . }}">
+              <img class="img-fluid w-100" src="{{ . }}" alt="{{ $.Title }}" loading="lazy">
+            </div>
+            {{ end }}
+            {{ else }}
+            {{/* Fallback: use original image paths */}}
+            {{ range .Params.images }}
+            <div class="slide-item" data-image="{{ . }}">
               <img class="img-fluid w-100" src="{{ . }}" alt="{{ $.Title }}" loading="lazy">
             </div>
             {{ end }}
             {{ end }}
+            {{ end }}
           </div>
+
+          <!-- Thumbnail Navigation -->
+          {{ $totalImages := len $processedImages }}
+          {{ if eq $totalImages 0 }}{{ $totalImages = $pbImagesLen }}{{ end }}
+          {{ if eq $totalImages 0 }}{{ $totalImages = $imagesLen }}{{ end }}
+
+          {{ if gt $totalImages 1 }}
+          <div class="product-thumbnails d-flex flex-wrap mt-3" style="gap: 8px;">
+            {{ if gt (len $processedImages) 0 }}
+            {{ range $idx, $img := $processedImages }}
+            {{ $thumb := $img.Resize "100x100 webp q80" }}
+            <img src="{{ $thumb.RelPermalink }}" alt="썸네일 {{ add $idx 1 }}"
+              class="product-thumb {{ if eq $idx 0 }}active{{ end }}" data-index="{{ $idx }}"
+              style="width: 60px; height: 60px; object-fit: cover; border: 2px solid transparent; border-radius: 4px; cursor: pointer;">
+            {{ end }}
+            {{ else }}
+            {{ with .Params.pbImages }}
+            {{ range $idx, $url := . }}
+            <img src="{{ $url }}" alt="썸네일 {{ add $idx 1 }}" class="product-thumb {{ if eq $idx 0 }}active{{ end }}"
+              data-index="{{ $idx }}"
+              style="width: 60px; height: 60px; object-fit: cover; border: 2px solid transparent; border-radius: 4px; cursor: pointer;">
+            {{ end }}
+            {{ end }}
+            {{ end }}
+          </div>
+          {{ end }}
         </div>
+
         <div class="col-lg-6 col-md-7 offset-lg-1">
           <h1 class="mb-4">{{ .Title }}</h1>
 
@@ -53,37 +102,24 @@
           <p class="price py-4">
             {{ if .Params.discount_price }}
             {{ site.Params.currency }}{{ .Params.discount_price }}
+            <span class="text-muted text-decoration-line-through ml-2" style="font-size: 0.8em;">
+              {{ site.Params.currency }}{{ .Params.price }}
+            </span>
             {{ else }}
             {{ site.Params.currency }}{{ .Params.price }}
             {{ end }}
           </p>
 
           {{ $cartImage := "" }}
-          {{ if .Params.mainImage }}
+          {{ if gt (len $processedImages) 0 }}
+          {{ $firstImg := index $processedImages 0 }}
+          {{ $cartImage = $firstImg.RelPermalink }}
+          {{ else if .Params.mainImage }}
           {{ $cartImage = .Params.mainImage }}
-          {{/* Check if it's already a full path or just a filename */}}
-          {{ $imagePath := .Params.mainImage }}
-          {{ if not (strings.Contains $imagePath "/") }}
-          {{ $imagePath = printf "images/products/%s" $imagePath }}
-          {{ end }}
-
-          {{ $img := resources.Get (strings.TrimPrefix "/" $imagePath) }}
-          {{ if $img }}
-          {{ $cartImage = $img.RelPermalink }}
-          {{ end }}
-          {{ else if and .Params.images (gt (len .Params.images) 0) }}
-          {{ $firstImg := index .Params.images 0 }}
-          {{ $cartImage = $firstImg }}
-
-          {{ $imagePath := $firstImg }}
-          {{ if not (strings.Contains $imagePath "/") }}
-          {{ $imagePath = printf "images/products/%s" $imagePath }}
-          {{ end }}
-
-          {{ $img := resources.Get (strings.TrimPrefix "/" $imagePath) }}
-          {{ if $img }}
-          {{ $cartImage = $img.RelPermalink }}
-          {{ end }}
+          {{ else if and .Params.pbImages (gt $pbImagesLen 0) }}
+          {{ $cartImage = index .Params.pbImages 0 }}
+          {{ else if and .Params.images (gt $imagesLen 0) }}
+          {{ $cartImage = index .Params.images 0 }}
           {{ end }}
 
           <button class="btn btn-main mb-5" onclick="Cart.addItem({
@@ -160,15 +196,53 @@
   </div>
 </section>
 
+<style>
+  .product-thumb {
+    transition: border-color 0.2s ease;
+  }
+
+  .product-thumb:hover,
+  .product-thumb.active {
+    border-color: #333 !important;
+  }
+
+  .product-image-slider .slick-slide img {
+    max-height: 500px;
+    object-fit: contain;
+  }
+</style>
+
 <script>
-  // Initialize product slider
+  // Initialize product slider with thumbnails
   document.addEventListener('DOMContentLoaded', function () {
+    // Slick slider init
     if (typeof $ !== 'undefined' && $.fn.slick) {
       $('.product-image-slider').slick({
         infinite: true,
         speed: 300,
         slidesToShow: 1,
-        adaptiveHeight: true
+        adaptiveHeight: true,
+        arrows: true,
+        dots: false
+      });
+
+      // Thumbnail click handler
+      document.querySelectorAll('.product-thumb').forEach(thumb => {
+        thumb.addEventListener('click', function () {
+          const index = parseInt(this.dataset.index);
+          $('.product-image-slider').slick('slickGoTo', index);
+
+          // Update active state
+          document.querySelectorAll('.product-thumb').forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+
+      // Update thumbnails on slide change
+      $('.product-image-slider').on('afterChange', function (event, slick, currentSlide) {
+        document.querySelectorAll('.product-thumb').forEach((t, idx) => {
+          t.classList.toggle('active', idx === currentSlide);
+        });
       });
     }
   });

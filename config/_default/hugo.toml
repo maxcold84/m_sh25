@@ -144,7 +144,7 @@ link = "plugins/slick/slick.min.js"
 enable = true
 preloader = "" # use .png , .svg or .gif format
 
-# Portone V2
+# Portone V2 
 [params.portone]
   store_id = "store-9f6b78d6-2b0d-4a7c-96c4-7e4adb83bed9"
   inicis_channel_key = "channel-key-54930405-2c88-4283-9be0-298b3d1c117a"
@@ -161,7 +161,7 @@ preloader = "" # use .png , .svg or .gif format
     [params.pocketbase.oauth.kakao]
       enable = true
     [params.pocketbase.oauth.naver]
-      enable = true
+      enable = false
 
 
 
