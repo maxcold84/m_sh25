@@ -103,10 +103,10 @@ testimonial:
   title: "사용자 리뷰"
   testimonial_item:
     # testimonial item loop
-    - name: "김철수"
+    - name: "김철민"
       designation: "CEO, 테마피셔"
       image: "images/avater.png"
-      content: "이 시계를 사용하고 나서 제 삶이 완전히 바뀌었습니다. 건강 관리부터 일정 관리까지 모든 것이 완벽합니다."
+      content: "이 제품을 사용하고 나서 제 삶이 완전히 바뀌었습니다. 건강 관리부터 일정 관리까지 모든 것이 완벽합니다."
 
     # testimonial item loop
     - name: "이영희"

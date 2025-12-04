@@ -8,14 +8,10 @@ description: "gfsgfdsg"
 images:
   - "9w8c6zp439uuigc_0_782c994e_66bc_4d5e_a03a_7a2bd3f3e5cc_kymyqz62e7.jfif"
   - "9w8c6zp439uuigc_1_2881ea12_230d_420b_98ac_23d5bfc4f6ea_1_p1zm9lkwt4.jfif"
-pbImages:
-  - "http://127.0.0.1:8090/api/files/pbc_4092854851/9w8c6zp439uuigc/782c994e_66bc_4d5e_a03a_7a2bd3f3e5cc_kymyqz62e7.jfif"
-  - "http://127.0.0.1:8090/api/files/pbc_4092854851/9w8c6zp439uuigc/2881ea12_230d_420b_98ac_23d5bfc4f6ea_1_p1zm9lkwt4.jfif"
 mainImage: "9w8c6zp439uuigc_0_782c994e_66bc_4d5e_a03a_7a2bd3f3e5cc_kymyqz62e7.jfif"
 colors: []
 sizes: []
 id: "9w8c6zp439uuigc"
-pbCollectionId: "pbc_4092854851"
 layout: "single"
 ---
 
