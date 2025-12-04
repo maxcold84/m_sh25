@@ -7,13 +7,7 @@
         <div class="col-md-5 mb-4 mb-md-0">
           <!-- Product Image Slider -->
           <div class="product-image-slider" id="product-slider">
-            {{ $imagesLen := 0 }}
-            {{ $pbImagesLen := 0 }}
             {{ $processedImages := slice }}
-            {{ with .Params.images }}{{ $imagesLen = len . }}{{ end }}
-            {{ with .Params.pbImages }}{{ $pbImagesLen = len . }}{{ end }}
-
-            {{/* First, try to process Hugo images */}}
             {{ range .Params.images }}
             {{ $imagePath := printf "images/products/%s" . }}
             {{ $img := resources.Get $imagePath }}
@@ -38,47 +32,17 @@
               </picture>
             </div>
             {{ end }}
-            {{ else }}
-            {{/* Fallback: Use PocketBase images directly */}}
-            {{ with .Params.pbImages }}
-            {{ range . }}
-            <div class="slide-item" data-image="{{ . }}">
-              <img class="img-fluid w-100" src="{{ . }}" alt="{{ $.Title }}" loading="lazy">
-            </div>
-            {{ end }}
-            {{ else }}
-            {{/* Fallback: use original image paths */}}
-            {{ range .Params.images }}
-            <div class="slide-item" data-image="{{ . }}">
-              <img class="img-fluid w-100" src="{{ . }}" alt="{{ $.Title }}" loading="lazy">
-            </div>
-            {{ end }}
-            {{ end }}
             {{ end }}
           </div>
 
           <!-- Thumbnail Navigation -->
-          {{ $totalImages := len $processedImages }}
-          {{ if eq $totalImages 0 }}{{ $totalImages = $pbImagesLen }}{{ end }}
-          {{ if eq $totalImages 0 }}{{ $totalImages = $imagesLen }}{{ end }}
-
-          {{ if gt $totalImages 1 }}
+          {{ if gt (len $processedImages) 1 }}
           <div class="product-thumbnails d-flex flex-wrap mt-3" style="gap: 8px;">
-            {{ if gt (len $processedImages) 0 }}
             {{ range $idx, $img := $processedImages }}
             {{ $thumb := $img.Resize "100x100 webp q80" }}
             <img src="{{ $thumb.RelPermalink }}" alt="썸네일 {{ add $idx 1 }}"
               class="product-thumb {{ if eq $idx 0 }}active{{ end }}" data-index="{{ $idx }}"
               style="width: 60px; height: 60px; object-fit: cover; border: 2px solid transparent; border-radius: 4px; cursor: pointer;">
-            {{ end }}
-            {{ else }}
-            {{ with .Params.pbImages }}
-            {{ range $idx, $url := . }}
-            <img src="{{ $url }}" alt="썸네일 {{ add $idx 1 }}" class="product-thumb {{ if eq $idx 0 }}active{{ end }}"
-              data-index="{{ $idx }}"
-              style="width: 60px; height: 60px; object-fit: cover; border: 2px solid transparent; border-radius: 4px; cursor: pointer;">
-            {{ end }}
-            {{ end }}
             {{ end }}
           </div>
           {{ end }}
@@ -114,12 +78,6 @@
           {{ if gt (len $processedImages) 0 }}
           {{ $firstImg := index $processedImages 0 }}
           {{ $cartImage = $firstImg.RelPermalink }}
-          {{ else if .Params.mainImage }}
-          {{ $cartImage = .Params.mainImage }}
-          {{ else if and .Params.pbImages (gt $pbImagesLen 0) }}
-          {{ $cartImage = index .Params.pbImages 0 }}
-          {{ else if and .Params.images (gt $imagesLen 0) }}
-          {{ $cartImage = index .Params.images 0 }}
           {{ end }}
 
           <button class="btn btn-main mb-5" onclick="Cart.addItem({
