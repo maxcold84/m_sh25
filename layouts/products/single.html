@@ -5,7 +5,7 @@
     <div id="product-detail-container">
       <div class="row">
         <div class="col-md-5 mb-4 mb-md-0">
-          <!-- Product Image Slider -->
+          <!-- Product Image Slider 휴고 메인 이미지와 슬라이더-->
           <div class="product-image-slider" id="product-slider">
             {{ $processedImages := slice }}
             {{ range .Params.images }}
@@ -35,17 +35,6 @@
             {{ end }}
           </div>
 
-          <!-- Thumbnail Navigation -->
-          {{ if gt (len $processedImages) 1 }}
-          <div class="product-thumbnails d-flex flex-wrap mt-3" style="gap: 8px;">
-            {{ range $idx, $img := $processedImages }}
-            {{ $thumb := $img.Resize "100x100 webp q80" }}
-            <img src="{{ $thumb.RelPermalink }}" alt="썸네일 {{ add $idx 1 }}"
-              class="product-thumb {{ if eq $idx 0 }}active{{ end }}" data-index="{{ $idx }}"
-              style="width: 60px; height: 60px; object-fit: cover; border: 2px solid transparent; border-radius: 4px; cursor: pointer;">
-            {{ end }}
-          </div>
-          {{ end }}
         </div>
 
         <div class="col-lg-6 col-md-7 offset-lg-1">
@@ -155,15 +144,6 @@
 </section>
 
 <style>
-  .product-thumb {
-    transition: border-color 0.2s ease;
-  }
-
-  .product-thumb:hover,
-  .product-thumb.active {
-    border-color: #333 !important;
-  }
-
   .product-image-slider .slick-slide img {
     max-height: 500px;
     object-fit: contain;
@@ -182,25 +162,6 @@
         adaptiveHeight: true,
         arrows: true,
         dots: false
-      });
-
-      // Thumbnail click handler
-      document.querySelectorAll('.product-thumb').forEach(thumb => {
-        thumb.addEventListener('click', function () {
-          const index = parseInt(this.dataset.index);
-          $('.product-image-slider').slick('slickGoTo', index);
-
-          // Update active state
-          document.querySelectorAll('.product-thumb').forEach(t => t.classList.remove('active'));
-          this.classList.add('active');
-        });
-      });
-
-      // Update thumbnails on slide change
-      $('.product-image-slider').on('afterChange', function (event, slick, currentSlide) {
-        document.querySelectorAll('.product-thumb').forEach((t, idx) => {
-          t.classList.toggle('active', idx === currentSlide);
-        });
       });
     }
   });
