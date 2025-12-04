@@ -111,26 +111,45 @@
       <div class="row mt-5">
         <div class="col-12">
           <h2>상품 리뷰</h2>
-          <div id="reviews-container"></div>
+
+          <!-- Review List -->
+          <div id="review-list" class="mb-4"></div>
+
+          <!-- Auth Message (shown when not logged in) -->
+          <div id="review-auth-message" class="alert alert-info" style="display: none;">
+            리뷰를 작성하려면 <a href="/ko/auth/">로그인</a>이 필요합니다.
+          </div>
 
           <!-- Review Form (only for logged in users) -->
           <div id="review-form-container" class="mt-4">
             <h3>리뷰 작성</h3>
-            <form id="review-form">
+            <form id="review-form" style="display: none;">
               <div class="form-group">
                 <label for="review-rating">평점</label>
                 <select class="form-control" id="review-rating" required>
                   <option value="">선택하세요</option>
-                  <option value="5">⭐⭐⭐⭐⭐</option>
-                  <option value="4">⭐⭐⭐⭐</option>
-                  <option value="3">⭐⭐⭐</option>
-                  <option value="2">⭐⭐</option>
-                  <option value="1">⭐</option>
+                  <option value="5">⭐⭐⭐⭐⭐ (5점)</option>
+                  <option value="4">⭐⭐⭐⭐ (4점)</option>
+                  <option value="3">⭐⭐⭐ (3점)</option>
+                  <option value="2">⭐⭐ (2점)</option>
+                  <option value="1">⭐ (1점)</option>
                 </select>
               </div>
               <div class="form-group">
                 <label for="review-content">내용</label>
-                <textarea class="form-control" id="review-content" rows="4" required></textarea>
+                <textarea class="form-control" id="review-content" rows="4" required
+                  placeholder="상품에 대한 솔직한 리뷰를 남겨주세요."></textarea>
+              </div>
+              <div class="form-group">
+                <label>사진 첨부 (최대 5장)</label>
+                <div class="review-image-upload">
+                  <input type="file" id="review-images" accept="image/*" multiple class="d-none">
+                  <label for="review-images" class="btn btn-outline-secondary btn-sm" style="cursor: pointer;">
+                    📷 사진 선택
+                  </label>
+                  <span id="review-image-count" class="ml-2 text-muted"></span>
+                </div>
+                <div id="review-image-preview" class="d-flex flex-wrap mt-2" style="gap: 8px;"></div>
               </div>
               <button type="submit" class="btn btn-primary">리뷰 제출</button>
             </form>
@@ -156,8 +175,12 @@
 </script>
 
 <!-- Reviews Script -->
-{{ if templates.Exists "partials/reviews.js.html" }}
-{{ partial "reviews.js.html" . }}
-{{ end }}
+{{ $reviews := resources.Get "js/reviews.js" }}
+<script src="{{ $reviews.Permalink }}?v={{ now.Unix }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    Reviews.init('{{ .Params.id }}');
+  });
+</script>
 
 {{ end }}
