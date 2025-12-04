@@ -156,7 +156,7 @@ const Reviews = (function () {
         const userName = user?.name || user?.username || '익명';
         const userAvatar = user?.avatar
             ? pb.files.getUrl(user, user.avatar)
-            : 'https://via.placeholder.com/40';
+            : '/images/avater.png';
 
         const createdDate = new Date(review.created).toLocaleDateString('ko-KR');
         const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
@@ -172,7 +172,7 @@ const Reviews = (function () {
             </div>
         ` : '';
 
-        // Generate review images HTML
+        // Generate review images HTML 리뷰 사용자 아이콘 이미지 
         let imagesHTML = '';
         if (review.images && review.images.length > 0) {
             const imageItems = review.images.map(img => {
@@ -186,7 +186,7 @@ const Reviews = (function () {
 
         return `
             <div class="review-item media mb-4 p-3 border rounded" data-review-id="${review.id}" data-rating="${review.rating}" data-content="${escapeHtml(review.content)}">
-                <img src="${userAvatar}" class="mr-3 rounded-circle" alt="${escapeHtml(userName)}" style="width: 40px; height: 40px; object-fit: cover;">
+                <img src="${userAvatar}" class="mr-3 rounded-circle" alt="${escapeHtml(userName)}" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.src='/images/avater.png'">
                 <div class="media-body">
                     <h6 class="mt-0 mb-1">${escapeHtml(userName)} <small class="text-muted ml-2">${createdDate}</small></h6>
                     <div class="text-warning mb-2">${stars}</div>
