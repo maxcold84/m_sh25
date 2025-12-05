@@ -173,8 +173,8 @@
     },
     {
         "id": "pbc_11111111",
-        "listRule": "id = @request.auth.id",
-        "viewRule": "id = @request.auth.id",
+        "listRule": "",
+        "viewRule": "",
         "createRule": "",
         "updateRule": "id = @request.auth.id",
         "deleteRule": "id = @request.auth.id",
