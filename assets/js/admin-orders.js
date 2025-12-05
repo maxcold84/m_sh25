@@ -284,49 +284,72 @@ window.AdminOrders = (function () {
         document.getElementById('modal-buyer-address').textContent = address;
         document.getElementById('modal-total-amount').textContent = (order.total_amount || 0).toLocaleString() + '원';
 
-        // Items - The actual data shows items contain full cart item info!
-        // { name, price, quantity, image, product_id, options, etc. }
+        // Order Date
+        const orderDate = new Date(order.created).toLocaleDateString('ko-KR', {
+            year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+        document.getElementById('modal-order-date').textContent = orderDate;
+
+        // Items
         const itemsContainer = document.getElementById('modal-order-items');
         let itemsHtml = '';
 
         if (orderItems && orderItems.length > 0) {
             for (const item of orderItems) {
+                console.log('Processing Order Item:', item); // DEBUG
+
                 // Item structure check
-                const name = item.name || item.title || '상품명 없음';
+                let name = item.name || item.title || item.productName || item.product_name;
                 const price = item.price || item.discount_price || 0;
                 const qty = item.quantity || item.qty || 1;
-                const productId = item.product_id || item.id; // Could be stored as either
+
+                // Try to find Product ID from various possible fields
+                let productId = item.product_id || item.productId || item.product;
+                if (typeof productId === 'object' && productId !== null) {
+                    productId = productId.id;
+                }
+
+                // Fallback: use item.id if it looks like a product ID (not robust but better than nothing)
+                if (!productId && item.id) {
+                    productId = item.id;
+                }
+
+                console.log('Resolved Product ID:', productId); // DEBUG
 
                 // Image processing
                 let imgUrl = item.image ? item.image.trim() : '';
 
-                // If the stored image path is valid and absolute, use it. 
-                // Otherwise, try to fetch the product to get a fresh image URL.
-                if (!imgUrl || (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:'))) {
-                    // Try to resolve from product if we have an ID
+                // If name is missing or image is invalid, try to fetch from product
+                if (!name || (!imgUrl || (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:')))) {
                     if (productId) {
                         try {
                             let product = null;
-                            // 1. Try treating it as a Record ID (15 chars is typical for PB, but checking length isn't enough, just try)
+
+                            // 1. Try getOne (Record ID)
                             try {
                                 product = await pb.collection('products').getOne(productId);
+                                console.log('Fetched product by ID:', product);
                             } catch (e) {
-                                // Ignore 404/format errors for ID fetch
+                                // console.warn('Fetch by ID failed', e);
                             }
 
-                            // 2. If not found, try treating it as a Slug
+                            // 2. If not found, try slug
                             if (!product) {
                                 try {
                                     product = await pb.collection('products').getFirstListItem(`slug="${productId}"`);
-                                } catch (e) {
-                                    // Ignore errors
-                                }
+                                    console.log('Fetched product by Slug:', product);
+                                } catch (e) { /* Ignore */ }
                             }
 
-                            if (product && product.images && product.images.length > 0) {
-                                const imageFile = product.images[0]; // Take the first image
-                                if (imageFile) {
-                                    imgUrl = pb.files.getUrl(product, imageFile, { thumb: '100x100' });
+                            if (product) {
+                                if (!name) name = product.name;
+
+                                if (!imgUrl || (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:'))) {
+                                    if (product.images && product.images.length > 0) {
+                                        const imageFile = product.images[0];
+                                        imgUrl = pb.files.getUrl(product, imageFile, { thumb: '100x100' });
+                                    }
                                 }
                             }
                         } catch (e) {
@@ -335,7 +358,9 @@ window.AdminOrders = (function () {
                     }
                 }
 
-                // Final Fallback
+                if (!name) name = '상품명 없음';
+
+                // Fallback Image
                 if (!imgUrl || (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:'))) {
                     imgUrl = 'https://via.placeholder.com/50?text=No+Img';
                 }
@@ -351,7 +376,8 @@ window.AdminOrders = (function () {
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="mb-0 text-truncate" style="max-width: 300px;">${name}</h6>
-                            <small class="text-muted">${price.toLocaleString()}원 × ${qty}개</small>
+                            <small class="text-muted text-break">ID: ${productId || '-'}</small>
+                            <div class="small text-muted">${price.toLocaleString()}원 × ${qty}개</div>
                         </div>
                         <div class="font-weight-bold text-nowrap">
                             ${(price * qty).toLocaleString()}원
