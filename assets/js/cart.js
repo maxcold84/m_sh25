@@ -471,7 +471,9 @@ window.Cart = Cart;
 console.log('Cart object exposed to window');
 
 // Custom Event Listeners
-document.body.addEventListener('cart-updated', function () {
-    console.log('cart-updated event received');
-    Cart.renderCart();
+document.addEventListener('DOMContentLoaded', function () {
+    document.body.addEventListener('cart-updated', function () {
+        console.log('cart-updated event received');
+        Cart.renderCart();
+    });
 });

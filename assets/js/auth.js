@@ -28,6 +28,7 @@ const Auth = (function () {
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
             loginForm.addEventListener('submit', handleLogin);
+            setupEmailAutocomplete(loginForm, 'login-email');
 
             // Load saved email
             const savedEmail = localStorage.getItem('savedEmail');
@@ -43,7 +44,7 @@ const Auth = (function () {
         const signupForm = document.getElementById('signup-form');
         if (signupForm) {
             signupForm.addEventListener('submit', handleSignup);
-            setupEmailAutocomplete(signupForm);
+            setupEmailAutocomplete(signupForm, 'signup-email');
         }
 
         // OAuth2 Login Handlers (Global)
@@ -71,45 +72,217 @@ const Auth = (function () {
         }
     }
 
-    function setupEmailAutocomplete(form) {
-        const emailInput = form.querySelector('#signup-email');
+    function setupEmailAutocomplete(form, emailInputId) {
+        const emailInput = form.querySelector('#' + emailInputId);
         const suggestionDiv = document.getElementById('email-suggestion');
         const suggestionLink = document.getElementById('email-suggestion-link');
 
-        if (!emailInput || !suggestionDiv || !suggestionLink) return;
+        if (!emailInput) return;
 
-        // Check for Mailcheck library
-        if (typeof Mailcheck === 'undefined') {
-            console.warn('Mailcheck.js not loaded, email autocomplete disabled');
-            return;
+        const domains = ['gmail.com', 'naver.com', 'daum.net', 'kakao.com', 'outlook.com', 'hanmail.net', 'nate.com'];
+        let selectedIndex = -1;
+
+        // Create dropdown container for domain suggestions
+        let dropdownContainer = document.createElement('div');
+        dropdownContainer.className = 'email-domain-dropdown';
+        dropdownContainer.style.cssText = `
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            width: 100%;
+        `;
+        emailInput.parentElement.style.position = 'relative';
+        emailInput.parentElement.appendChild(dropdownContainer);
+
+        function updateSelection() {
+            const options = dropdownContainer.querySelectorAll('.email-domain-option');
+            options.forEach((opt, idx) => {
+                if (idx === selectedIndex) {
+                    opt.style.backgroundColor = '#e0e7ff';
+                    opt.scrollIntoView({ block: 'nearest' });
+                } else {
+                    opt.style.backgroundColor = 'white';
+                }
+            });
         }
 
-        emailInput.addEventListener('blur', function () {
-            const email = emailInput.value.trim();
-            if (!email) {
-                suggestionDiv.style.display = 'none';
+        function selectCurrentOption() {
+            const options = dropdownContainer.querySelectorAll('.email-domain-option');
+            if (selectedIndex >= 0 && selectedIndex < options.length) {
+                emailInput.value = options[selectedIndex].textContent;
+                hideDomainSuggestions();
+                return true;
+            }
+            return false;
+        }
+
+        function createOption(email, domain, username) {
+            const option = document.createElement('div');
+            option.className = 'email-domain-option';
+            option.style.cssText = `
+                padding: 8px 12px;
+                cursor: pointer;
+                border-bottom: 1px solid #eee;
+                transition: background-color 0.1s;
+            `;
+            option.textContent = username + '@' + domain;
+            option.addEventListener('mouseenter', () => {
+                selectedIndex = Array.from(dropdownContainer.children).indexOf(option);
+                updateSelection();
+            });
+            option.addEventListener('mouseleave', () => {
+                option.style.backgroundColor = 'white';
+            });
+            option.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                emailInput.value = username + '@' + domain;
+                dropdownContainer.style.display = 'none';
+            });
+            return option;
+        }
+
+        function showDomainSuggestions(username, filterText = '') {
+            dropdownContainer.innerHTML = '';
+            selectedIndex = -1;
+
+            const filteredDomains = filterText
+                ? domains.filter(d => d.startsWith(filterText.toLowerCase()))
+                : domains;
+
+            if (filteredDomains.length === 0) {
+                hideDomainSuggestions();
                 return;
             }
 
-            Mailcheck.run({
-                email: email,
-                domains: ['gmail.com', 'naver.com', 'daum.net', 'kakao.com', 'outlook.com', 'hanmail.net', 'nate.com'],
-                topLevelDomains: ['com', 'net', 'org', 'kr'],
-                suggested: function (suggestion) {
-                    suggestionLink.textContent = suggestion.full;
-                    suggestionDiv.style.display = 'block';
-
-                    suggestionLink.onclick = function (e) {
-                        e.preventDefault();
-                        emailInput.value = suggestion.full;
-                        suggestionDiv.style.display = 'none';
-                    };
-                },
-                empty: function () {
-                    suggestionDiv.style.display = 'none';
-                }
+            filteredDomains.forEach(domain => {
+                const option = createOption(username + '@' + domain, domain, username);
+                dropdownContainer.appendChild(option);
             });
+            dropdownContainer.style.display = 'block';
+        }
+
+        function hideDomainSuggestions() {
+            dropdownContainer.style.display = 'none';
+            selectedIndex = -1;
+        }
+
+        function isDropdownVisible() {
+            return dropdownContainer.style.display === 'block';
+        }
+
+        emailInput.addEventListener('input', function () {
+            const value = emailInput.value;
+            const atIndex = value.indexOf('@');
+
+            if (atIndex !== -1) {
+                const username = value.substring(0, atIndex);
+                const afterAt = value.substring(atIndex + 1);
+
+                if (username) {
+                    showDomainSuggestions(username, afterAt);
+                } else {
+                    hideDomainSuggestions();
+                }
+            } else {
+                hideDomainSuggestions();
+            }
         });
+
+        // Keyboard navigation
+        emailInput.addEventListener('keydown', function (e) {
+            if (!isDropdownVisible()) return;
+
+            const options = dropdownContainer.querySelectorAll('.email-domain-option');
+            const optionCount = options.length;
+
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    selectedIndex = (selectedIndex + 1) % optionCount;
+                    updateSelection();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    selectedIndex = selectedIndex <= 0 ? optionCount - 1 : selectedIndex - 1;
+                    updateSelection();
+                    break;
+                case 'ArrowRight':
+                case 'Tab':
+                    if (selectedIndex === -1 && optionCount > 0) {
+                        selectedIndex = 0;
+                    }
+                    if (selectCurrentOption()) {
+                        e.preventDefault();
+                    }
+                    break;
+                case 'Enter':
+                    if (selectedIndex >= 0) {
+                        e.preventDefault();
+                        selectCurrentOption();
+                    } else if (optionCount > 0) {
+                        e.preventDefault();
+                        selectedIndex = 0;
+                        selectCurrentOption();
+                    }
+                    break;
+                case 'Escape':
+                    e.preventDefault();
+                    hideDomainSuggestions();
+                    break;
+            }
+        });
+
+        emailInput.addEventListener('blur', function () {
+            setTimeout(hideDomainSuggestions, 150);
+        });
+
+        emailInput.addEventListener('focus', function () {
+            const value = emailInput.value;
+            const atIndex = value.indexOf('@');
+            if (atIndex !== -1) {
+                const username = value.substring(0, atIndex);
+                const afterAt = value.substring(atIndex + 1);
+                if (username) {
+                    showDomainSuggestions(username, afterAt);
+                }
+            }
+        });
+
+        // Mailcheck for typo suggestion (blur event)
+        if (suggestionDiv && suggestionLink && typeof Mailcheck !== 'undefined') {
+            emailInput.addEventListener('blur', function () {
+                const email = emailInput.value.trim();
+                if (!email || !email.includes('@')) {
+                    suggestionDiv.style.display = 'none';
+                    return;
+                }
+
+                Mailcheck.run({
+                    email: email,
+                    domains: domains,
+                    topLevelDomains: ['com', 'net', 'org', 'kr'],
+                    suggested: function (suggestion) {
+                        suggestionLink.textContent = suggestion.full;
+                        suggestionDiv.style.display = 'block';
+
+                        suggestionLink.onclick = function (e) {
+                            e.preventDefault();
+                            emailInput.value = suggestion.full;
+                            suggestionDiv.style.display = 'none';
+                        };
+                    },
+                    empty: function () {
+                        suggestionDiv.style.display = 'none';
+                    }
+                });
+            });
+        }
     }
 
     function updateAuthUI() {

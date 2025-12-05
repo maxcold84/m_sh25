@@ -416,7 +416,7 @@
             payBtn.textContent = '처리중...';
 
             try {
-                const paymentId = `ord${crypto.randomUUID().replace(/-/g, '').substring(0, 29)} `;
+                const paymentId = `ord${crypto.randomUUID().replace(/-/g, '').substring(0, 29)}`;
                 const channelKey = window.ShopConfig.channels[selectedChannel];
 
                 let payMethod = "CARD";
