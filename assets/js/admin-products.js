@@ -11,11 +11,7 @@ const AdminProducts = {
         this.pb = new PocketBase('http://127.0.0.1:8090');
 
         // Check auth
-        if (!this.pb.authStore.isValid) {
-            document.getElementById('admin-auth-check').style.display = 'block';
-            document.getElementById('admin-product-list').style.display = 'none';
-            const addBtn = document.getElementById('add-product-btn');
-            if (addBtn) addBtn.style.display = 'none';
+        if (!AdminAuth.checkAdmin()) {
             return;
         }
 

@@ -21,8 +21,7 @@ window.AdminOrders = (function () {
         pb = new PocketBase('http://127.0.0.1:8090');
 
         // Strict Admin Check
-        if (!pb.authStore.isValid || !pb.authStore.isAdmin) {
-            window.location.href = '/ko/admin/login';
+        if (!AdminAuth.checkAdmin()) {
             return;
         }
 
@@ -35,8 +34,7 @@ window.AdminOrders = (function () {
     function setupEventListeners() {
         // Logout
         document.getElementById('admin-logout-btn').addEventListener('click', () => {
-            pb.authStore.clear();
-            window.location.href = '/ko/admin/login';
+            AdminAuth.logout();
         });
 
         // Filter

@@ -15,6 +15,9 @@
 {{/* Modal: 주문 상세 모달 (운송장 폼 포함) */}}
 {{ partial "admin/orders-modal" . }}
 
+{{ $adminAuthScript := resources.Get "js/admin-auth.js" }}
+<script src="{{ $adminAuthScript.Permalink }}"></script>
+
 {{ $adminOrdersScript := resources.Get "js/admin-orders.js" }}
 <script src="{{ $adminOrdersScript.Permalink }}"></script>
 {{ end }}
