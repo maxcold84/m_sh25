@@ -17,11 +17,20 @@ window.AdminOrders = (function () {
     };
 
     function init() {
-        console.log('AdminOrders initialized');
+        console.log('AdminOrders initializing...');
+
+        // jQuery Check
+        if (typeof $ === 'undefined') {
+            console.error('jQuery is not loaded! Bootstrap modals will not work.');
+            alert('필수 라이브러리(jQuery)가 로드되지 않았습니다. 관리자에게 문의하세요.');
+            return;
+        }
+
         pb = new PocketBase('http://127.0.0.1:8090');
 
         // Strict Admin Check
         if (!AdminAuth.checkAdmin()) {
+            console.warn('Backend verification check failed.');
             return;
         }
 
@@ -29,22 +38,27 @@ window.AdminOrders = (function () {
         loadOrders();
     }
 
-
-
     function setupEventListeners() {
         // Logout
-        document.getElementById('admin-logout-btn').addEventListener('click', () => {
-            AdminAuth.logout();
-        });
+        const logoutBtn = document.getElementById('admin-logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => AdminAuth.logout());
+        }
 
         // Filter
-        document.getElementById('status-filter').addEventListener('change', () => {
-            currentPage = 1;
-            renderOrders();
-        });
+        const filterSelect = document.getElementById('status-filter');
+        if (filterSelect) {
+            filterSelect.addEventListener('change', () => {
+                currentPage = 1;
+                renderOrders();
+            });
+        }
 
         // Refresh
-        document.getElementById('refresh-btn').addEventListener('click', loadOrders);
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', loadOrders);
+        }
     }
 
     async function loadOrders() {
@@ -73,7 +87,7 @@ window.AdminOrders = (function () {
                 alert('권한이 없습니다. 다시 로그인해주세요.');
                 window.location.href = '/ko/admin/login';
             } else {
-                tableBody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-red-500">오류가 발생했습니다: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-danger">오류가 발생했습니다: ${err.message}</td></tr>`;
             }
         }
     }
@@ -96,7 +110,7 @@ window.AdminOrders = (function () {
         const pageItems = filtered.slice(start, end);
 
         if (pageItems.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="7" class="px-6 py-10 text-center text-gray-500">주문 내역이 없습니다.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">주문 내역이 없습니다.</td></tr>';
             renderPagination(0, 0);
             return;
         }
@@ -114,17 +128,17 @@ window.AdminOrders = (function () {
             });
 
             // Status Badge
-            let statusClass = 'bg-gray-100 text-gray-800';
+            let statusClass = 'badge badge-secondary';
             let statusText = order.status || '-';
-            if (order.status === 'paid') statusClass = 'bg-green-100 text-green-800';
-            else if (order.status === 'shipping') { statusClass = 'bg-blue-100 text-blue-800'; statusText = '배송중'; }
-            else if (order.status === 'pending') statusClass = 'bg-yellow-100 text-yellow-800';
-            else if (order.status === 'cancelled') statusClass = 'bg-red-100 text-red-800';
+            if (order.status === 'paid') statusClass = 'badge badge-success';
+            else if (order.status === 'shipping') { statusClass = 'badge badge-info'; statusText = '배송중'; }
+            else if (order.status === 'pending') statusClass = 'badge badge-warning';
+            else if (order.status === 'cancelled') statusClass = 'badge badge-danger';
 
             // Items Summary
             const itemCount = order.items ? order.items.length : 0;
             const firstItemName = order.items && order.items.length > 0 ?
-                (order.items[0].expand?.product_id?.name || order.items[0].name || '상품') : '상품 없음'; // Fallback logic
+                (order.items[0].expand?.product_id?.name || order.items[0].name || '상품') : '상품 없음';
 
             let itemsSummary = firstItemName;
             if (itemCount > 1) {
@@ -135,37 +149,37 @@ window.AdminOrders = (function () {
             const carrierCode = order.tracking_carrier || '';
             const trackingNumber = order.tracking_number || '';
             const carrierName = carrierCode && CARRIERS[carrierCode] ? CARRIERS[carrierCode].name : '';
-            let trackingHtml = '<span class="text-gray-400 text-xs">미등록</span>';
+            let trackingHtml = '<span class="text-muted small">미등록</span>';
             if (carrierName && trackingNumber) {
-                trackingHtml = `<div class="text-xs text-gray-900">${carrierName}</div><div class="text-xs text-blue-600">${trackingNumber}</div>`;
+                trackingHtml = `<div class="small">${carrierName}</div><div class="small text-primary">${trackingNumber}</div>`;
             }
 
             html += `
-                <tr class="hover:bg-gray-50 cursor-pointer" onclick="AdminOrders.openModal('${order.id}')">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">${order.payment_id || order.id.substring(0, 8)}</div>
-                        <div class="text-sm text-gray-500">${date}</div>
+                <tr class="cursor-pointer" onclick="AdminOrders.openModal('${order.id}')">
+                    <td>
+                        <div class="font-weight-bold text-dark">${order.payment_id || order.id.substring(0, 8)}</div>
+                        <div class="small text-muted">${date}</div>
                     </td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm text-gray-900">${buyerName}</div>
-                        <div class="text-sm text-gray-500">${buyerEmail}</div>
+                    <td>
+                        <div class="text-dark">${buyerName}</div>
+                        <div class="small text-muted">${buyerEmail}</div>
                     </td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm text-gray-900">${itemsSummary}</div>
+                    <td>
+                        <div class="text-dark">${itemsSummary}</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-bold text-gray-900">${(order.total_amount || 0).toLocaleString()}원</div>
+                    <td>
+                        <div class="font-weight-bold text-dark">${(order.total_amount || 0).toLocaleString()}원</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td>
                         ${trackingHtml}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-center">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                    <td class="text-center">
+                        <span class="${statusClass}">
                             ${statusText}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                        <button class="text-indigo-600 hover:text-indigo-900" onclick="event.stopPropagation(); AdminOrders.openModal('${order.id}')">상세보기</button>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); AdminOrders.openModal('${order.id}')">상세보기</button>
                     </td>
                 </tr>
             `;
@@ -184,23 +198,25 @@ window.AdminOrders = (function () {
 
         let html = '';
         // Prev
-        html += `<button onclick="AdminOrders.setPage(${current - 1})" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${current === 1 ? 'disabled:opacity-50 cursor-not-allowed' : ''}" ${current === 1 ? 'disabled' : ''}>
-            <span class="sr-only">Previous</span>
-            &larr;
-        </button>`;
+        html += `<li class="page-item ${current === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="event.preventDefault(); AdminOrders.setPage(${current - 1})" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>`;
 
-        // Pages (Simplified: just 1 to total)
+        // Pages
         for (let i = 1; i <= totalPages; i++) {
-            html += `<button onclick="AdminOrders.setPage(${i})" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${i === current ? 'text-blue-600 bg-blue-50 border-blue-500 z-10' : 'text-gray-700 hover:bg-gray-50'}">
-                ${i}
-            </button>`;
+            html += `<li class="page-item ${i === current ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="event.preventDefault(); AdminOrders.setPage(${i})">${i}</a>
+            </li>`;
         }
 
         // Next
-        html += `<button onclick="AdminOrders.setPage(${current + 1})" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${current === totalPages ? 'disabled:opacity-50 cursor-not-allowed' : ''}" ${current === totalPages ? 'disabled' : ''}>
-            <span class="sr-only">Next</span>
-            &rarr;
-        </button>`;
+        html += `<li class="page-item ${current === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="event.preventDefault(); AdminOrders.setPage(${current + 1})" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>`;
 
         container.innerHTML = html;
     }
@@ -225,10 +241,10 @@ window.AdminOrders = (function () {
 
         // Status Class
         statusBadge.textContent = order.status || '-';
-        statusBadge.className = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full ';
-        if (order.status === 'paid') statusBadge.classList.add('bg-green-100', 'text-green-800');
-        else if (order.status === 'pending') statusBadge.classList.add('bg-yellow-100', 'text-yellow-800');
-        else statusBadge.classList.add('bg-red-100', 'text-red-800');
+        statusBadge.className = 'badge ml-2 ';
+        if (order.status === 'paid') statusBadge.classList.add('badge-success');
+        else if (order.status === 'pending') statusBadge.classList.add('badge-warning');
+        else statusBadge.classList.add('badge-danger');
 
         // Parse buyer_details (could be string or object)
         let buyerDetails = order.buyer_details;
@@ -325,25 +341,26 @@ window.AdminOrders = (function () {
                 }
 
                 itemsHtml += `
-                    <div class="flex items-center p-3 gap-3 border-b last:border-b-0">
-                        <div class="w-12 h-12 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
+                    <div class="d-flex align-items-center p-2 border-bottom">
+                        <div class="mr-3" style="width: 50px; height: 50px;">
                              <img src="${imgUrl}" 
-                                  class="w-full h-full object-cover" 
+                                  class="img-fluid rounded" 
                                   alt="${name}"
+                                  style="width: 100%; height: 100%; object-fit: cover;"
                                   onerror="this.onerror=null; this.src='https://via.placeholder.com/50?text=Error';">
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900 truncate">${name}</p>
-                            <p class="text-xs text-gray-500">${price.toLocaleString()}원 × ${qty}개</p>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0 text-truncate" style="max-width: 300px;">${name}</h6>
+                            <small class="text-muted">${price.toLocaleString()}원 × ${qty}개</small>
                         </div>
-                        <div class="text-sm font-bold text-gray-900 whitespace-nowrap">
+                        <div class="font-weight-bold text-nowrap">
                             ${(price * qty).toLocaleString()}원
                         </div>
                     </div>
                 `;
             }
         } else {
-            itemsHtml = '<div class="p-4 text-center text-gray-500 text-sm">상품 정보가 없습니다.</div>';
+            itemsHtml = '<div class="p-3 text-center text-muted">상품 정보가 없습니다.</div>';
         }
 
         itemsContainer.innerHTML = itemsHtml;
@@ -360,19 +377,19 @@ window.AdminOrders = (function () {
 
         // Show/hide track button based on existing tracking info
         if (order.tracking_carrier && order.tracking_number) {
-            trackBtn.classList.remove('hidden');
+            trackBtn.classList.remove('d-none');
             statusMsg.textContent = '운송장이 등록되어 있습니다.';
-            statusMsg.className = 'text-xs text-green-600 mt-2';
+            statusMsg.className = 'small text-success mt-2';
         } else {
-            trackBtn.classList.add('hidden');
+            trackBtn.classList.add('d-none');
             statusMsg.textContent = '';
         }
 
-        modal.classList.remove('hidden');
+        $('#order-detail-modal').modal('show');
     }
 
     function closeModal() {
-        document.getElementById('order-detail-modal').classList.add('hidden');
+        $('#order-detail-modal').modal('hide');
         currentOrderId = null;
     }
 
@@ -389,13 +406,13 @@ window.AdminOrders = (function () {
 
         if (!carrier || !number) {
             statusMsg.textContent = '택배사와 운송장번호를 모두 입력해주세요.';
-            statusMsg.className = 'text-xs text-red-600 mt-2';
+            statusMsg.className = 'text-xs text-danger mt-2';
             return;
         }
 
         try {
             statusMsg.textContent = '저장 중...';
-            statusMsg.className = 'text-xs text-gray-500 mt-2';
+            statusMsg.className = 'text-xs text-muted mt-2';
 
             // Update order with tracking info and set status to shipping
             const order = allOrders.find(o => o.id === currentOrderId);
@@ -416,14 +433,14 @@ window.AdminOrders = (function () {
             }
 
             statusMsg.textContent = '운송장이 저장되었습니다!';
-            statusMsg.className = 'text-xs text-green-600 mt-2';
-            trackBtn.classList.remove('hidden');
+            statusMsg.className = 'text-xs text-success mt-2';
+            trackBtn.classList.remove('d-none');
 
             // Update modal status badge
             const statusBadge = document.getElementById('modal-order-status');
             if (newStatus === 'shipping') {
                 statusBadge.textContent = '배송중';
-                statusBadge.className = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800';
+                statusBadge.className = 'badge ml-2 badge-info';
             }
 
             // Refresh table
@@ -432,7 +449,7 @@ window.AdminOrders = (function () {
         } catch (err) {
             console.error('Failed to save tracking info:', err);
             statusMsg.textContent = '저장 실패: ' + err.message;
-            statusMsg.className = 'text-xs text-red-600 mt-2';
+            statusMsg.className = 'text-xs text-danger mt-2';
         }
     }
 

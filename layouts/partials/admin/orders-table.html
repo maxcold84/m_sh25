@@ -1,58 +1,39 @@
 <!-- Admin Orders Table -->
-<div class="bg-white rounded-lg shadow border overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        주문번호 / 날짜</th>
-                    <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        주문자 정보</th>
-                    <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        상품</th>
-                    <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">총
-                        결제금액</th>
-                    <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        운송장</th>
-                    <th scope="col"
-                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        상태</th>
-                    <th scope="col"
-                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        관리</th>
-                </tr>
-            </thead>
-            <tbody id="orders-table-body" class="bg-white divide-y divide-gray-200">
-                <!-- Orders will be injected here -->
-                <tr>
-                    <td colspan="7" class="px-6 py-10 text-center text-gray-500">
-                        <span
-                            class="loading-spinner inline-block mr-2 animate-spin border-2 border-current border-t-transparent rounded-full w-4 h-4"></span>
-                        주문 목록을 불러오는 중...
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>주문번호 / 날짜</th>
+                <th>주문자 정보</th>
+                <th>상품</th>
+                <th>총 결제금액</th>
+                <th>운송장</th>
+                <th class="text-center">상태</th>
+                <th class="text-center">관리</th>
+            </tr>
+        </thead>
+        <tbody id="orders-table-body">
+            <!-- Orders will be injected here -->
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <span class="ml-2">주문 목록을 불러오는 중...</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <div>
+        <span class="text-muted">총 <strong id="total-orders-count">0</strong>건의 주문</span>
     </div>
-    <!-- Pagination -->
-    <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
-        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-                <p class="text-sm text-gray-700">
-                    총 <span class="font-medium" id="total-orders-count">0</span>건의 주문
-                </p>
-            </div>
-            <div>
-                <nav id="pagination-controls" class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-                    aria-label="Pagination">
-                    <!-- Pagination buttons injected by JS -->
-                </nav>
-            </div>
-        </div>
-    </div>
+    <nav aria-label="Page navigation">
+        <ul id="pagination-controls" class="pagination mb-0">
+            <!-- Pagination buttons injected by JS -->
+        </ul>
+    </nav>
 </div>

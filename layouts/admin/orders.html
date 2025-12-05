@@ -1,14 +1,18 @@
 {{ define "main" }}
-<section class="section py-10 bg-gray-50 min-h-screen">
-    <div class="container mx-auto px-4">
-        {{/* Header: 제목, 상품관리 링크, 로그아웃 */}}
-        {{ partial "admin/orders-header" . }}
+<section class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                {{/* Header: 제목, 상품관리 링크, 로그아웃 */}}
+                {{ partial "admin/orders-header" . }}
 
-        {{/* Filters: 상태 필터, 새로고침 버튼 */}}
-        {{ partial "admin/orders-filters" . }}
+                {{/* Filters: 상태 필터, 새로고침 버튼 */}}
+                {{ partial "admin/orders-filters" . }}
 
-        {{/* Table: 주문 목록 테이블, 페이지네이션 */}}
-        {{ partial "admin/orders-table" . }}
+                {{/* Table: 주문 목록 테이블, 페이지네이션 */}}
+                {{ partial "admin/orders-table" . }}
+            </div>
+        </div>
     </div>
 </section>
 
@@ -17,6 +21,10 @@
 
 {{ $adminAuthScript := resources.Get "js/admin-auth.js" }}
 <script src="{{ $adminAuthScript.Permalink }}"></script>
+
+<!-- jQuery & Bootstrap JS (Required for Modals) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
 
 {{ $adminOrdersScript := resources.Get "js/admin-orders.js" }}
 <script src="{{ $adminOrdersScript.Permalink }}"></script>

@@ -1,108 +1,93 @@
 <!-- Order Detail Modal -->
-<div id="order-detail-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title"
-    role="dialog" aria-modal="true">
-    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <!-- Background overlay -->
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
-            onclick="AdminOrders.closeModal()"></div>
-
-        <!-- Modal panel -->
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div
-            class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div class="sm:flex sm:items-start">
-                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                        <h3
-                            class="text-lg leading-6 font-medium text-gray-900 mb-4 border-b pb-2 flex justify-between items-center">
-                            <span>주문 상세 정보</span>
-                            <span id="modal-order-status"
-                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                Paid
-                            </span>
-                        </h3>
-
-                        <div class="space-y-4">
-                            <!-- Buyer Info -->
-                            <div>
-                                <h4 class="text-sm font-bold text-gray-700 mb-2">주문자 / 배송 정보</h4>
-                                <div class="bg-gray-50 p-3 rounded text-sm text-gray-600 grid grid-cols-2 gap-2">
-                                    <div><span class="font-semibold">이름:</span> <span id="modal-buyer-name">-</span>
-                                    </div>
-                                    <div><span class="font-semibold">전화번호:</span> <span id="modal-buyer-phone">-</span>
-                                    </div>
-                                    <div><span class="font-semibold">이메일:</span> <span id="modal-buyer-email">-</span>
-                                    </div>
-                                    <div class="col-span-2"><span class="font-semibold">주소:</span> <span
-                                            id="modal-buyer-address">-</span></div>
-                                    <div class="col-span-2 mt-1 text-xs text-gray-400">결제 ID: <span
-                                            id="modal-payment-id">-</span></div>
+<div class="modal fade" id="order-detail-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    주문 상세 정보
+                    <span id="modal-order-status" class="badge badge-success ml-2">Paid</span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="닫기">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Buyer Info -->
+                    <div class="col-12 mb-4">
+                        <h6 class="font-weight-bold mb-3 border-bottom pb-2">주문자 / 배송 정보</h6>
+                        <div class="bg-light p-3 rounded">
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <span class="font-weight-bold">이름:</span> <span id="modal-buyer-name">-</span>
                                 </div>
-                            </div>
-
-                            <!-- Order Items -->
-                            <div>
-                                <h4 class="text-sm font-bold text-gray-700 mb-2">주문 상품</h4>
-                                <div id="modal-order-items"
-                                    class="border rounded divide-y divide-gray-200 max-h-60 overflow-y-auto">
-                                    <!-- Items injected here -->
+                                <div class="col-md-6 mb-2">
+                                    <span class="font-weight-bold">전화번호:</span> <span id="modal-buyer-phone">-</span>
                                 </div>
-                            </div>
-
-                            <!-- Total -->
-                            <div class="text-right pt-2 border-t">
-                                <span class="text-base font-medium text-gray-500">총 결제금액:</span>
-                                <span class="text-xl font-bold text-gray-900 ml-2" id="modal-total-amount">0원</span>
-                            </div>
-
-                            <!-- Tracking Info Form -->
-                            <div class="pt-4 border-t mt-4">
-                                <h4 class="text-sm font-bold text-gray-700 mb-3">운송장 정보</h4>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label for="tracking-carrier"
-                                            class="block text-xs font-medium text-gray-600 mb-1">택배사</label>
-                                        <select id="tracking-carrier"
-                                            class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
-                                            <option value="">선택하세요</option>
-                                            <option value="cj">CJ대한통운</option>
-                                            <option value="hanjin">한진택배</option>
-                                            <option value="lotte">롯데택배</option>
-                                            <option value="logen">로젠택배</option>
-                                            <option value="post">우체국택배</option>
-                                            <option value="epost">우체국EMS</option>
-                                            <option value="kdexp">경동택배</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label for="tracking-number"
-                                            class="block text-xs font-medium text-gray-600 mb-1">운송장번호</label>
-                                        <input type="text" id="tracking-number" placeholder="운송장번호 입력"
-                                            class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
-                                    </div>
+                                <div class="col-md-6 mb-2">
+                                    <span class="font-weight-bold">이메일:</span> <span id="modal-buyer-email">-</span>
                                 </div>
-                                <p id="tracking-status-msg" class="text-xs text-gray-500 mt-2"></p>
+                                <div class="col-12 mb-2">
+                                    <span class="font-weight-bold">주소:</span> <span id="modal-buyer-address">-</span>
+                                </div>
+                                <div class="col-12 text-muted small">
+                                    결제 ID: <span id="modal-payment-id">-</span>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Order Items -->
+                    <div class="col-12 mb-4">
+                        <h6 class="font-weight-bold mb-3 border-bottom pb-2">주문 상품</h6>
+                        <div id="modal-order-items" class="border rounded" style="max-height: 300px; overflow-y: auto;">
+                            <!-- Items injected here -->
+                        </div>
+                        <div class="text-right mt-3">
+                            <span class="h5">총 결제금액: <span class="font-weight-bold text-primary"
+                                    id="modal-total-amount">0원</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Tracking Info Form -->
+                    <div class="col-12">
+                        <h6 class="font-weight-bold mb-3 border-bottom pb-2">운송장 정보</h6>
+                        <div class="form-row align-items-end">
+                            <div class="form-group col-md-4">
+                                <label for="tracking-carrier" class="small text-muted mb-1">택배사</label>
+                                <select id="tracking-carrier" class="form-control form-control-sm">
+                                    <option value="">선택하세요</option>
+                                    <option value="cj">CJ대한통운</option>
+                                    <option value="hanjin">한진택배</option>
+                                    <option value="lotte">롯데택배</option>
+                                    <option value="logen">로젠택배</option>
+                                    <option value="post">우체국택배</option>
+                                    <option value="epost">우체국EMS</option>
+                                    <option value="kdexp">경동택배</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-5">
+                                <label for="tracking-number" class="small text-muted mb-1">운송장번호</label>
+                                <input type="text" id="tracking-number" class="form-control form-control-sm"
+                                    placeholder="운송장번호 입력">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <button type="button" id="save-tracking-btn" class="btn btn-success btn-sm btn-block"
+                                    onclick="AdminOrders.saveTrackingInfo()">
+                                    저장
+                                </button>
+                            </div>
+                        </div>
+                        <p id="tracking-status-msg" class="small mt-1"></p>
+                    </div>
                 </div>
             </div>
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
-                <button type="button" id="save-tracking-btn"
-                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none sm:w-auto sm:text-sm"
-                    onclick="AdminOrders.saveTrackingInfo()">
-                    운송장 저장
-                </button>
-                <button type="button" id="track-delivery-btn"
-                    class="w-full inline-flex justify-center rounded-md border border-blue-500 shadow-sm px-4 py-2 bg-white text-base font-medium text-blue-600 hover:bg-blue-50 focus:outline-none sm:w-auto sm:text-sm hidden"
+            <div class="modal-footer">
+                <button type="button" id="track-delivery-btn" class="btn btn-info d-none"
                     onclick="AdminOrders.openTrackingUrl()">
-                    배송조회
+                    <i class="tf-ion-ios-location"></i> 배송조회
                 </button>
-                <button type="button"
-                    class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:w-auto sm:text-sm"
-                    onclick="AdminOrders.closeModal()">
-                    닫기
-                </button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
             </div>
         </div>
     </div>
