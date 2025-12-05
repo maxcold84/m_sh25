@@ -275,43 +275,68 @@ window.AdminOrders = (function () {
 
         if (orderItems && orderItems.length > 0) {
             for (const item of orderItems) {
-                // Item already has name, price, quantity, and image from cart
-                const name = item.name || '상품명 없음';
-                const price = item.price || 0;
+                // Item structure check
+                const name = item.name || item.title || '상품명 없음';
+                const price = item.price || item.discount_price || 0;
                 const qty = item.quantity || item.qty || 1;
+                const productId = item.product_id || item.id; // Could be stored as either
 
-                // Image - use stored image or try to fetch from product
+                // Image processing
                 let imgUrl = item.image ? item.image.trim() : '';
 
-                // If image is missing, relative, or broken, try fetching from product
-                if (!imgUrl || !imgUrl.startsWith('http') || imgUrl.includes('localhost:1313')) {
-                    if (item.product_id) {
+                // If the stored image path is valid and absolute, use it. 
+                // Otherwise, try to fetch the product to get a fresh image URL.
+                if (!imgUrl || (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:'))) {
+                    // Try to resolve from product if we have an ID
+                    if (productId) {
                         try {
-                            // product_id is the slug, not the PocketBase record id
-                            const product = await pb.collection('products').getFirstListItem(`slug="${item.product_id}"`);
-                            if (product && product.images) {
-                                const imageFile = Array.isArray(product.images) ? product.images[0] : product.images;
+                            let product = null;
+                            // 1. Try treating it as a Record ID (15 chars is typical for PB, but checking length isn't enough, just try)
+                            try {
+                                product = await pb.collection('products').getOne(productId);
+                            } catch (e) {
+                                // Ignore 404/format errors for ID fetch
+                            }
+
+                            // 2. If not found, try treating it as a Slug
+                            if (!product) {
+                                try {
+                                    product = await pb.collection('products').getFirstListItem(`slug="${productId}"`);
+                                } catch (e) {
+                                    // Ignore errors
+                                }
+                            }
+
+                            if (product && product.images && product.images.length > 0) {
+                                const imageFile = product.images[0]; // Take the first image
                                 if (imageFile) {
                                     imgUrl = pb.files.getUrl(product, imageFile, { thumb: '100x100' });
                                 }
                             }
                         } catch (e) {
-                            console.warn('Could not fetch product for image:', item.product_id, e.message);
+                            console.warn('Failed to fetch product info for:', productId, e);
                         }
-                    }
-                    if (!imgUrl || !imgUrl.startsWith('http')) {
-                        imgUrl = 'https://via.placeholder.com/50';
                     }
                 }
 
+                // Final Fallback
+                if (!imgUrl || (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:'))) {
+                    imgUrl = 'https://via.placeholder.com/50?text=No+Img';
+                }
+
                 itemsHtml += `
-                    <div class="flex items-center p-3 gap-3">
-                        <img src="${imgUrl}" class="w-12 h-12 object-cover rounded bg-gray-100" onerror="this.src='https://via.placeholder.com/50'">
-                        <div class="flex-1">
-                            <p class="text-sm font-medium text-gray-900">${name}</p>
-                            <p class="text-xs text-gray-500">${price.toLocaleString()}원 x ${qty}개</p>
+                    <div class="flex items-center p-3 gap-3 border-b last:border-b-0">
+                        <div class="w-12 h-12 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
+                             <img src="${imgUrl}" 
+                                  class="w-full h-full object-cover" 
+                                  alt="${name}"
+                                  onerror="this.onerror=null; this.src='https://via.placeholder.com/50?text=Error';">
                         </div>
-                        <div class="text-sm font-bold text-gray-900">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">${name}</p>
+                            <p class="text-xs text-gray-500">${price.toLocaleString()}원 × ${qty}개</p>
+                        </div>
+                        <div class="text-sm font-bold text-gray-900 whitespace-nowrap">
                             ${(price * qty).toLocaleString()}원
                         </div>
                     </div>
