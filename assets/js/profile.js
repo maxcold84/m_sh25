@@ -31,6 +31,7 @@ const Profile = (function () {
 
             // Load basic info (readonly)
             document.getElementById('name').value = currentUser.name || '';
+            document.getElementById('nickname').value = currentUser.username || '';
             document.getElementById('email').value = currentUser.email || '';
 
             // Load contact info (editable)
@@ -55,6 +56,7 @@ const Profile = (function () {
         }
 
         // Get form data
+        const nickname = document.getElementById('nickname').value.trim();
         const phone = document.getElementById('phone').value.trim();
         const postcode = document.getElementById('postcode').value.trim();
         const address = document.getElementById('address').value.trim();
@@ -71,7 +73,8 @@ const Profile = (function () {
                 postcode: postcode,
                 address: address,
                 detailAddress: detailAddress,
-                extraAddress: extraAddress
+                extraAddress: extraAddress,
+                username: nickname
             };
 
             // Update user record

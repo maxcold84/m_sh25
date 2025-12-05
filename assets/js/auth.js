@@ -183,6 +183,7 @@ const Auth = (function () {
     async function handleSignup(e) {
         e.preventDefault();
         const name = document.getElementById('signup-name').value;
+        const nickname = document.getElementById('signup-nickname').value;
         const email = document.getElementById('signup-email').value;
         const password = document.getElementById('signup-password').value;
         const passwordConfirm = document.getElementById('signup-passwordConfirm').value;
@@ -195,7 +196,7 @@ const Auth = (function () {
 
         try {
             const data = {
-                "username": email.split('@')[0] + Math.floor(Math.random() * 1000), // Generate a random username
+                "username": nickname,
                 "email": email,
                 "emailVisibility": true,
                 "password": password,

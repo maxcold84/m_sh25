@@ -153,10 +153,10 @@ const Reviews = (function () {
 
     function createReviewHTML(review) {
         const user = review.expand?.user;
-        const userName = user?.name || user?.username || '익명';
+        const userName = user?.username || user?.name || '익명';
         const userAvatar = user?.avatar
             ? pb.files.getUrl(user, user.avatar)
-            : '/images/avater.png';
+            : null;
 
         const createdDate = new Date(review.created).toLocaleDateString('ko-KR');
         const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
@@ -184,9 +184,14 @@ const Reviews = (function () {
             imagesHTML = `<div class="review-images d-flex flex-wrap mt-2" style="gap: 8px;">${imageItems}</div>`;
         }
 
+        // 아바타 HTML 생성: 아바타가 있으면 이미지, 없으면 네비게이션바 스타일 아이콘
+        const avatarHTML = userAvatar
+            ? `<img src="${userAvatar}" class="mr-3 rounded-circle" alt="${escapeHtml(userName)}" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.parentElement.innerHTML='<i class=\\'tf-ion-android-person mr-3\\' style=\\'font-size: 32px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #666;\\'></i>'">`
+            : `<i class="tf-ion-android-person mr-3" style="font-size: 32px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #666;"></i>`;
+
         return `
             <div class="review-item media mb-4 p-3 border rounded" data-review-id="${review.id}" data-rating="${review.rating}" data-content="${escapeHtml(review.content)}">
-                <img src="${userAvatar}" class="mr-3 rounded-circle" alt="${escapeHtml(userName)}" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.src='/images/avater.png'">
+                ${avatarHTML}
                 <div class="media-body">
                     <h6 class="mt-0 mb-1">${escapeHtml(userName)} <small class="text-muted ml-2">${createdDate}</small></h6>
                     <div class="text-warning mb-2">${stars}</div>
