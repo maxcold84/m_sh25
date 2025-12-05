@@ -305,14 +305,9 @@ window.AdminOrders = (function () {
                 const qty = item.quantity || item.qty || 1;
 
                 // Try to find Product ID from various possible fields
-                let productId = item.product_id || item.productId || item.product;
+                let productId = item.product_id || item.productId || item.product || item.id;
                 if (typeof productId === 'object' && productId !== null) {
                     productId = productId.id;
-                }
-
-                // Fallback: use item.id if it looks like a product ID (not robust but better than nothing)
-                if (!productId && item.id) {
-                    productId = item.id;
                 }
 
                 console.log('Resolved Product ID:', productId); // DEBUG
@@ -358,7 +353,7 @@ window.AdminOrders = (function () {
                     }
                 }
 
-                if (!name) name = '상품명 없음';
+                if (!name) name = `상품명 없음 (${productId || 'ID 없음'})`;
 
                 // Fallback Image
                 if (!imgUrl || (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:'))) {

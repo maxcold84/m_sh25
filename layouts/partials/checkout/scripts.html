@@ -453,7 +453,9 @@
                     items: cartItems.map(item => ({
                         product_id: item.product_id,
                         qty: item.quantity,
-                        price: item.expand?.product_id?.price || item.price
+                        price: item.expand?.product_id?.price || item.price,
+                        name: item.expand?.product_id?.name || item.name || '상품',
+                        image: item.image || (item.expand?.product_id?.images ? item.expand.product_id.images[0] : '')
                     })),
                     buyer_details: {
                         ...response,
