@@ -3,6 +3,18 @@ window.AdminOrders = (function () {
     let allOrders = [];
     const ITEMS_PER_PAGE = 20;
     let currentPage = 1;
+    let currentOrderId = null;
+
+    // 택배사 목록
+    const CARRIERS = {
+        cj: { name: 'CJ대한통운', trackUrl: 'https://www.cjlogistics.com/ko/tool/parcel/tracking?gnbInvcNo=' },
+        hanjin: { name: '한진택배', trackUrl: 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?mession=open&wblnum=' },
+        lotte: { name: '롯데택배', trackUrl: 'https://www.lotteglogis.com/open/tracking?invno=' },
+        logen: { name: '로젠택배', trackUrl: 'https://www.ilogen.com/web/personal/trace/' },
+        post: { name: '우체국택배', trackUrl: 'https://service.epost.go.kr/trace.RetrieveDomRi498.postal?sid1=' },
+        epost: { name: '우체국EMS', trackUrl: 'https://service.epost.go.kr/trace.RetrieveEmsRi498.postal?POST_CODE=' },
+        kdexp: { name: '경동택배', trackUrl: 'https://kdexp.com/basicNew498.kd?barcode=' }
+    };
 
     function init() {
         console.log('AdminOrders initialized');
@@ -41,7 +53,7 @@ window.AdminOrders = (function () {
         const tableBody = document.getElementById('orders-table-body');
         const countSpan = document.getElementById('total-orders-count');
 
-        tableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-10 text-center text-gray-500">불러오는 중...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" class="px-6 py-10 text-center text-gray-500">불러오는 중...</td></tr>';
 
         try {
             // Fetch all orders sorted by latest
@@ -63,7 +75,7 @@ window.AdminOrders = (function () {
                 alert('권한이 없습니다. 다시 로그인해주세요.');
                 window.location.href = '/ko/admin/login';
             } else {
-                tableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-red-500">오류가 발생했습니다: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-red-500">오류가 발생했습니다: ${err.message}</td></tr>`;
             }
         }
     }
@@ -86,7 +98,7 @@ window.AdminOrders = (function () {
         const pageItems = filtered.slice(start, end);
 
         if (pageItems.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-10 text-center text-gray-500">주문 내역이 없습니다.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="px-6 py-10 text-center text-gray-500">주문 내역이 없습니다.</td></tr>';
             renderPagination(0, 0);
             return;
         }
@@ -105,7 +117,9 @@ window.AdminOrders = (function () {
 
             // Status Badge
             let statusClass = 'bg-gray-100 text-gray-800';
+            let statusText = order.status || '-';
             if (order.status === 'paid') statusClass = 'bg-green-100 text-green-800';
+            else if (order.status === 'shipping') { statusClass = 'bg-blue-100 text-blue-800'; statusText = '배송중'; }
             else if (order.status === 'pending') statusClass = 'bg-yellow-100 text-yellow-800';
             else if (order.status === 'cancelled') statusClass = 'bg-red-100 text-red-800';
 
@@ -117,6 +131,15 @@ window.AdminOrders = (function () {
             let itemsSummary = firstItemName;
             if (itemCount > 1) {
                 itemsSummary += ` 외 ${itemCount - 1}건`;
+            }
+
+            // Tracking Info
+            const carrierCode = order.tracking_carrier || '';
+            const trackingNumber = order.tracking_number || '';
+            const carrierName = carrierCode && CARRIERS[carrierCode] ? CARRIERS[carrierCode].name : '';
+            let trackingHtml = '<span class="text-gray-400 text-xs">미등록</span>';
+            if (carrierName && trackingNumber) {
+                trackingHtml = `<div class="text-xs text-gray-900">${carrierName}</div><div class="text-xs text-blue-600">${trackingNumber}</div>`;
             }
 
             html += `
@@ -135,9 +158,12 @@ window.AdminOrders = (function () {
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-bold text-gray-900">${(order.total_amount || 0).toLocaleString()}원</div>
                     </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${trackingHtml}
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                            ${order.status}
+                            ${statusText}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
@@ -257,13 +283,14 @@ window.AdminOrders = (function () {
                 const qty = item.quantity || item.qty || 1;
 
                 // Image - use stored image or try to fetch from product
-                let imgUrl = item.image || 'https://via.placeholder.com/50';
+                let imgUrl = item.image ? item.image.trim() : '';
 
-                // If image is relative or broken, try fetching from product
-                if (!imgUrl.startsWith('http') || imgUrl.includes('localhost:1313')) {
+                // If image is missing, relative, or broken, try fetching from product
+                if (!imgUrl || !imgUrl.startsWith('http') || imgUrl.includes('localhost:1313')) {
                     if (item.product_id) {
                         try {
-                            const product = await pb.collection('products').getOne(item.product_id);
+                            // product_id is the slug, not the PocketBase record id
+                            const product = await pb.collection('products').getFirstListItem(`slug="${item.product_id}"`);
                             if (product && product.images) {
                                 const imageFile = Array.isArray(product.images) ? product.images[0] : product.images;
                                 if (imageFile) {
@@ -271,8 +298,11 @@ window.AdminOrders = (function () {
                                 }
                             }
                         } catch (e) {
-                            console.warn('Could not fetch product for image:', item.product_id);
+                            console.warn('Could not fetch product for image:', item.product_id, e.message);
                         }
+                    }
+                    if (!imgUrl || !imgUrl.startsWith('http')) {
+                        imgUrl = 'https://via.placeholder.com/50';
                     }
                 }
 
@@ -294,18 +324,115 @@ window.AdminOrders = (function () {
         }
 
         itemsContainer.innerHTML = itemsHtml;
+
+        // Load tracking info into form
+        currentOrderId = orderId;
+        const carrierSelect = document.getElementById('tracking-carrier');
+        const numberInput = document.getElementById('tracking-number');
+        const trackBtn = document.getElementById('track-delivery-btn');
+        const statusMsg = document.getElementById('tracking-status-msg');
+
+        carrierSelect.value = order.tracking_carrier || '';
+        numberInput.value = order.tracking_number || '';
+
+        // Show/hide track button based on existing tracking info
+        if (order.tracking_carrier && order.tracking_number) {
+            trackBtn.classList.remove('hidden');
+            statusMsg.textContent = '운송장이 등록되어 있습니다.';
+            statusMsg.className = 'text-xs text-green-600 mt-2';
+        } else {
+            trackBtn.classList.add('hidden');
+            statusMsg.textContent = '';
+        }
+
         modal.classList.remove('hidden');
     }
 
     function closeModal() {
         document.getElementById('order-detail-modal').classList.add('hidden');
+        currentOrderId = null;
+    }
+
+    async function saveTrackingInfo() {
+        if (!currentOrderId) {
+            alert('주문 정보가 없습니다.');
+            return;
+        }
+
+        const carrier = document.getElementById('tracking-carrier').value;
+        const number = document.getElementById('tracking-number').value.trim();
+        const statusMsg = document.getElementById('tracking-status-msg');
+        const trackBtn = document.getElementById('track-delivery-btn');
+
+        if (!carrier || !number) {
+            statusMsg.textContent = '택배사와 운송장번호를 모두 입력해주세요.';
+            statusMsg.className = 'text-xs text-red-600 mt-2';
+            return;
+        }
+
+        try {
+            statusMsg.textContent = '저장 중...';
+            statusMsg.className = 'text-xs text-gray-500 mt-2';
+
+            // Update order with tracking info and set status to shipping
+            const order = allOrders.find(o => o.id === currentOrderId);
+            const newStatus = order.status === 'paid' ? 'shipping' : order.status;
+
+            await pb.collection('orders').update(currentOrderId, {
+                tracking_carrier: carrier,
+                tracking_number: number,
+                status: newStatus
+            });
+
+            // Update local cache
+            const orderIndex = allOrders.findIndex(o => o.id === currentOrderId);
+            if (orderIndex !== -1) {
+                allOrders[orderIndex].tracking_carrier = carrier;
+                allOrders[orderIndex].tracking_number = number;
+                allOrders[orderIndex].status = newStatus;
+            }
+
+            statusMsg.textContent = '운송장이 저장되었습니다!';
+            statusMsg.className = 'text-xs text-green-600 mt-2';
+            trackBtn.classList.remove('hidden');
+
+            // Update modal status badge
+            const statusBadge = document.getElementById('modal-order-status');
+            if (newStatus === 'shipping') {
+                statusBadge.textContent = '배송중';
+                statusBadge.className = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800';
+            }
+
+            // Refresh table
+            renderOrders();
+
+        } catch (err) {
+            console.error('Failed to save tracking info:', err);
+            statusMsg.textContent = '저장 실패: ' + err.message;
+            statusMsg.className = 'text-xs text-red-600 mt-2';
+        }
+    }
+
+    function openTrackingUrl() {
+        const carrier = document.getElementById('tracking-carrier').value;
+        const number = document.getElementById('tracking-number').value.trim();
+
+        if (!carrier || !number || !CARRIERS[carrier]) {
+            alert('택배사 또는 운송장번호가 없습니다.');
+            return;
+        }
+
+        const url = CARRIERS[carrier].trackUrl + number;
+        window.open(url, '_blank');
     }
 
     return {
         init,
         openModal,
         closeModal,
-        setPage
+        setPage,
+        saveTrackingInfo,
+        openTrackingUrl
     };
 })();
 
