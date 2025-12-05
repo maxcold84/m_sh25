@@ -121,12 +121,35 @@ const Profile = (function () {
 
                 // Status Logic
                 let statusBadge = '';
-                if (order.status === 'paid') {
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-semibold">결제완료</span>';
-                } else if (order.status === 'pending') {
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold">대기중</span>';
-                } else {
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-semibold">' + order.status + '</span>';
+                let statusText = '';
+                switch (order.status) {
+                    case 'paid':
+                        statusBadge = '<span class="px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-semibold">결제완료</span>';
+                        statusText = '결제완료';
+                        break;
+                    case 'pending':
+                        statusBadge = '<span class="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold">대기중</span>';
+                        statusText = '대기중';
+                        break;
+                    case 'preparing':
+                        statusBadge = '<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">상품준비중</span>';
+                        statusText = '상품준비중';
+                        break;
+                    case 'shipping':
+                        statusBadge = '<span class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-semibold">배송중</span>';
+                        statusText = '배송중';
+                        break;
+                    case 'delivered':
+                        statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">배송완료</span>';
+                        statusText = '배송완료';
+                        break;
+                    case 'cancelled':
+                        statusBadge = '<span class="px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-semibold">주문취소</span>';
+                        statusText = '주문취소';
+                        break;
+                    default:
+                        statusBadge = '<span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-800 text-xs font-semibold">' + order.status + '</span>';
+                        statusText = order.status;
                 }
 
                 // Items Logic
@@ -158,8 +181,45 @@ const Profile = (function () {
                     }
                 }
 
+                // 취소 가능 여부 (pending 또는 paid 상태만 취소 가능)
+                const canCancel = order.status === 'pending' || order.status === 'paid';
+                const cancelBtnHtml = canCancel ? `
+                    <button onclick="Profile.cancelOrder('${order.id}')" class="mt-2 w-full py-2 px-4 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors">
+                        주문 취소
+                    </button>
+                ` : '';
+
+                // 배송조회 버튼 (shipping 또는 delivered 상태일 때만 표시)
+                const canTrack = order.status === 'shipping' || order.status === 'delivered';
+                const trackingNumber = order.tracking_number || '';
+                const carrier = order.carrier || '';
+
+                let trackingBtnHtml = '';
+                if (canTrack && trackingNumber) {
+                    trackingBtnHtml = `
+                        <button onclick="Profile.openTrackingModal('${carrier}', '${trackingNumber}')" class="mt-2 w-full py-2 px-4 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                            </svg>
+                            배송조회
+                        </button>
+                    `;
+                } else if (order.status === 'preparing') {
+                    trackingBtnHtml = `
+                        <div class="mt-2 w-full py-2 px-4 bg-gray-100 text-gray-500 text-sm font-medium rounded-lg text-center">
+                            상품 준비중입니다
+                        </div>
+                    `;
+                } else if (order.status === 'paid') {
+                    trackingBtnHtml = `
+                        <div class="mt-2 w-full py-2 px-4 bg-gray-100 text-gray-500 text-sm font-medium rounded-lg text-center">
+                            배송 준비 대기중
+                        </div>
+                    `;
+                }
+
                 html += `
-                <div class="border rounded-lg p-4 bg-gray-50">
+                <div class="border rounded-lg p-4 bg-gray-50" id="order-${order.id}">
                     <div class="flex justify-between items-start mb-2">
                         <div>
                             <p class="text-xs text-gray-500 mb-1">${date}</p>
@@ -174,6 +234,8 @@ const Profile = (function () {
                         <span class="text-sm font-medium text-gray-600">총 결제금액</span>
                         <span class="text-base font-bold text-blue-600">${(order.total_amount || 0).toLocaleString()}원</span>
                     </div>
+                    ${trackingBtnHtml}
+                    ${cancelBtnHtml}
                 </div>
                 `;
             }
@@ -236,6 +298,27 @@ const Profile = (function () {
         }
     }
 
+    async function cancelOrder(orderId) {
+        if (!confirm('정말로 이 주문을 취소하시겠습니까?\n취소 후에는 되돌릴 수 없습니다.')) {
+            return;
+        }
+
+        try {
+            // 주문 상태를 cancelled로 변경
+            await pb.collection('orders').update(orderId, {
+                status: 'cancelled'
+            });
+
+            showToast('주문이 성공적으로 취소되었습니다.', false);
+
+            // 주문 내역 새로고침
+            loadOrderHistory();
+        } catch (error) {
+            console.error('Failed to cancel order:', error);
+            showToast('주문 취소에 실패했습니다: ' + error.message, true);
+        }
+    }
+
     function showToast(message, isError = false) {
         const toast = document.getElementById('toast');
         toast.textContent = message;
@@ -244,8 +327,65 @@ const Profile = (function () {
         setTimeout(() => toast.style.opacity = '0', 3000);
     }
 
+    // 택배사 정보
+    const carriers = {
+        'cj': { name: 'CJ대한통운', url: 'https://www.cjlogistics.com/ko/tool/parcel/tracking?gnbInvcNo=' },
+        'lotte': { name: '롯데택배', url: 'https://www.lotteglogis.com/home/reservation/tracking/index?InvNo=' },
+        'hanjin': { name: '한진택배', url: 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?mession=open&wblnum=' },
+        'post': { name: '우체국택배', url: 'https://service.epost.go.kr/trace.RetrieveDomRi498.postal?sid1=' },
+        'logen': { name: '로젠택배', url: 'https://www.ilogen.com/web/personal/trace/' },
+        'cu': { name: 'CU편의점택배', url: 'https://www.cupost.co.kr/postbox/delivery/localResult.cupost?invoice_no=' },
+        'gs': { name: 'GS Postbox 택배', url: 'https://www.cvsnet.co.kr/invoice/tracking.do?invoice_no=' },
+        'kdexp': { name: '경동택배', url: 'https://kdexp.com/basicNew498.kd?barcode=' }
+    };
+
+    function openTrackingModal(carrier, trackingNumber) {
+        const modal = document.getElementById('tracking-modal');
+        const carrierSelect = document.getElementById('tracking-carrier');
+        const numberInput = document.getElementById('tracking-number');
+
+        if (carrier && carriers[carrier]) {
+            carrierSelect.value = carrier;
+        }
+        if (trackingNumber) {
+            numberInput.value = trackingNumber;
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeTrackingModal() {
+        const modal = document.getElementById('tracking-modal');
+        modal.classList.add('hidden');
+    }
+
+    function trackDelivery() {
+        const carrier = document.getElementById('tracking-carrier').value;
+        const trackingNumber = document.getElementById('tracking-number').value.trim();
+
+        if (!carrier) {
+            showToast('택배사를 선택해주세요.', true);
+            return;
+        }
+        if (!trackingNumber) {
+            showToast('운송장 번호를 입력해주세요.', true);
+            return;
+        }
+
+        const carrierInfo = carriers[carrier];
+        if (carrierInfo) {
+            window.open(carrierInfo.url + trackingNumber, '_blank');
+        } else {
+            showToast('지원하지 않는 택배사입니다.', true);
+        }
+    }
+
     return {
-        init: init
+        init: init,
+        cancelOrder: cancelOrder,
+        openTrackingModal: openTrackingModal,
+        closeTrackingModal: closeTrackingModal,
+        trackDelivery: trackDelivery
     };
 })();
 
