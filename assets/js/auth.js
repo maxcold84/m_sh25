@@ -293,7 +293,6 @@ const Auth = (function () {
 
     function setupNicknameCheck() {
         const nicknameInput = document.getElementById('signup-nickname');
-        const checkBtn = document.getElementById('check-nickname-btn');
         const feedbackEl = document.getElementById('nickname-feedback');
 
         if (!nicknameInput || !feedbackEl) return;
@@ -301,62 +300,34 @@ const Auth = (function () {
         async function checkNickname(nickname) {
             if (!nickname) {
                 feedbackEl.style.display = 'none';
-                if (checkBtn) {
-                    checkBtn.classList.remove('text-success', 'text-danger');
-                    checkBtn.classList.add('text-muted');
-                    checkBtn.textContent = '중복 확인';
-                }
+                nicknameChecked = false;
+                checkedNickname = '';
                 return;
             }
 
             if (nickname.length < 2) {
                 showNicknameFeedback(feedbackEl, '닉네임은 2자 이상이어야 합니다.', 'text-danger');
-                if (checkBtn) {
-                    checkBtn.classList.remove('text-success', 'text-muted');
-                    checkBtn.classList.add('text-danger');
-                    checkBtn.textContent = '확인 필요';
-                }
+                nicknameChecked = false;
+                checkedNickname = '';
                 return;
             }
 
-            // Show checking state
-            if (checkBtn) {
-                checkBtn.textContent = '확인 중...';
-            }
-
             try {
-                // Check if username exists in PocketBase
                 const result = await pb.collection('users').getList(1, 1, {
                     filter: `username = "${nickname}"`
                 });
 
                 if (result.totalItems > 0) {
-                    // Nickname already exists
                     nicknameChecked = false;
                     checkedNickname = '';
                     showNicknameFeedback(feedbackEl, '이미 사용 중인 닉네임입니다.', 'text-danger');
-                    if (checkBtn) {
-                        checkBtn.classList.remove('text-muted', 'text-success');
-                        checkBtn.classList.add('text-danger');
-                        checkBtn.textContent = '사용 불가';
-                    }
                 } else {
-                    // Nickname is available
                     nicknameChecked = true;
                     checkedNickname = nickname;
                     showNicknameFeedback(feedbackEl, '사용 가능한 닉네임입니다.', 'text-success');
-                    if (checkBtn) {
-                        checkBtn.classList.remove('text-muted', 'text-danger');
-                        checkBtn.classList.add('text-success');
-                        checkBtn.textContent = '사용 가능 ✓';
-                    }
                 }
             } catch (error) {
                 showNicknameFeedback(feedbackEl, '확인 중 오류가 발생했습니다.', 'text-danger');
-                if (checkBtn) {
-                    checkBtn.classList.add('text-muted');
-                    checkBtn.textContent = '중복 확인';
-                }
             }
         }
 
@@ -364,31 +335,18 @@ const Auth = (function () {
         nicknameInput.addEventListener('input', function () {
             const nickname = nicknameInput.value.trim();
 
-            // Reset if nickname changed
             if (nickname !== checkedNickname) {
                 nicknameChecked = false;
             }
 
-            // Clear previous timeout
             if (nicknameCheckTimeout) {
                 clearTimeout(nicknameCheckTimeout);
             }
 
-            // Debounce: check after 500ms of no input
             nicknameCheckTimeout = setTimeout(() => {
                 checkNickname(nickname);
             }, 500);
         });
-
-        // Check nickname on button click (immediate)
-        if (checkBtn) {
-            checkBtn.addEventListener('click', function () {
-                if (nicknameCheckTimeout) {
-                    clearTimeout(nicknameCheckTimeout);
-                }
-                checkNickname(nicknameInput.value.trim());
-            });
-        }
     }
 
     function showNicknameFeedback(el, message, className) {

@@ -13,6 +13,7 @@ const Profile = (function () {
         }
 
         loadUserProfile();
+        loadOrderHistory(); // Load orders
 
         const saveBtn = document.getElementById('save-button');
         if (saveBtn) {
@@ -90,6 +91,98 @@ const Profile = (function () {
         } finally {
             saveBtn.disabled = false;
             saveBtn.textContent = '저장하기';
+        }
+    }
+
+    async function loadOrderHistory() {
+        const container = document.getElementById('order-history-list');
+        const currentUser = pb.authStore.model;
+
+        if (!currentUser) return;
+
+        try {
+            const orders = await pb.collection('orders').getFullList({
+                filter: `user="${currentUser.id}"`,
+                sort: '-created',
+                expand: 'user' // Expand if needed, though we have currentUser
+            });
+
+            if (orders.length === 0) {
+                container.innerHTML = '<div class="text-center py-6 text-gray-400 text-sm">주문 내역이 없습니다.</div>';
+                return;
+            }
+
+            let html = '';
+            for (const order of orders) {
+                // Format Date
+                const date = new Date(order.created).toLocaleDateString('ko-KR', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+
+                // Status Logic
+                let statusBadge = '';
+                if (order.status === 'paid') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-semibold">결제완료</span>';
+                } else if (order.status === 'pending') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold">대기중</span>';
+                } else {
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-semibold">' + order.status + '</span>';
+                }
+
+                // Items Logic
+                let itemsHtml = '';
+                if (order.items && order.items.length > 0) {
+                    for (const item of order.items) {
+                        let productTitle = '상품정보 없음';
+                        let imgUrl = 'https://via.placeholder.com/60';
+
+                        try {
+                            const product = await pb.collection('products').getOne(item.product_id);
+                            productTitle = product.title;
+                            if (product.images && product.images.length > 0) {
+                                imgUrl = pb.files.getUrl(product, product.images[0], { thumb: '100x100' });
+                            }
+                        } catch (e) {
+                            productTitle = '삭제된 상품';
+                        }
+
+                        itemsHtml += `
+                            <div class="flex items-center gap-3 mt-2">
+                                <img src="${imgUrl}" class="w-12 h-12 object-cover rounded bg-gray-100 flex-shrink-0">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">${productTitle}</p>
+                                    <p class="text-xs text-gray-500">${item.qty}개 / ${(item.price || 0).toLocaleString()}원</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                html += `
+                <div class="border rounded-lg p-4 bg-gray-50">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">${date}</p>
+                            <p class="text-sm font-bold text-gray-900">주문번호: ${order.payment_id || order.id.substring(0, 8)}</p>
+                        </div>
+                        ${statusBadge}
+                    </div>
+                    <div class="divide-y divide-gray-200">
+                        ${itemsHtml}
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-600">총 결제금액</span>
+                        <span class="text-base font-bold text-blue-600">${(order.total_amount || 0).toLocaleString()}원</span>
+                    </div>
+                </div>
+                `;
+            }
+
+            container.innerHTML = html;
+
+        } catch (error) {
+            console.error('Failed to load order history:', error);
+            container.innerHTML = '<div class="text-center py-6 text-red-500 text-sm">주문 내역을 불러오는데 실패했습니다.</div>';
         }
     }
 

@@ -1,0 +1,168 @@
+{{ define "main" }}
+<section class="section py-10 bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <h1 class="text-3xl font-bold text-gray-900">주문 관리</h1>
+            <div class="flex items-center gap-3">
+                <a href="/ko/admin/products" class="text-sm text-gray-600 hover:text-blue-600">상품 관리로 이동 &rarr;</a>
+                <button id="admin-logout-btn"
+                    class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors text-sm">로그아웃</button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white p-4 rounded-lg shadow-sm border mb-6">
+            <div class="flex flex-wrap gap-4 items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-700">상태 필터:</span>
+                    <select id="status-filter"
+                        class="border rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500">
+                        <option value="">전체</option>
+                        <option value="paid">결제완료 (Paid)</option>
+                        <option value="pending">결제대기 (Pending)</option>
+                        <option value="cancelled">취소됨 (Cancelled)</option>
+                    </select>
+                </div>
+                <!-- <div class="flex-1 max-w-xs">
+                    <input type="text" id="order-search" placeholder="주문자명, 이메일, 주문번호 검색" 
+                        class="w-full border rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500">
+                </div> -->
+                <button type="button" id="refresh-btn" class="p-2 text-gray-500 hover:text-blue-600" title="새로고침">
+                    <i class="tf-ion-refresh"></i> 새로고침
+                </button>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="bg-white rounded-lg shadow border overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                주문번호 / 날짜</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                주문자 정보</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                상품</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">총
+                                결제금액</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                상태</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Orders will be injected here -->
+                        <tr>
+                            <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                                <span
+                                    class="loading-spinner inline-block mr-2 animate-spin border-2 border-current border-t-transparent rounded-full w-4 h-4"></span>
+                                주문 목록을 불러오는 중...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination (Simple) -->
+            <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700">
+                            총 <span class="font-medium" id="total-orders-count">0</span>건의 주문
+                        </p>
+                    </div>
+                    <div>
+                        <nav id="pagination-controls" class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                            aria-label="Pagination">
+                            <!-- Pagination buttons injected by JS -->
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Order Detail Modal -->
+<div id="order-detail-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title"
+    role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+            onclick="AdminOrders.closeModal()"></div>
+
+        <!-- Modal panel -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div
+            class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3
+                            class="text-lg leading-6 font-medium text-gray-900 mb-4 border-b pb-2 flex justify-between items-center">
+                            <span>주문 상세 정보</span>
+                            <span id="modal-order-status"
+                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Paid
+                            </span>
+                        </h3>
+
+                        <div class="space-y-4">
+                            <!-- Buyer Info -->
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-700 mb-2">주문자 / 배송 정보</h4>
+                                <div class="bg-gray-50 p-3 rounded text-sm text-gray-600 grid grid-cols-2 gap-2">
+                                    <div><span class="font-semibold">이름:</span> <span id="modal-buyer-name">-</span>
+                                    </div>
+                                    <div><span class="font-semibold">전화번호:</span> <span id="modal-buyer-phone">-</span>
+                                    </div>
+                                    <div><span class="font-semibold">이메일:</span> <span id="modal-buyer-email">-</span>
+                                    </div>
+                                    <div class="col-span-2"><span class="font-semibold">주소:</span> <span
+                                            id="modal-buyer-address">-</span></div>
+                                    <div class="col-span-2 mt-1 text-xs text-gray-400">결제 ID: <span
+                                            id="modal-payment-id">-</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Order Items -->
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-700 mb-2">주문 상품</h4>
+                                <div id="modal-order-items"
+                                    class="border rounded divide-y divide-gray-200 max-h-60 overflow-y-auto">
+                                    <!-- Items injected here -->
+                                </div>
+                            </div>
+
+                            <!-- Total -->
+                            <div class="text-right pt-2 border-t">
+                                <span class="text-base font-medium text-gray-500">총 결제금액:</span>
+                                <span class="text-xl font-bold text-gray-900 ml-2" id="modal-total-amount">0원</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button"
+                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                    onclick="AdminOrders.closeModal()">
+                    확인
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ $adminOrdersScript := resources.Get "js/admin-orders.js" }}
+<script src="{{ $adminOrdersScript.Permalink }}"></script>
+{{ end }}
