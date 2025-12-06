@@ -59,10 +59,13 @@ const AdminCategories = {
     },
 
     updateDropdowns: function () {
-        const selects = document.querySelectorAll('#product-category');
+        const selects = document.querySelectorAll('#product-category, #filter-category');
         selects.forEach(select => {
             const currentVal = select.value;
-            select.innerHTML = '<option value="">카테고리 선택</option>';
+            // Preserve 'All Categories' option for filter
+            const isFilter = select.id === 'filter-category';
+            select.innerHTML = isFilter ? '<option value="">모든 카테고리</option>' : '<option value="">카테고리 선택</option>';
+
             this.categories.forEach(cat => {
                 const option = document.createElement('option');
                 option.value = cat.id;
@@ -137,25 +140,34 @@ const AdminProducts = {
         tableBody.innerHTML = '';
 
         try {
+            const filterCategory = document.getElementById('filter-category').value;
             const records = await this.pb.collection('products').getFullList({
                 sort: '-created',
+                expand: 'category',
             });
 
             spinner.style.display = 'none';
 
-            if (records.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="text-center">등록된 상품이 없습니다</td></tr>';
+            let displayRecords = records;
+            if (filterCategory) {
+                displayRecords = records.filter(p => p.category === filterCategory);
+            }
+
+            if (displayRecords.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center">등록된 상품이 없습니다</td></tr>';
                 return;
             }
 
-            records.forEach(product => {
+            displayRecords.forEach(product => {
                 const tr = document.createElement('tr');
+                const categoryName = product.expand && product.expand.category ? product.expand.category.name : '-';
                 const imageUrl = product.images && product.images.length > 0
                     ? this.pb.files.getUrl(product, product.images[0], { thumb: '100x100' })
                     : 'https://via.placeholder.com/50';
 
                 tr.innerHTML = `
                     <td><img src="${imageUrl}" alt="${product.title}" style="width: 50px; height: 50px; object-fit: cover;"></td>
+                    <td><span class="badge badge-light">${categoryName}</span></td>
                     <td>${product.title}</td>
                     <td>${product.price.toLocaleString()}</td>
                     <td>${product.stock || 0}</td>

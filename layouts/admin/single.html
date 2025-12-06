@@ -24,6 +24,18 @@
                     <strong>💡 안내:</strong> 상품 추가/수정 후 터미널에서 <code>npm run sync</code>를 실행하여 상세페이지를 생성하세요.
                 </div>
 
+                <!-- Filters -->
+                <div class="card mb-4">
+                    <div class="card-body py-3">
+                        <div class="form-inline">
+                            <label class="font-weight-bold mr-2">필터:</label>
+                            <select id="filter-category" class="form-control" onchange="AdminProducts.loadProducts()">
+                                <option value="">모든 카테고리</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Auth Check -->
                 <div id="admin-auth-check" class="alert alert-warning" style="display: none;">
                     상품을 관리하려면 관리자로 로그인해야 합니다. <a href="/ko/login">여기서 로그인하세요</a>.
@@ -35,6 +47,7 @@
                         <thead>
                             <tr>
                                 <th>이미지</th>
+                                <th>카테고리</th>
                                 <th>상품명</th>
                                 <th>가격</th>
                                 <th>재고</th>
@@ -45,6 +58,9 @@
                         </thead>
                         <tbody id="product-table-body">
                             <!-- Products will be loaded here -->
+                            <tr class="text-center">
+                                <td colspan="7">로딩 중...</td>
+                            </tr>
                         </tbody>
                     </table>
                     <div id="loading-spinner" class="text-center py-4">
