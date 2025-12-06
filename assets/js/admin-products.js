@@ -3,6 +3,116 @@
  * Handles product CRUD operations for the admin interface
  */
 
+const AdminCategories = {
+    pb: null,
+    categories: [],
+
+    init: async function (pb) {
+        this.pb = pb;
+        const form = document.getElementById('category-form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.addCategory();
+            });
+        }
+        await this.loadCategories();
+    },
+
+    loadCategories: async function () {
+        try {
+            this.categories = await this.pb.collection('categories').getFullList({
+                sort: 'name',
+            });
+            this.renderList();
+            this.updateDropdowns();
+        } catch (error) {
+            console.error('Error loading categories:', error);
+            if (error.status === 404) {
+                const list = document.getElementById('category-list');
+                if (list) list.innerHTML = '<div class="text-center text-danger">카테고리 컬렉션이 없습니다.</div>';
+            }
+        }
+    },
+
+    renderList: function () {
+        const list = document.getElementById('category-list');
+        if (!list) return;
+
+        if (this.categories.length === 0) {
+            list.innerHTML = '<div class="text-center py-3 text-muted">카테고리가 없습니다.</div>';
+            return;
+        }
+
+        list.innerHTML = '';
+        this.categories.forEach(cat => {
+            const item = document.createElement('div');
+            item.className = 'list-group-item d-flex justify-content-between align-items-center';
+            item.innerHTML = `
+                <span>${cat.name}</span>
+                <button class="btn btn-sm btn-outline-danger" onclick="AdminCategories.deleteCategory('${cat.id}')">
+                    &times;
+                </button>
+            `;
+            list.appendChild(item);
+        });
+    },
+
+    updateDropdowns: function () {
+        const selects = document.querySelectorAll('#product-category');
+        selects.forEach(select => {
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">카테고리 선택</option>';
+            this.categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = cat.name;
+                select.appendChild(option);
+            });
+            if (currentVal) select.value = currentVal;
+        });
+    },
+
+    addCategory: async function () {
+        const input = document.getElementById('new-category-name');
+        const name = input.value.trim();
+        if (!name) return;
+
+        // Simple slug generation
+        const slug = name.toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^\w\-가-힣]/g, '')
+            .replace(/^-|-$/g, '');
+
+        try {
+            await this.pb.collection('categories').create({
+                name: name,
+                slug: slug || ('cat-' + Date.now())
+            });
+            input.value = '';
+            await this.loadCategories();
+        } catch (error) {
+            console.error('Error creating category:', error);
+            alert('카테고리 추가 실패: ' + error.message);
+        }
+    },
+
+    deleteCategory: async function (id) {
+        if (!confirm('정말 삭제하시겠습니까?')) return;
+        try {
+            await this.pb.collection('categories').delete(id);
+            await this.loadCategories();
+        } catch (error) {
+            console.error('Error deleting category:', error);
+            alert('카테고리 삭제 실패');
+        }
+    },
+
+    openModal: function () {
+        $('#categoryModal').modal('show');
+    }
+};
+
 const AdminProducts = {
     pb: null,
     currentProduct: null,
@@ -16,6 +126,7 @@ const AdminProducts = {
         }
 
         this.loadProducts();
+        AdminCategories.init(this.pb);
     },
 
     loadProducts: async function () {
@@ -33,7 +144,7 @@ const AdminProducts = {
             spinner.style.display = 'none';
 
             if (records.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="5" class="text-center">등록된 상품이 없습니다</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center">등록된 상품이 없습니다</td></tr>';
                 return;
             }
 
@@ -47,6 +158,7 @@ const AdminProducts = {
                     <td><img src="${imageUrl}" alt="${product.title}" style="width: 50px; height: 50px; object-fit: cover;"></td>
                     <td>${product.title}</td>
                     <td>${product.price.toLocaleString()}</td>
+                    <td>${product.stock || 0}</td>
                     <td>
                         <span class="badge badge-${product.enabled ? 'success' : 'secondary'}">
                             ${product.enabled ? '활성화' : '비활성화'}
@@ -71,7 +183,9 @@ const AdminProducts = {
         this.currentProduct = null;
         document.getElementById('product-form').reset();
         document.getElementById('product-id').value = '';
+        document.getElementById('product-category').value = '';
         document.getElementById('productModalLabel').innerText = '상품 추가';
+        document.getElementById('product-stock').value = '0';
         document.getElementById('current-images').innerHTML = '';
 
         // Add auto-slug generation
@@ -121,10 +235,12 @@ const AdminProducts = {
 
             document.getElementById('product-id').value = product.id;
             document.getElementById('product-title').value = product.title;
+            document.getElementById('product-category').value = product.category || '';
             document.getElementById('product-slug').value = product.slug;
             document.getElementById('product-description').value = product.description;
             document.getElementById('product-price').value = product.price;
             document.getElementById('product-discount').value = product.discount_price;
+            document.getElementById('product-stock').value = product.stock || 0;
             document.getElementById('product-order').value = product.order;
             document.getElementById('product-enabled').checked = product.enabled;
             document.getElementById('product-language').value = product.language;
@@ -164,10 +280,12 @@ const AdminProducts = {
     saveProduct: async function () {
         const id = document.getElementById('product-id').value;
         const title = document.getElementById('product-title').value;
+        const category = document.getElementById('product-category').value;
         const slug = document.getElementById('product-slug').value;
         const description = document.getElementById('product-description').value;
         const price = parseFloat(document.getElementById('product-price').value);
         const discountPriceStr = document.getElementById('product-discount').value;
+        const stockStr = document.getElementById('product-stock').value;
         const orderStr = document.getElementById('product-order').value;
         const enabled = document.getElementById('product-enabled').checked;
         const language = document.getElementById('product-language').value;
@@ -180,12 +298,19 @@ const AdminProducts = {
 
         const formData = new FormData();
         formData.append('title', title);
+        if (category) formData.append('category', category);
         formData.append('slug', slug);
         formData.append('description', description || '');
         formData.append('price', price);
 
         if (discountPriceStr && discountPriceStr.trim() !== '') {
             formData.append('discount_price', parseFloat(discountPriceStr));
+        }
+
+        if (stockStr && stockStr.trim() !== '') {
+            formData.append('stock', parseInt(stockStr));
+        } else {
+            formData.append('stock', 0);
         }
 
         if (orderStr && orderStr.trim() !== '') {
