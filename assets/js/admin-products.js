@@ -120,7 +120,7 @@ const AdminProducts = {
     pb: null,
     currentProduct: null,
 
-    init: function () {
+    init: async function () {
         this.pb = new PocketBase('http://127.0.0.1:8090');
 
         // Check auth
@@ -128,8 +128,9 @@ const AdminProducts = {
             return;
         }
 
+        // Load categories FIRST so dropdowns can be populated
+        await AdminCategories.init(this.pb);
         this.loadProducts();
-        AdminCategories.init(this.pb);
     },
 
     loadProducts: async function () {
@@ -165,9 +166,19 @@ const AdminProducts = {
                     ? this.pb.files.getUrl(product, product.images[0], { thumb: '100x100' })
                     : 'https://via.placeholder.com/50';
 
+                // Generate Category Dropdown HTML
+                let categorySelectHtml = `<select class="form-control form-control-sm" onchange="AdminProducts.updateCategory('${product.id}', this.value)" style="width: 140px;">
+                    <option value="">(미지정)</option>`;
+
+                AdminCategories.categories.forEach(cat => {
+                    const selected = product.category === cat.id ? 'selected' : '';
+                    categorySelectHtml += `<option value="${cat.id}" ${selected}>${cat.name}</option>`;
+                });
+                categorySelectHtml += `</select>`;
+
                 tr.innerHTML = `
                     <td><img src="${imageUrl}" alt="${product.title}" style="width: 50px; height: 50px; object-fit: cover;"></td>
-                    <td><span class="badge badge-light">${categoryName}</span></td>
+                    <td>${categorySelectHtml}</td>
                     <td>${product.title}</td>
                     <td>${product.price.toLocaleString()}</td>
                     <td>${product.stock || 0}</td>
@@ -392,6 +403,21 @@ const AdminProducts = {
         } catch (error) {
             console.error('Error deleting image:', error);
             alert('이미지 삭제에 실패했습니다');
+        }
+    },
+
+    updateCategory: async function (productId, categoryId) {
+        try {
+            await this.pb.collection('products').update(productId, {
+                category: categoryId
+            });
+            // Optional: visual feedback like toast
+            console.log('Category updated');
+        } catch (error) {
+            console.error('Error updating category:', error);
+            alert('카테고리 수정 실패: ' + error.message);
+            // Revert change in UI if needed, but simplified for now
+            this.loadProducts(); // Reload to reset UI state on error
         }
     }
 };
