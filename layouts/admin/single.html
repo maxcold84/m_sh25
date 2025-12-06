@@ -191,6 +191,8 @@
 
 {{ partial "admin/category-modal.html" . }}
 
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
 {{ $adminAuthScript := resources.Get "js/admin-auth.js" }}
 <script src="{{ $adminAuthScript.Permalink }}"></script>
 

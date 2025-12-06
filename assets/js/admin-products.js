@@ -130,6 +130,14 @@ const AdminProducts = {
 
         // Load categories FIRST so dropdowns can be populated
         await AdminCategories.init(this.pb);
+
+        // Initialize HTMX Auth
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            if (AdminAuth && AdminAuth.pb && AdminAuth.pb.authStore.isValid) {
+                event.detail.headers['Authorization'] = AdminAuth.pb.authStore.token;
+            }
+        });
+
         this.loadProducts();
     },
 
@@ -183,9 +191,16 @@ const AdminProducts = {
                     <td>${product.price.toLocaleString()}</td>
                     <td>${product.stock || 0}</td>
                     <td>
-                        <span class="badge badge-${product.enabled ? 'success' : 'secondary'}">
-                            ${product.enabled ? '활성화' : '비활성화'}
-                        </span>
+                    <td>
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="status-${product.id}" 
+                                ${product.enabled ? 'checked' : ''}
+                                hx-patch="http://127.0.0.1:8090/api/collections/products/records/${product.id}"
+                                hx-trigger="change"
+                                hx-vals='js:{"enabled": event.target.checked}'
+                                hx-swap="none">
+                            <label class="custom-control-label" for="status-${product.id}"></label>
+                        </div>
                     </td>
                     <td>
                         <button class="btn btn-sm btn-info" onclick="AdminProducts.openEditModal('${product.id}')">수정</button>
@@ -194,6 +209,7 @@ const AdminProducts = {
                     </td>
                 `;
                 tableBody.appendChild(tr);
+                htmx.process(tr);
             });
         } catch (error) {
             console.error('Error loading products:', error);
