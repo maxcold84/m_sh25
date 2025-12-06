@@ -282,6 +282,7 @@ window.AdminOrders = (function () {
         document.getElementById('modal-buyer-phone').textContent = buyerPhone;
         document.getElementById('modal-buyer-email').textContent = buyerEmail;
         document.getElementById('modal-buyer-address').textContent = address;
+        document.getElementById('modal-buyer-delivery-note').textContent = shipping.deliveryNote || '-';
         document.getElementById('modal-total-amount').textContent = (order.total_amount || 0).toLocaleString() + '원';
 
         // Order Date

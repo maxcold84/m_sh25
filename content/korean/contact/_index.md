@@ -4,9 +4,9 @@ description : "메타 설명입니다"
 
 office:
   title : "본사"
-  mobile : "0124857985320"
-  email : "demo@email.com"
-  location : "방글라데시 다카"
+  mobile : "010-3879-1435"
+  email : "dir.goofun@gmail.com"
+  location : "서울시 강남구 강남대로"
   content : "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna"
 
 # opennig hour
