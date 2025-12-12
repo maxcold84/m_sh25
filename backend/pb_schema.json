@@ -173,8 +173,8 @@
     },
     {
         "id": "pbc_11111111",
-        "listRule": "",
-        "viewRule": "",
+        "listRule": "id = @request.auth.id",
+        "viewRule": "id = @request.auth.id",
         "createRule": "",
         "updateRule": "id = @request.auth.id",
         "deleteRule": "id = @request.auth.id",
@@ -1073,10 +1073,10 @@
     },
     {
         "id": "pbc_99999999",
-        "listRule": "",
-        "viewRule": "",
-        "createRule": "",
-        "updateRule": "",
+        "listRule": "user = @request.auth.id",
+        "viewRule": "user = @request.auth.id",
+        "createRule": "@request.auth.id != ''",
+        "updateRule": "user = @request.auth.id",
         "deleteRule": "",
         "name": "orders",
         "type": "base",
@@ -1190,84 +1190,6 @@
             }
         ],
         "indexes": [],
-        "system": false
-    },
-    {
-        "id": "pbc_categories_001",
-        "listRule": "",
-        "viewRule": "",
-        "createRule": "@request.auth.id != ''",
-        "updateRule": "@request.auth.id != ''",
-        "deleteRule": "@request.auth.id != ''",
-        "name": "categories",
-        "type": "base",
-        "fields": [
-            {
-                "autogeneratePattern": "[a-z0-9]{15}",
-                "hidden": false,
-                "id": "text3208210256",
-                "max": 15,
-                "min": 15,
-                "name": "id",
-                "pattern": "^[a-z0-9]+$",
-                "presentable": false,
-                "primaryKey": true,
-                "required": true,
-                "system": true,
-                "type": "text"
-            },
-            {
-                "autogeneratePattern": "",
-                "hidden": false,
-                "id": "text_name_001",
-                "max": 0,
-                "min": 0,
-                "name": "name",
-                "pattern": "",
-                "presentable": false,
-                "primaryKey": false,
-                "required": true,
-                "system": false,
-                "type": "text"
-            },
-            {
-                "autogeneratePattern": "",
-                "hidden": false,
-                "id": "text_slug_001",
-                "max": 0,
-                "min": 0,
-                "name": "slug",
-                "pattern": "",
-                "presentable": false,
-                "primaryKey": false,
-                "required": true,
-                "system": false,
-                "type": "text"
-            },
-            {
-                "hidden": false,
-                "id": "autodate2990389176",
-                "name": "created",
-                "onCreate": true,
-                "onUpdate": false,
-                "presentable": false,
-                "system": true,
-                "type": "autodate"
-            },
-            {
-                "hidden": false,
-                "id": "autodate3332085495",
-                "name": "updated",
-                "onCreate": true,
-                "onUpdate": true,
-                "presentable": false,
-                "system": true,
-                "type": "autodate"
-            }
-        ],
-        "indexes": [
-            "CREATE UNIQUE INDEX `idx_categories_slug` ON `categories` (`slug`)"
-        ],
         "system": false
     },
     {
@@ -1457,31 +1379,6 @@
                 "presentable": false,
                 "system": true,
                 "type": "autodate"
-            },
-            {
-                "hidden": false,
-                "id": "number_stock_001",
-                "max": null,
-                "min": 0,
-                "name": "stock",
-                "onlyInt": true,
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "number"
-            },
-            {
-                "cascadeDelete": false,
-                "collectionId": "pbc_categories_001",
-                "hidden": false,
-                "id": "relation_category",
-                "maxSelect": 1,
-                "minSelect": 0,
-                "name": "category",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "relation"
             }
         ],
         "indexes": [

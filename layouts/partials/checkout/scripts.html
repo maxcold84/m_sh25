@@ -474,15 +474,6 @@
 
                 for (const item of cartItems) {
                     await pb.collection('cart_items').delete(item.id);
-
-                    // Decrement stock
-                    try {
-                        const product = await pb.collection('products').getOne(item.product_id);
-                        const newStock = Math.max(0, (product.stock || 0) - item.quantity);
-                        await pb.collection('products').update(item.product_id, { stock: newStock });
-                    } catch (err) {
-                        console.error(`Failed to update stock for product ${item.product_id}:`, err);
-                    }
                 }
 
                 alert('결제가 완료되었습니다!');
