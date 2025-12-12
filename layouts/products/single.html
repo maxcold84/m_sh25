@@ -143,6 +143,9 @@
   </div>
 </section>
 
+{{/* 관련 상품 슬라이더 - 프론트매터에서 show_related_products: false 로 비활성화 가능 */}}
+{{ partial "related-products.html" . }}
+
 <style>
   .product-image-slider .slick-slide img {
     max-height: 500px;
@@ -166,6 +169,10 @@
     }
   });
 </script>
+
+
+{{/* 추가 슬라이더 수정 */}}
+{{ partial "products.html" . }}
 
 <!-- Reviews Script -->
 {{ $reviews := resources.Get "js/reviews.js" }}
