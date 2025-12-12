@@ -190,7 +190,10 @@ const AdminProducts = {
                     <td><img src="${imageUrl}" alt="${product.title}" style="width: 50px; height: 50px; object-fit: cover;"></td>
                     <td>${categorySelectHtml}</td>
                     <td>${product.title}</td>
-                    <td>${product.price.toLocaleString()}</td>
+                    <td>${product.discount_price && product.discount_price > 0
+                        ? `<del class="text-muted small">${product.price.toLocaleString()}</del> <br><span class="text-danger font-weight-bold">${product.discount_price.toLocaleString()}</span>`
+                        : product.price.toLocaleString()
+                    }</td>
                     <td>${product.stock || 0}</td>
                     <td>
                     <td>
@@ -227,7 +230,7 @@ const AdminProducts = {
         document.getElementById('product-category').value = '';
         document.getElementById('productModalLabel').innerText = '상품 추가';
         document.getElementById('product-stock').value = '0';
-        document.getElementById('product-stock').value = '0';
+        document.getElementById('product-admin-memo').value = '';
 
         this.visualItems = [];
         this.renderImages();
@@ -282,6 +285,7 @@ const AdminProducts = {
             document.getElementById('product-category').value = product.category || '';
             document.getElementById('product-slug').value = product.slug;
             document.getElementById('product-description').value = product.description;
+            document.getElementById('product-admin-memo').value = product.admin_memo || '';
             document.getElementById('product-price').value = product.price;
             document.getElementById('product-discount').value = product.discount_price;
             document.getElementById('product-stock').value = product.stock || 0;
@@ -323,6 +327,7 @@ const AdminProducts = {
         const category = document.getElementById('product-category').value;
         const slug = document.getElementById('product-slug').value;
         const description = document.getElementById('product-description').value;
+        const adminMemo = document.getElementById('product-admin-memo').value;
         const price = parseFloat(document.getElementById('product-price').value);
         const discountPriceStr = document.getElementById('product-discount').value;
         const stockStr = document.getElementById('product-stock').value;
@@ -346,6 +351,7 @@ const AdminProducts = {
         if (category) formData.append('category', category);
         formData.append('slug', slug);
         formData.append('description', description || '');
+        formData.append('admin_memo', adminMemo || '');
         formData.append('price', price);
 
         if (discountPriceStr && discountPriceStr.trim() !== '') {
