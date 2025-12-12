@@ -249,6 +249,30 @@ header.sticky-top {
   cursor: pointer;
 }
 
+/* Mobile navigation profile icon optimization */
+@include desktop {
+  #auth-profile-link {
+    .nav-link {
+      display: flex;
+      justify-content: center;
+      padding: 10px 20px !important;
+    }
+
+    .d-flex {
+      justify-content: center;
+    }
+
+    #nav-avatar-img {
+      margin: 0 auto;
+    }
+
+    #nav-avatar-icon {
+      display: block;
+      text-align: center;
+    }
+  }
+}
+
 
 /* cart */
 .cart {
