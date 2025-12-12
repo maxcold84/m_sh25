@@ -119,6 +119,8 @@ const AdminCategories = {
 const AdminProducts = {
     pb: null,
     currentProduct: null,
+    visualItems: [], // Array of { type: 'existing'|'new', value: filename|File, id: uniqueId }
+    sortable: null,
 
     init: async function () {
         this.pb = new PocketBase('http://127.0.0.1:8090');
@@ -225,7 +227,10 @@ const AdminProducts = {
         document.getElementById('product-category').value = '';
         document.getElementById('productModalLabel').innerText = '상품 추가';
         document.getElementById('product-stock').value = '0';
-        document.getElementById('current-images').innerHTML = '';
+        document.getElementById('product-stock').value = '0';
+
+        this.visualItems = [];
+        this.renderImages();
 
         // Add auto-slug generation
         const titleInput = document.getElementById('product-title');
@@ -291,22 +296,18 @@ const AdminProducts = {
             document.getElementById('product-colors').value = colors.join(', ');
             document.getElementById('product-sizes').value = sizes.join(', ');
 
-            // Show current images
-            const imagesContainer = document.getElementById('current-images');
-            imagesContainer.innerHTML = '';
+            // Setup visual items
+            this.visualItems = [];
             if (product.images && product.images.length > 0) {
                 product.images.forEach(img => {
-                    const imgUrl = this.pb.files.getUrl(product, img, { thumb: '100x100' });
-                    const div = document.createElement('div');
-                    div.className = 'mr-2 mb-2 position-relative';
-                    div.innerHTML = `
-                        <img src="${imgUrl}" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">
-                        <button type="button" class="btn btn-xs btn-danger position-absolute" style="top: -5px; right: -5px;" 
-                            onclick="AdminProducts.deleteImage('${product.id}', '${img}')">&times;</button>
-                    `;
-                    imagesContainer.appendChild(div);
+                    this.visualItems.push({
+                        type: 'existing',
+                        value: img,
+                        id: 'exist-' + img
+                    });
                 });
             }
+            this.renderImages();
 
             document.getElementById('productModalLabel').innerText = '상품 수정';
             $('#productModal').modal('show');
@@ -335,6 +336,11 @@ const AdminProducts = {
         const colors = colorsStr ? colorsStr.split(',').map(s => s.trim()).filter(s => s) : [];
         const sizes = sizesStr ? sizesStr.split(',').map(s => s.trim()).filter(s => s) : [];
 
+        const newFiles = this.visualItems.filter(item => item.type === 'new').map(item => item.value);
+        const existingFiles = this.visualItems.filter(item => item.type === 'existing').map(item => item.value);
+
+
+        // Append basic data
         const formData = new FormData();
         formData.append('title', title);
         if (category) formData.append('category', category);
@@ -363,19 +369,74 @@ const AdminProducts = {
         formData.append('colors', JSON.stringify(colors));
         formData.append('sizes', JSON.stringify(sizes));
 
-        // Handle image uploads
-        const fileInput = document.getElementById('product-images');
-        if (fileInput.files.length > 0) {
-            for (let file of fileInput.files) {
+        // Step 1: Upload new files and update other fields
+        // PocketBase appends new files to the existing list
+        if (newFiles.length > 0) {
+            for (let file of newFiles) {
                 formData.append('images', file);
             }
         }
+        // To remove images, we need to explicitly send the list of images to keep
+        // If we are updating, and there are existing images in visualItems, we need to tell PB to keep them
+        // If we don't send 'images' field for existing images, PB will delete them if they are not in the new list.
+        // So, we must send all existing images that we want to keep.
+        if (id) {
+            // For update, we need to explicitly tell PB which existing images to keep
+            // If we don't include an existing image in the formData, PB will delete it.
+            // So, we add all existing images from visualItems to formData.
+            // New images are also added, PB will append them.
+            existingFiles.forEach(filename => {
+                formData.append('images', filename);
+            });
+        }
+
 
         try {
+            let record;
             if (id) {
-                await this.pb.collection('products').update(id, formData);
+                record = await this.pb.collection('products').update(id, formData);
             } else {
-                await this.pb.collection('products').create(formData);
+                record = await this.pb.collection('products').create(formData);
+            }
+
+            // Step 2: Reorder images if necessary
+            // The record.images now contains all images (existing + newly uploaded)
+            // We need to construct the final desired order based on this.visualItems
+            const finalImages = [];
+            const serverImages = record.images ? [...record.images] : [];
+
+            // Map visual items to server filenames
+            // Existing items: use their value (filename)
+            // New items: map them to the filenames returned by PocketBase for the newly uploaded files.
+            // PocketBase appends new files, so we can take them from the end of serverImages.
+
+            const addedCount = newFiles.length;
+            const newServerImages = serverImages.slice(serverImages.length - addedCount);
+            let newImgIdx = 0;
+
+            this.visualItems.forEach(item => {
+                if (item.type === 'existing') {
+                    // Only include if it still exists in server array (sanity check, though PB should handle deletions)
+                    if (serverImages.includes(item.value)) {
+                        finalImages.push(item.value);
+                    }
+                } else if (item.type === 'new') {
+                    if (newImgIdx < newServerImages.length) {
+                        finalImages.push(newServerImages[newImgIdx]);
+                        newImgIdx++;
+                    }
+                }
+            });
+
+            // If the order is different or some images were implicitly removed by not being in formData,
+            // we perform a second update to set the final order.
+            const currentServerOrder = JSON.stringify(record.images);
+            const newOrder = JSON.stringify(finalImages);
+
+            if (currentServerOrder !== newOrder) {
+                await this.pb.collection('products').update(record.id, {
+                    images: finalImages
+                });
             }
 
             $('#productModal').modal('hide');
@@ -398,28 +459,9 @@ const AdminProducts = {
         }
     },
 
-    deleteImage: async function (productId, imageName) {
-        if (!confirm('이 이미지를 삭제하시겠습니까?')) return;
-
-        try {
-            // PocketBase doesn't support deleting single file from array via API easily without re-uploading or complex update
-            // But we can update the record by filtering out the image
-            // Note: This requires fetching the record first which we already have in currentProduct
-
-            if (!this.currentProduct) return;
-
-            const newImages = this.currentProduct.images.filter(img => img !== imageName);
-
-            await this.pb.collection('products').update(productId, {
-                images: newImages
-            });
-
-            // Refresh modal
-            this.openEditModal(productId);
-        } catch (error) {
-            console.error('Error deleting image:', error);
-            alert('이미지 삭제에 실패했습니다');
-        }
+    deleteImage: function (index) {
+        this.visualItems.splice(index, 1);
+        this.renderImages();
     },
 
     updateCategory: async function (productId, categoryId) {
@@ -435,6 +477,107 @@ const AdminProducts = {
             // Revert change in UI if needed, but simplified for now
             this.loadProducts(); // Reload to reset UI state on error
         }
+    },
+
+    handleImageSelect: function (input) {
+        if (input.files && input.files.length > 0) {
+            Array.from(input.files).forEach((file, idx) => {
+                // Prevent duplicates based on name and size (optional, but good for UX)
+                const exists = this.visualItems.some(item => item.type === 'new' && item.value.name === file.name && item.value.size === file.size);
+                if (!exists) {
+                    this.visualItems.push({
+                        type: 'new',
+                        value: file,
+                        id: 'new-' + Date.now() + '-' + idx
+                    });
+                }
+            });
+            this.renderImages();
+            input.value = '';
+        }
+    },
+
+    renderImages: function () {
+        const container = document.getElementById('product-image-list');
+        if (!container) return;
+
+        if (this.visualItems.length === 0) {
+            container.innerHTML = '<div class="w-100 text-center text-muted py-4">이미지가 없습니다</div>';
+            return;
+        }
+
+        container.innerHTML = '';
+
+        // Initialize Sortable if not already
+        if (!this.sortable) {
+            this.sortable = new Sortable(container, {
+                animation: 150,
+                onEnd: (evt) => {
+                    // Reorder visualItems array matching DOM order
+                    const item = this.visualItems.splice(evt.oldIndex, 1)[0];
+                    this.visualItems.splice(evt.newIndex, 0, item);
+                }
+            });
+        }
+
+        this.visualItems.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'mr-2 mb-2 position-relative sortable-item';
+            div.setAttribute('data-id', item.id);
+            div.style.cursor = 'move';
+
+            // HTML structure placeholder
+            let imgHtml = '';
+
+            if (item.type === 'existing') {
+                const imgUrl = this.pb.files.getUrl(this.currentProduct, item.value, { thumb: '100x100' });
+                imgHtml = `<img src="${imgUrl}" class="w-100 h-100" style="object-fit: cover;">`;
+                div.innerHTML = `
+                    <div class="border rounded overflow-hidden" style="width: 100px; height: 100px; background: #fff;">
+                        ${imgHtml}
+                    </div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div class="border rounded overflow-hidden" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                         <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+                    </div>
+                `;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imgContainer = div.querySelector('.border');
+                    imgContainer.style.background = 'none';
+                    imgContainer.innerHTML = `<img src="${e.target.result}" class="w-100 h-100" style="object-fit: cover;">`;
+                };
+                reader.readAsDataURL(item.value);
+            }
+
+            // Delete button
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'btn btn-xs btn-danger position-absolute rounded-circle p-0 d-flex justify-content-center align-items-center';
+            delBtn.style.cssText = 'top: -5px; right: -5px; width: 24px; height: 24px; z-index: 10;';
+            delBtn.innerHTML = '&times;';
+            delBtn.onclick = (e) => {
+                e.stopPropagation(); // prevent drag start
+                this.deleteImage(index);
+            };
+
+            div.appendChild(delBtn);
+
+            // Badge for first item
+            if (index === 0) {
+                const badge = document.createElement('span');
+                badge.className = 'badge badge-primary position-absolute';
+                badge.style.bottom = '5px';
+                badge.style.left = '5px';
+                badge.style.fontSize = '10px';
+                badge.textContent = '대표';
+                div.appendChild(badge);
+            }
+
+            container.appendChild(div);
+        });
     }
 };
 

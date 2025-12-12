@@ -413,6 +413,34 @@
                 customerData.phoneNumber = phone;
             }
 
+
+
+            // Pre-checkout Stock Validation
+            try {
+                for (const item of cartItems) {
+                    const productId = item.product_id || (item.expand?.product_id?.id);
+                    // Note: cart items might store product_id string directly or as expands depending on how they were fetched/saved.
+                    // scripts.html loadCart uses expand: 'product_id'. 
+                    // item.product_id is usually a string in PB response even if expanded.
+
+                    if (!productId) continue;
+
+                    const product = await pb.collection('products').getOne(productId);
+                    const currentStock = parseInt(product.stock) || 0;
+                    const qty = parseInt(item.quantity) || 1;
+                    const productName = product.title || product.name || '상품';
+
+                    if (currentStock < qty) {
+                        alert(`[${productName}]\n재고가 부족하여 주문할 수 없습니다.\n(현재 재고: ${currentStock}개)\n\n담당자에게 문의해주세요.`);
+                        return; // Abort checkout
+                    }
+                }
+            } catch (err) {
+                console.error('Stock validation failed:', err);
+                alert('상품 재고 정보를 확인할 수 없습니다. 다시 시도해주세요.');
+                return;
+            }
+
             payBtn.disabled = true;
             payBtn.textContent = '처리중...';
 
@@ -471,6 +499,33 @@
                 }
 
                 await pb.collection('orders').create(orderData);
+
+                // Update Stock
+                console.log('Updating inventory...');
+                for (const item of cartItems) {
+                    try {
+                        // 1. Fetch latest product to get current stock
+                        const productId = item.product_id || (item.expand?.product_id?.id);
+                        if (!productId) continue;
+
+                        const product = await pb.collection('products').getOne(productId);
+
+                        // 2. Calculate new stock
+                        const currentStock = parseInt(product.stock) || 0;
+                        const qty = parseInt(item.quantity) || 1;
+                        const newStock = Math.max(0, currentStock - qty); // 0 이하 허용하지 않음
+
+                        // 3. Update product
+                        await pb.collection('products').update(productId, {
+                            stock: newStock
+                        });
+                        console.log(`Updated stock for ${product.name}: ${currentStock} -> ${newStock}`);
+
+                    } catch (err) {
+                        console.error('Failed to update stock for item:', item, err);
+                        // Continue to next item even if this one fails
+                    }
+                }
 
                 for (const item of cartItems) {
                     await pb.collection('cart_items').delete(item.id);
