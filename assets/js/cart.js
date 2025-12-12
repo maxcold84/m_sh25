@@ -324,7 +324,9 @@ const Cart = {
             // Process items for display
             const isKorean = document.documentElement.lang === 'ko' || window.location.pathname.includes('/korean/');
 
-            return records.map(item => {
+            // 각 아이템에 대해 slug를 조회하여 링크 생성
+            const processedItems = [];
+            for (const item of records) {
                 let displayPrice = item.price;
                 if (isKorean && displayPrice < 1000) {
                     displayPrice = displayPrice * 1000;
@@ -332,12 +334,27 @@ const Cart = {
                     displayPrice = displayPrice / 1000;
                 }
 
-                return {
+                // product_id로 slug 조회
+                let productLink = null;
+                if (item.product_id) {
+                    try {
+                        const product = await pb.collection('products').getOne(item.product_id);
+                        if (product.slug) {
+                            productLink = `/ko/products/${product.slug}/`;
+                        }
+                    } catch (e) {
+                        console.warn('Failed to fetch product slug for:', item.product_id);
+                    }
+                }
+
+                processedItems.push({
                     ...item,
                     formattedPrice: this.formatCurrency(displayPrice * item.quantity),
-                    isMinQuantity: item.quantity <= 1
-                };
-            });
+                    isMinQuantity: item.quantity <= 1,
+                    productLink: productLink
+                });
+            }
+            return processedItems;
         } catch (e) {
             console.error('Error fetching items:', e);
             return [];

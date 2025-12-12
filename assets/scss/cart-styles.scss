@@ -172,6 +172,32 @@
     flex-shrink: 0;
   }
 
+  .item-image-link {
+    flex-shrink: 0;
+    display: block;
+  }
+
+  .item-image-clickable {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.8;
+      transform: scale(1.02);
+    }
+  }
+
+  .item-name-link {
+    color: var(--cart-text);
+    text-decoration: none;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #667eea;
+      text-decoration: underline;
+    }
+  }
+
   .item-details {
     flex: 1;
     display: flex;

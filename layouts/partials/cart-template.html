@@ -11,6 +11,21 @@
     [[#items]]
     <div class="cart-item" data-item-id="[[id]]">
       <div class="item-content">
+        [[#productLink]]
+        [[#image]]
+        <a href="[[productLink]]" class="item-image-link">
+          <img src="[[image]]" alt="[[name]]" class="item-image item-image-clickable" loading="lazy">
+        </a>
+        [[/image]]
+        [[^image]]
+        <a href="[[productLink]]" class="item-image-link">
+          <div class="item-image item-image-clickable" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 24px;">
+            🛍️
+          </div>
+        </a>
+        [[/image]]
+        [[/productLink]]
+        [[^productLink]]
         [[#image]]
         <img src="[[image]]" alt="[[name]]" class="item-image" loading="lazy">
         [[/image]]
@@ -19,9 +34,15 @@
           🛍️
         </div>
         [[/image]]
+        [[/productLink]]
         
         <div class="item-details">
+          [[#productLink]]
+          <h4 class="item-name"><a href="[[productLink]]" class="item-name-link">[[name]]</a></h4>
+          [[/productLink]]
+          [[^productLink]]
           <h4 class="item-name">[[name]]</h4>
+          [[/productLink]]
           <div class="item-price">[[formattedPrice]]</div>
         </div>
       </div>

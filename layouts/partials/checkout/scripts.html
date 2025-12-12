@@ -224,6 +224,21 @@
                 });
 
                 console.log('Loaded cart records:', records);
+
+                // 각 cart item에 대해 product 정보(slug 포함)를 조회하여 저장
+                for (const item of records) {
+                    const productId = item.product_id;
+                    if (productId && !item._productSlug) {
+                        try {
+                            const product = await pb.collection('products').getOne(productId);
+                            item._productSlug = product.slug;
+                        } catch (e) {
+                            console.warn('Failed to fetch product slug for:', productId);
+                            item._productSlug = null;
+                        }
+                    }
+                }
+
                 cartItems = records;
                 renderCart();
             } catch (err) {
@@ -334,11 +349,21 @@
                     imageUrl = 'https://via.placeholder.com/80';
                 }
 
+                // 상품 상세페이지 링크 생성
+                const productSlug = item._productSlug;
+                const productLink = productSlug ? `/ko/products/${productSlug}/` : null;
+
                 html += `
                 <div class="flex gap-4 py-4">
-                    <img src="${imageUrl}" alt="${productName}" class="w-20 h-20 object-cover rounded-lg bg-gray-100 flex-shrink-0">
+                    ${productLink
+                        ? `<a href="${productLink}" class="flex-shrink-0"><img src="${imageUrl}" alt="${productName}" class="w-20 h-20 object-cover rounded-lg bg-gray-100 hover:opacity-80 transition-opacity cursor-pointer"></a>`
+                        : `<img src="${imageUrl}" alt="${productName}" class="w-20 h-20 object-cover rounded-lg bg-gray-100 flex-shrink-0">`
+                    }
                     <div class="flex-1 min-w-0">
-                        <h3 class="font-medium text-gray-900 truncate">${productName}</h3>
+                        <h3 class="font-medium text-gray-900 truncate">${productLink
+                        ? `<a href="${productLink}" class="hover:text-blue-600 hover:underline transition-colors">${productName}</a>`
+                        : productName
+                    }</h3>
                         <p class="text-sm text-gray-500 mt-1">수량: ${qty}개</p>
                         <p class="font-bold text-gray-900 mt-2">${formatPrice(subtotal)}</p>
                     </div >
