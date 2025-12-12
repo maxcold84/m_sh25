@@ -4,6 +4,8 @@ window.AdminOrders = (function () {
     const ITEMS_PER_PAGE = 20;
     let currentPage = 1;
     let currentOrderId = null;
+    let selectedOrders = new Set();
+    let deleteTargetId = null;
 
     // 택배사 목록
     const CARRIERS = {
@@ -65,7 +67,7 @@ window.AdminOrders = (function () {
         const tableBody = document.getElementById('orders-table-body');
         const countSpan = document.getElementById('total-orders-count');
 
-        tableBody.innerHTML = '<tr><td colspan="7" class="px-6 py-10 text-center text-gray-500">불러오는 중...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="8" class="px-6 py-10 text-center text-gray-500">불러오는 중...</td></tr>';
 
         try {
             // Fetch all orders sorted by latest
@@ -87,7 +89,7 @@ window.AdminOrders = (function () {
                 alert('권한이 없습니다. 다시 로그인해주세요.');
                 window.location.href = '/ko/admin/login';
             } else {
-                tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-danger">오류가 발생했습니다: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-danger">오류가 발생했습니다: ${err.message}</td></tr>`;
             }
         }
     }
@@ -110,7 +112,7 @@ window.AdminOrders = (function () {
         const pageItems = filtered.slice(start, end);
 
         if (pageItems.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">주문 내역이 없습니다.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted">주문 내역이 없습니다.</td></tr>';
             renderPagination(0, 0);
             return;
         }
@@ -134,6 +136,7 @@ window.AdminOrders = (function () {
             else if (order.status === 'shipping') { statusClass = 'badge badge-info'; statusText = '배송중'; }
             else if (order.status === 'pending') statusClass = 'badge badge-warning';
             else if (order.status === 'cancelled') statusClass = 'badge badge-danger';
+            else if (order.status === 'archived') { statusClass = 'badge badge-dark'; statusText = '보관됨'; }
 
             // Items Summary
             const itemCount = order.items ? order.items.length : 0;
@@ -154,26 +157,32 @@ window.AdminOrders = (function () {
                 trackingHtml = `<div class="small">${carrierName}</div><div class="small text-primary">${trackingNumber}</div>`;
             }
 
+            const isSelected = selectedOrders.has(order.id);
             html += `
-                <tr class="cursor-pointer" onclick="AdminOrders.openModal('${order.id}')">
-                    <td>
+                <tr class="cursor-pointer ${isSelected ? 'table-active' : ''}">
+                    <td onclick="event.stopPropagation();">
+                        <input type="checkbox" class="order-checkbox" data-order-id="${order.id}" 
+                               ${isSelected ? 'checked' : ''} 
+                               onchange="AdminOrders.toggleSelectOrder('${order.id}')">
+                    </td>
+                    <td onclick="AdminOrders.openModal('${order.id}')">
                         <div class="font-weight-bold text-dark">${order.payment_id || order.id.substring(0, 8)}</div>
                         <div class="small text-muted">${date}</div>
                     </td>
-                    <td>
+                    <td onclick="AdminOrders.openModal('${order.id}')">
                         <div class="text-dark">${buyerName}</div>
                         <div class="small text-muted">${buyerEmail}</div>
                     </td>
-                    <td>
+                    <td onclick="AdminOrders.openModal('${order.id}')">
                         <div class="text-dark">${itemsSummary}</div>
                     </td>
-                    <td>
+                    <td onclick="AdminOrders.openModal('${order.id}')">
                         <div class="font-weight-bold text-dark">${(order.total_amount || 0).toLocaleString()}원</div>
                     </td>
-                    <td>
+                    <td onclick="AdminOrders.openModal('${order.id}')">
                         ${trackingHtml}
                     </td>
-                    <td class="text-center">
+                    <td class="text-center" onclick="AdminOrders.openModal('${order.id}')">
                         <span class="${statusClass}">
                             ${statusText}
                         </span>
@@ -187,6 +196,7 @@ window.AdminOrders = (function () {
 
         tableBody.innerHTML = html;
         renderPagination(totalPages, currentPage);
+        updateBulkActionsUI();
     }
 
     function renderPagination(totalPages, current) {
@@ -488,13 +498,247 @@ window.AdminOrders = (function () {
         window.open(url, '_blank');
     }
 
+    // ============ Selection Functions ============
+    function toggleSelectOrder(orderId) {
+        if (selectedOrders.has(orderId)) {
+            selectedOrders.delete(orderId);
+        } else {
+            selectedOrders.add(orderId);
+        }
+        updateBulkActionsUI();
+        updateSelectAllCheckbox();
+    }
+
+    function toggleSelectAll() {
+        const selectAllCheckbox = document.getElementById('select-all-orders');
+        const statusFilter = document.getElementById('status-filter').value;
+
+        let filtered = allOrders;
+        if (statusFilter) {
+            filtered = allOrders.filter(o => o.status === statusFilter);
+        }
+
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const pageItems = filtered.slice(start, end);
+
+        if (selectAllCheckbox.checked) {
+            pageItems.forEach(order => selectedOrders.add(order.id));
+        } else {
+            pageItems.forEach(order => selectedOrders.delete(order.id));
+        }
+
+        renderOrders();
+    }
+
+    function updateSelectAllCheckbox() {
+        const selectAllCheckbox = document.getElementById('select-all-orders');
+        if (!selectAllCheckbox) return;
+
+        const checkboxes = document.querySelectorAll('.order-checkbox');
+        const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+        selectAllCheckbox.checked = allChecked;
+    }
+
+    function updateBulkActionsUI() {
+        const bulkActions = document.getElementById('bulk-actions');
+        const selectedCount = document.getElementById('selected-count');
+
+        if (!bulkActions || !selectedCount) return;
+
+        if (selectedOrders.size > 0) {
+            bulkActions.classList.remove('d-none');
+            selectedCount.textContent = selectedOrders.size;
+        } else {
+            bulkActions.classList.add('d-none');
+        }
+    }
+
+    // ============ Archive Functions ============
+    async function archiveOrder(orderId = null) {
+        const targetId = orderId || currentOrderId;
+        if (!targetId) {
+            alert('주문 정보가 없습니다.');
+            return;
+        }
+
+        try {
+            await pb.collection('orders').update(targetId, { status: 'archived' });
+
+            // Update local cache
+            const orderIndex = allOrders.findIndex(o => o.id === targetId);
+            if (orderIndex !== -1) {
+                allOrders[orderIndex].status = 'archived';
+            }
+
+            alert('주문이 보관되었습니다.');
+            closeModal();
+            renderOrders();
+        } catch (err) {
+            console.error('Failed to archive order:', err);
+            alert('보관 실패: ' + err.message);
+        }
+    }
+
+    async function bulkArchive() {
+        if (selectedOrders.size === 0) {
+            alert('선택된 주문이 없습니다.');
+            return;
+        }
+
+        if (!confirm(`${selectedOrders.size}개의 주문을 보관하시겠습니까?`)) {
+            return;
+        }
+
+        try {
+            const promises = Array.from(selectedOrders).map(orderId =>
+                pb.collection('orders').update(orderId, { status: 'archived' })
+            );
+            await Promise.all(promises);
+
+            // Update local cache
+            selectedOrders.forEach(orderId => {
+                const orderIndex = allOrders.findIndex(o => o.id === orderId);
+                if (orderIndex !== -1) {
+                    allOrders[orderIndex].status = 'archived';
+                }
+            });
+
+            alert(`${selectedOrders.size}개의 주문이 보관되었습니다.`);
+            selectedOrders.clear();
+            renderOrders();
+        } catch (err) {
+            console.error('Failed to bulk archive:', err);
+            alert('일괄 보관 실패: ' + err.message);
+        }
+    }
+
+    // ============ Delete Functions ============
+    function confirmDelete(orderId = null) {
+        deleteTargetId = orderId || currentOrderId;
+        if (!deleteTargetId) {
+            alert('주문 정보가 없습니다.');
+            return;
+        }
+
+        const order = allOrders.find(o => o.id === deleteTargetId);
+        if (order) {
+            const infoEl = document.getElementById('delete-order-info');
+            infoEl.textContent = `주문번호: ${order.payment_id || order.id.substring(0, 8)}`;
+        }
+
+        $('#delete-confirm-modal').modal('show');
+    }
+
+    async function deleteOrder() {
+        if (!deleteTargetId) {
+            alert('삭제할 주문이 없습니다.');
+            return;
+        }
+
+        try {
+            await pb.collection('orders').delete(deleteTargetId);
+
+            // Remove from local cache
+            allOrders = allOrders.filter(o => o.id !== deleteTargetId);
+            selectedOrders.delete(deleteTargetId);
+
+            $('#delete-confirm-modal').modal('hide');
+            closeModal();
+
+            alert('주문이 삭제되었습니다.');
+            document.getElementById('total-orders-count').textContent = allOrders.length;
+            renderOrders();
+        } catch (err) {
+            console.error('Failed to delete order:', err);
+            alert('삭제 실패: ' + err.message);
+        } finally {
+            deleteTargetId = null;
+        }
+    }
+
+    async function bulkDelete() {
+        if (selectedOrders.size === 0) {
+            alert('선택된 주문이 없습니다.');
+            return;
+        }
+
+        const infoEl = document.getElementById('delete-order-info');
+        infoEl.textContent = `선택된 ${selectedOrders.size}개의 주문을 삭제합니다.`;
+
+        // Use a special marker for bulk delete
+        deleteTargetId = 'BULK_DELETE';
+        $('#delete-confirm-modal').modal('show');
+    }
+
+    // Override deleteOrder to handle bulk delete
+    const originalDeleteOrder = deleteOrder;
+    deleteOrder = async function () {
+        if (deleteTargetId === 'BULK_DELETE') {
+            try {
+                const promises = Array.from(selectedOrders).map(orderId =>
+                    pb.collection('orders').delete(orderId)
+                );
+                await Promise.all(promises);
+
+                // Remove from local cache
+                allOrders = allOrders.filter(o => !selectedOrders.has(o.id));
+                const deletedCount = selectedOrders.size;
+                selectedOrders.clear();
+
+                $('#delete-confirm-modal').modal('hide');
+
+                alert(`${deletedCount}개의 주문이 삭제되었습니다.`);
+                document.getElementById('total-orders-count').textContent = allOrders.length;
+                renderOrders();
+            } catch (err) {
+                console.error('Failed to bulk delete:', err);
+                alert('일괄 삭제 실패: ' + err.message);
+            } finally {
+                deleteTargetId = null;
+            }
+        } else {
+            // Single delete
+            if (!deleteTargetId) {
+                alert('삭제할 주문이 없습니다.');
+                return;
+            }
+
+            try {
+                await pb.collection('orders').delete(deleteTargetId);
+
+                allOrders = allOrders.filter(o => o.id !== deleteTargetId);
+                selectedOrders.delete(deleteTargetId);
+
+                $('#delete-confirm-modal').modal('hide');
+                closeModal();
+
+                alert('주문이 삭제되었습니다.');
+                document.getElementById('total-orders-count').textContent = allOrders.length;
+                renderOrders();
+            } catch (err) {
+                console.error('Failed to delete order:', err);
+                alert('삭제 실패: ' + err.message);
+            } finally {
+                deleteTargetId = null;
+            }
+        }
+    };
+
     return {
         init,
         openModal,
         closeModal,
         setPage,
         saveTrackingInfo,
-        openTrackingUrl
+        openTrackingUrl,
+        toggleSelectOrder,
+        toggleSelectAll,
+        archiveOrder,
+        bulkArchive,
+        confirmDelete,
+        deleteOrder,
+        bulkDelete
     };
 })();
 

@@ -90,6 +90,14 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="button" id="archive-order-btn" class="btn btn-warning"
+                    onclick="AdminOrders.archiveOrder()">
+                    <i class="tf-ion-archive"></i> 보관
+                </button>
+                <button type="button" id="delete-order-btn" class="btn btn-danger"
+                    onclick="AdminOrders.confirmDelete()">
+                    <i class="tf-ion-trash-a"></i> 삭제
+                </button>
                 <button type="button" id="track-delivery-btn" class="btn btn-info d-none"
                     onclick="AdminOrders.openTrackingUrl()">
                     <i class="tf-ion-ios-location"></i> 배송조회

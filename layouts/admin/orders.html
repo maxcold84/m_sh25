@@ -19,6 +19,32 @@
 {{/* Modal: 주문 상세 모달 (운송장 폼 포함) */}}
 {{ partial "admin/orders-modal" . }}
 
+{{/* Delete Confirmation Modal */}}
+<div class="modal fade" id="delete-confirm-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">주문 삭제 확인</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="닫기">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2"><strong>정말로 이 주문을 삭제하시겠습니까?</strong></p>
+                <p class="text-danger mb-0"><i class="tf-ion-alert-circled"></i> 이 작업은 되돌릴 수 없습니다.</p>
+                <p id="delete-order-info" class="small text-muted mt-2"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn"
+                    onclick="AdminOrders.deleteOrder()">
+                    <i class="tf-ion-trash-a"></i> 삭제
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{ $adminAuthScript := resources.Get "js/admin-auth.js" }}
 <script src="{{ $adminAuthScript.Permalink }}"></script>
 
