@@ -10,6 +10,12 @@
         {{ .Site.Title }}
         {{ end }}
       </a>
+
+      <!-- Mobile Cart Trigger (Visible on all sizes, positioned via CSS) -->
+      <button class="cart" id="cart-trigger" onclick="Cart.toggleDrawer()">
+        <i class="tf-ion-android-cart"></i>
+      </button>
+
       <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navigation"
         aria-controls="navigation" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -48,9 +54,6 @@
         </select>
         {{ end }}
       </div>
-      <button class="cart" id="cart-trigger" onclick="Cart.toggleDrawer()">
-        <i class="tf-ion-android-cart"></i>
-      </button>
     </nav>
   </div>
 </header>

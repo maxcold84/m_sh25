@@ -301,6 +301,24 @@ header.sticky-top {
   &:focus {
     outline: 0;
   }
+
+  /* Override the 'desktop' mixin (which is max-width: 991px) for actual mobile devices */
+  @include mobile {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin-right: 15px;
+
+    i {
+      font-size: 24px;
+    }
+  }
+
+  /* Desktop Fix: Push cart to the end using Flexbox order */
+  @media (min-width: 992px) {
+    order: 10;
+    margin-left: 15px;
+  }
 }
 
 .badge-primary {

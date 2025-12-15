@@ -169,6 +169,19 @@ const AdminProducts = {
                 return;
             }
 
+            // Fetch inquiries for counts (efficiently)
+            const inquiries = await this.pb.collection('product_inquiries').getFullList({
+                fields: 'product_id,reply',
+                sort: '-created'
+            });
+
+            const inquiryMap = {};
+            inquiries.forEach(inq => {
+                if (!inquiryMap[inq.product_id]) inquiryMap[inq.product_id] = { total: 0, waiting: 0 };
+                inquiryMap[inq.product_id].total++;
+                if (!inq.reply) inquiryMap[inq.product_id].waiting++;
+            });
+
             displayRecords.forEach(product => {
                 const tr = document.createElement('tr');
                 const categoryName = product.expand && product.expand.category ? product.expand.category.name : '-';
@@ -186,6 +199,17 @@ const AdminProducts = {
                 });
                 categorySelectHtml += `</select>`;
 
+                // Inquiry stats
+                const stats = inquiryMap[product.id] || { total: 0, waiting: 0 };
+                let inquiryBadge = '-';
+                if (stats.total > 0) {
+                    // Use simple icon class if available, assuming tf-ion-chatbubbles or similar from context
+                    const iconClass = stats.waiting > 0 ? 'text-danger' : 'text-secondary';
+                    inquiryBadge = `<span class="${iconClass}" style="font-size: 1.2em;" title="문의 ${stats.total}건 (답변대기 ${stats.waiting})">
+                        <i class="tf-ion-chatbubbles"></i> ${stats.waiting > 0 ? `<small class="font-weight-bold">${stats.waiting}</small>` : ''}
+                     </span>`;
+                }
+
                 tr.innerHTML = `
                     <td><img src="${imageUrl}" alt="${product.title}" style="width: 50px; height: 50px; object-fit: cover;"></td>
                     <td>${categorySelectHtml}</td>
@@ -195,7 +219,7 @@ const AdminProducts = {
                         : product.price.toLocaleString()
                     }</td>
                     <td>${product.stock || 0}</td>
-                    <td>
+                    <td class="text-center">${inquiryBadge}</td>
                     <td>
                         <div class="custom-control custom-switch">
                             <input type="checkbox" class="custom-control-input" id="status-${product.id}" 

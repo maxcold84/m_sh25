@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Product Q&A Collection</title>
+    <!-- PocketBase SDK -->
+    <script src="/js/pocketbase.umd.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h2>Product Q&A Database Setup</h2>
+                <p class="mb-4">Click the button below to create the 'product_inquiries' collection in your PocketBase
+                    database.</p>
+                <div id="authCheck" class="text-warning mb-3" style="display:none;"></div>
+
+                <button id="setupBtn" class="btn btn-primary btn-lg">Create Collection</button>
+
+                <div id="status" class="mt-4 text-left"
+                    style="display:none; background: #eee; padding: 15px; border-radius: 5px; font-family: monospace; white-space: pre-wrap;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pb = new PocketBase('http://127.0.0.1:8090');
+        const statusDiv = document.getElementById('status');
+        const log = (msg, type = 'info') => {
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML += `<div class="text-${type}">${msg}</div>`;
+        };
+
+        // Check if admin is logged in (likely via other tab)
+        // If not, we can warn but let them try (maybe they have same-origin cookie?)
+        // Actually, PB SDK stores auth in localStorage. If they logged in to Admin UI on same port, it might share if same origin.
+        // But Admin UI is usually /_/ and user site is /. They share origin.
+        if (pb.authStore.isValid && pb.authStore.isAdmin) {
+            document.getElementById('authCheck').style.display = 'block';
+            document.getElementById('authCheck').className = 'text-success';
+            document.getElementById('authCheck').textContent = 'Admin session detected.';
+        } else {
+            document.getElementById('authCheck').style.display = 'block';
+            document.getElementById('authCheck').textContent = 'Admin session NOT detected. Please log in to Admin UI first.';
+        }
+
+        document.getElementById('setupBtn').addEventListener('click', async () => {
+            statusDiv.innerHTML = '';
+
+            if (!pb.authStore.isValid || !pb.authStore.isAdmin) {
+                log('Error: You must be logged in as Admin in this browser session.', 'danger');
+                log('Please go to <a href="/_/" target="_blank">/_/</a> (Admin UI), login, and then refresh this page.', 'warning');
+                return;
+            }
+
+            try {
+                log('Checking for existing collection...', 'info');
+
+                // Users collection ID from pb_schema.json
+                const usersCollectionId = 'pbc_11111111';
+
+                // Check/Create product_inquiries
+                try {
+                    await pb.collections.getOne('product_inquiries');
+                    log('Collection "product_inquiries" already exists! Skipping creation.', 'success');
+                } catch (e) {
+                    if (e.status === 404) {
+                        log('Collection not found. Creating...', 'warning');
+
+                        await pb.collections.create({
+                            name: "product_inquiries",
+                            type: "base",
+                            schema: [
+                                { name: "product_id", type: "text", required: true, options: {} },
+                                { name: "user", type: "relation", required: true, options: { maxSelect: 1, collectionId: usersCollectionId, cascadeDelete: false } },
+                                { name: "content", type: "text", required: true, options: {} },
+                                { name: "is_secret", type: "bool", required: false, options: {} },
+                                { name: "reply", type: "text", required: false, options: {} },
+                                { name: "reply_date", type: "date", required: false, options: {} }
+                            ],
+                            listRule: "", // Public readable
+                            viewRule: "", // Public readable
+                            createRule: "auth.id != ''",
+                            updateRule: "user = @request.auth.id",
+                            deleteRule: "user = @request.auth.id",
+                        });
+                        log('Collection "product_inquiries" created successfully!', 'success');
+                    } else {
+                        throw e;
+                    }
+                }
+
+            } catch (err) {
+                console.error(err);
+                log('Error: ' + err.message, 'danger');
+                if (err.data) {
+                    log('Details: ' + JSON.stringify(err.data, null, 2), 'danger');
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

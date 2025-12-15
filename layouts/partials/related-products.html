@@ -234,17 +234,25 @@
     /* Responsive */
     @media (max-width: 768px) {
         .related-products-section {
-            padding: 40px 0;
+            padding: 30px 0;
+            margin-top: 20px;
         }
 
         .section-title {
-            font-size: 22px;
+            font-size: 20px;
         }
 
         .related-products-slider .slick-prev,
         .related-products-slider .slick-next {
-            width: 35px;
-            height: 35px;
+            display: none !important;
+        }
+
+        .product-info {
+            padding: 10px;
+        }
+
+        .product-title {
+            font-size: 13px;
         }
     }
 </style>
@@ -254,14 +262,17 @@
         if (typeof $ !== 'undefined' && $.fn.slick) {
             $('#related-products-slider').slick({
                 infinite: true,
-                speed: 3000,
+                speed: 500,
                 slidesToShow: 4,
                 slidesToScroll: 1,
                 arrows: false,
                 dots: false,
                 autoplay: true,
-                autoplaySpeed: 2500,
+                autoplaySpeed: 3000,
                 pauseOnHover: true,
+                swipe: true,
+                touchMove: true,
+                swipeToSlide: true,
                 responsive: [
                     {
                         breakpoint: 1200,
@@ -280,7 +291,9 @@
                         settings: {
                             slidesToShow: 1,
                             arrows: false,
-                            dots: false
+                            dots: false,
+                            swipe: true,
+                            touchMove: true
                         }
                     }
                 ]
