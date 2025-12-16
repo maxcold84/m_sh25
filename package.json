@@ -5,7 +5,7 @@
     "type": "module",
     "main": "scripts/sync-products.js",
     "scripts": {
-        "sync": "node scripts/sync-products.js"
+        "sync": "node scripts/sync-products.js && node scripts/sync-posts.js"
     },
     "dependencies": {
         "pocketbase": "^0.21.0",

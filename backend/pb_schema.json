@@ -1750,5 +1750,144 @@
       "CREATE INDEX `idx_reviews_product_id` ON `reviews` (`product_id`)"
     ],
     "system": false
+  },
+  {
+    "id": "pbc_posts_001",
+    "name": "posts",
+    "type": "base",
+    "system": false,
+    "listRule": "",
+    "viewRule": "",
+    "createRule": null,
+    "updateRule": null,
+    "deleteRule": null,
+    "fields": [
+      {
+        "autogeneratePattern": "[a-z0-9]{15}",
+        "hidden": false,
+        "id": "text3208210256",
+        "max": 15,
+        "min": 15,
+        "name": "id",
+        "pattern": "^[a-z0-9]+$",
+        "presentable": false,
+        "primaryKey": true,
+        "required": true,
+        "system": true,
+        "type": "text"
+      },
+      {
+        "id": "text_title_001",
+        "name": "title",
+        "type": "text",
+        "system": false,
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "text_slug_001",
+        "name": "slug",
+        "type": "text",
+        "system": false,
+        "required": true,
+        "unique": true,
+        "options": {
+          "min": 1,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "editor_content_001",
+        "name": "content",
+        "type": "editor",
+        "system": false,
+        "required": false,
+        "unique": false,
+        "options": {
+          "convertUrls": false
+        }
+      },
+      {
+        "id": "bool_published_001",
+        "name": "published",
+        "type": "bool",
+        "system": false,
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "json_tags_001",
+        "name": "tags",
+        "type": "json",
+        "system": false,
+        "required": false,
+        "unique": false,
+        "options": {
+          "maxSize": 2000000
+        }
+      },
+      {
+        "id": "json_categories_001",
+        "name": "categories",
+        "type": "json",
+        "system": false,
+        "required": false,
+        "unique": false,
+        "options": {
+          "maxSize": 2000000
+        }
+      },
+      {
+        "id": "file_image_001",
+        "name": "image",
+        "type": "file",
+        "system": false,
+        "required": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "maxSize": 5242880,
+          "mimeTypes": [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif"
+          ],
+          "thumbs": [
+            "100x100"
+          ]
+        }
+      },
+      {
+        "hidden": false,
+        "id": "autodate2990389176",
+        "name": "created",
+        "onCreate": true,
+        "onUpdate": false,
+        "presentable": false,
+        "system": true,
+        "type": "autodate"
+      },
+      {
+        "hidden": false,
+        "id": "autodate3332085495",
+        "name": "updated",
+        "onCreate": true,
+        "onUpdate": true,
+        "presentable": false,
+        "system": true,
+        "type": "autodate"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_slug_posts` ON `posts` (`slug`)"
+    ]
   }
 ]
