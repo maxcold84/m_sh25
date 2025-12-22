@@ -1,0 +1,68 @@
+{{ define "main" }}
+
+<section class="feature-list section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h1>{{.Title}}</h1>
+            </div>
+        </div>
+        {{ range $index, $element := (where .Site.RegularPages "Section" "blog") }}
+
+        {{/* 대표 이미지 결정: .Params.image가 없으면 본문에서 첫 번째 이미지 추출 */}}
+        {{ $featuredImage := .Params.image }}
+        {{ if not $featuredImage }}
+        {{/* 본문에서 첫 번째 이미지 URL 추출 */}}
+        {{ $matches := findRE `<img[^>]+src="([^"]+)"` .Content 1 }}
+            {{ if $matches }}
+            {{ $featuredImage = replaceRE `.*src="([^"]+)".*` "$1" (index $matches 0) }}
+            {{ else }}
+            {{/* Markdown 이미지 문법에서 추출 시도 */}}
+            {{ $mdMatches := findRE `!\[.*?\]\(([^)]+)\)` .RawContent 1 }}
+            {{ if $mdMatches }}
+            {{ $featuredImage = replaceRE `!\[.*?\]\(([^)]+)\)` "$1" (index $mdMatches 0) }}
+            {{ end }}
+            {{ end }}
+            {{ end }}
+
+            {{/* Summary에서 이미지 태그 제거 */}}
+            {{ $cleanSummary := .Summary | replaceRE `<img[^>]*>` "" | safeHTML }}
+
+                {{- if ne (mod $index 2) 1 }}
+                <div class="row mb-40">
+                    <div class="col-md-6 text-center mb-5 mb-lg-0">
+                        {{ if $featuredImage }}
+                        {{ partial "image.html" (dict "Src" $featuredImage "Alt" .Title "Class" "img-fluid" ) }}
+                        {{ end }}
+                    </div>
+                    <div class="col-md-6 align-self-center text-center text-md-left">
+                        <div class="content">
+                            <h4 class="subheading"><a class="link-title" href="{{.Permalink}}">{{ .Title | markdownify
+                                    }}</a></h4>
+                            <p>{{ $cleanSummary }}</p>
+                            <a href="{{ .Permalink }}" class="btn btn-main btn-main-sm">{{ i18n "read_more" }}</a>
+                        </div>
+                    </div>
+                </div>
+                {{- else }}
+                <div class="row mb-40">
+                    <div class="col-md-6 order-md-1 order-2 align-self-center text-center text-md-left">
+                        <div class="content">
+                            <h4 class="subheading"><a class="link-title" href="{{.Permalink}}">{{ .Title | markdownify
+                                    }}</a></h4>
+                            <p>{{ $cleanSummary }}</p>
+                            <a href="{{ .Permalink }}" class="btn btn-main btn-main-sm">{{ i18n "read_more" }}</a>
+                        </div>
+                    </div>
+                    <div class="col-md-6 order-md-2 order-1 text-center mb-5 mb-lg-0">
+                        {{ if $featuredImage }}
+                        {{ partial "image.html" (dict "Src" $featuredImage "Alt" .Title "Class" "img-fluid") }}
+                        {{ end }}
+                    </div>
+                </div>
+                {{ end }}
+                {{ end }}
+    </div>
+</section>
+
+{{ end }}

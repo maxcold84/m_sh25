@@ -81,9 +81,13 @@ const AdminPosts = {
 
             records.forEach(post => {
                 const tr = document.createElement('tr');
-                const imageUrl = post.image
-                    ? this.pb.files.getUrl(post, post.image, { thumb: '100x100' })
-                    : 'https://via.placeholder.com/80x80?text=No+Img';
+
+                // 이미지가 있을 때만 표시, 없으면 빈 상태
+                let imageHtml = '';
+                if (post.image) {
+                    const imageUrl = this.pb.files.getUrl(post, post.image, { thumb: '100x100' });
+                    imageHtml = `<img src="${imageUrl}" alt="${post.title}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                }
 
                 const statusBadge = post.published
                     ? '<span class="badge badge-success">공개</span>'
@@ -93,8 +97,8 @@ const AdminPosts = {
 
                 tr.innerHTML = `
                     <td>
-                        <div style="width: 50px; height: 50px; overflow: hidden; border-radius: 4px;">
-                            <img src="${imageUrl}" alt="${post.title}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div style="width: 50px; height: 50px; overflow: hidden; border-radius: 4px; background: #f0f0f0;">
+                            ${imageHtml}
                         </div>
                     </td>
                     <td>
@@ -240,6 +244,7 @@ const AdminPosts = {
         try {
             await this.pb.collection('posts').delete(id);
             this.loadPosts();
+            alert('글이 삭제되었습니다. 블로그에 반영하려면 터미널에서 npm run sync를 실행하세요.');
         } catch (error) {
             console.error('Error deleting post:', error);
             alert('글 삭제 실패');
