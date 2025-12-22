@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 // Configuration
 const PB_URL = 'http://127.0.0.1:8090';
 // Target directory for Posts (Leaf Bundles)
-const CONTENT_DIR = path.join(__dirname, '../content/korean/posts');
+const CONTENT_DIR = path.join(__dirname, '../content/korean/blog');
 
 const pb = new PocketBase(PB_URL);
 
