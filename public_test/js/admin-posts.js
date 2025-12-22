@@ -106,7 +106,7 @@ const AdminPosts = {
                     <td>
                         <button class="btn btn-sm btn-info" onclick="AdminPosts.openEditModal('${post.id}')">수정</button>
                         <button class="btn btn-sm btn-danger" onclick="AdminPosts.deletePost('${post.id}')">삭제</button>
-                        <a href="/ko/posts/${post.slug}/" target="_blank" class="btn btn-sm btn-light">미리보기</a>
+                        <a href="/ko/blog/${post.slug}/" target="_blank" class="btn btn-sm btn-light">미리보기</a>
                     </td>
                 `;
                 tableBody.appendChild(tr);

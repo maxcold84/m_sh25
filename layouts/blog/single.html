@@ -1,0 +1,44 @@
+{{ define "main" }}
+
+<section class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-5 mb-4 mb-md-0">
+                <div class="sticky-image">
+                    {{ $image := .Resources.GetMatch .Params.image }}
+                    {{ if $image }}
+                    <img src="{{ $image.RelPermalink }}" alt="{{ .Title }}" class="img-fluid w-100 rounded">
+                    {{ else if .Params.image }}
+                    {{ partial "image.html" (dict "Src" .Params.image "Alt" .Title "Class" "img-fluid w-100" ) }}
+                    {{ end }}
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-7 offset-lg-1">
+                <h1 class="mb-4">{{ .Title | markdownify }}</h1>
+
+                <div class="mb-4">
+                    <a href="/ko/admin/posts/" class="text-muted small" target="_blank">
+                        <i class="tf-ion-settings"></i> 관리자 모드
+                    </a>
+                </div>
+
+                <div class="content">
+                    {{ .Content }}
+                </div>
+
+                {{ if .Params.tags }}
+                <div class="mt-5">
+                    <div class="tags">
+                        {{ range .Params.tags }}
+                        <a href="{{ " /tags/" | relLangURL }}{{ . | urlize }}" class="badge badge-primary mr-1">#{{ .
+                            }}</a>
+                        {{ end }}
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</section>
+
+{{ end }}
