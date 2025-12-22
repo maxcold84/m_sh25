@@ -20,10 +20,10 @@
         {{ end }}
       </div>
       <div class="col-md-4 text-center align-self-center mb-4 mb-md-0">
-        {{ partial "image.html" (dict "Src" .image "Alt" "image" "Class" "img-fluid" ) }}
+        {{ partial "image.html" (dict "Src" .image "Alt" "image" "Class" "img-fluid w-100" ) }}
       </div>
       <div class="col-md-4">
-          {{ range .right_side }}
+        {{ range .right_side }}
         <div class="mb-40 text-center text-md-left">
           <i class="d-inlin-block h2 mb-10 {{ .icon }}"></i>
           <h4 class="font-weight-bold mb-2">{{ .title | markdownify }}</h4>
