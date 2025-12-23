@@ -4,15 +4,10 @@
     <div class="container">
         <div class="row">
             <div class="col-12">
+                {{ partial "admin/nav" . }}
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h2>상품 관리</h2>
                     <div>
-                        <a href="/ko/admin/orders/" class="btn btn-info mr-2">
-                            <i class="tf-ion-clipboard"></i> 주문 관리
-                        </a>
-                        <a href="/ko/admin/posts/" class="btn btn-info mr-2">
-                            <i class="tf-ion-compose"></i> 블로그 관리
-                        </a>
                         <button id="add-product-btn" class="btn btn-main" onclick="AdminProducts.openAddModal()">
                             <i class="tf-ion-plus"></i> 상품 추가
                         </button>
