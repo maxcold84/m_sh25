@@ -689,3 +689,139 @@ textarea.form-control {
     color: $primary-color;
   }
 }
+
+/* Blog Post Improvements */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 3px;
+  background: $primary-color;
+  z-index: 10000;
+  transition: width 0.1s ease;
+}
+
+.blog-meta {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+
+  i {
+    margin-right: 5px;
+  }
+}
+
+.blog-toc {
+  background: #fdfdfd;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  margin-bottom: 30px;
+
+  header {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  nav#TableOfContents {
+    ul {
+      padding-left: 0;
+      margin-bottom: 0;
+
+      li {
+        margin-bottom: 8px;
+        font-size: 14px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        a {
+          color: #666;
+          text-decoration: none;
+
+          &:hover {
+            color: $primary-color;
+          }
+        }
+
+        ul {
+          padding-left: 15px;
+          margin-top: 8px;
+        }
+      }
+    }
+  }
+
+  @media (min-width: 992px) {
+    position: sticky;
+    top: 100px;
+  }
+}
+
+.post-navigation {
+  border-top: 1px solid #eee;
+  padding-top: 30px;
+  margin-top: 50px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+
+  .nav-item {
+    flex: 1;
+
+    .nav-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #999;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .nav-title {
+      font-weight: 600;
+      color: #333;
+      display: block;
+      font-size: 16px;
+      line-height: 1.4;
+
+      &:hover {
+        color: $primary-color;
+      }
+    }
+
+    &.next {
+      text-align: right;
+    }
+  }
+
+  @include mobile {
+    flex-direction: column;
+
+    .next {
+      text-align: left;
+    }
+  }
+}
+
+.content {
+  p {
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+  }
+
+  h2,
+  h3 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+}
