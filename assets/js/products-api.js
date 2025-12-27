@@ -5,7 +5,7 @@
 
 class ProductsApi {
     constructor() {
-        this.pb = new PocketBase('http://127.0.0.1:8090');
+        this.pb = new PocketBase(window.SiteConfig.pocketbaseUrl);
         this.collection = 'products';
         this.currentLang = document.documentElement.lang || 'ko';
     }

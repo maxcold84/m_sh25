@@ -1,5 +1,5 @@
 const Reviews = (function () {
-    const pb = new PocketBase('http://127.0.0.1:8090');
+    const pb = new PocketBase(window.SiteConfig.pocketbaseUrl);
     let reviewForm = null;
     let reviewList = null;
     let authMessage = null;
@@ -8,7 +8,6 @@ const Reviews = (function () {
     let imageCount = null;
     let selectedFiles = [];
     let currentProductId = null;
-    let editingReviewId = null;
 
     function init(productId) {
         currentProductId = productId;
@@ -52,15 +51,34 @@ const Reviews = (function () {
 
     function handleImageSelect(e) {
         const files = Array.from(e.target.files);
+        const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+        const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
-        // Limit to 5 images
-        if (selectedFiles.length + files.length > 5) {
+        // Validation
+        const validFiles = [];
+        for (const file of files) {
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                alert(`지원되지 않는 파일 형식입니다: ${file.name}\n(jpg, png, gif, webp만 가능)`);
+                continue;
+            }
+            if (file.size > MAX_SIZE) {
+                alert(`파일 크기가 너무 큽니다: ${file.name}\n(최대 10MB)`);
+                continue;
+            }
+            validFiles.push(file);
+        }
+
+        // Limit to 5 images total
+        if (selectedFiles.length + validFiles.length > 5) {
             alert('최대 5장까지 업로드할 수 있습니다.');
             return;
         }
 
-        selectedFiles = [...selectedFiles, ...files].slice(0, 5);
+        selectedFiles = [...selectedFiles, ...validFiles].slice(0, 5);
         updateImagePreview();
+
+        // Reset input so same file can be selected again if needed
+        e.target.value = '';
     }
 
     function updateImagePreview() {
@@ -161,10 +179,8 @@ const Reviews = (function () {
         const createdDate = new Date(review.created).toLocaleDateString('ko-KR');
         const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
 
-        // Check if current user is the owner
         const isOwner = pb.authStore.isValid && pb.authStore.model?.id === review.user;
 
-        // Action buttons for owner
         const actionsHTML = isOwner ? `
             <div class="review-actions mt-2">
                 <button type="button" class="btn btn-sm btn-outline-secondary btn-edit-review mr-1">✏️ 수정</button>
@@ -172,19 +188,17 @@ const Reviews = (function () {
             </div>
         ` : '';
 
-        // Generate review images HTML 리뷰 사용자 아이콘 이미지 
         let imagesHTML = '';
         if (review.images && review.images.length > 0) {
             const imageItems = review.images.map(img => {
-                const imgUrl = pb.files.getUrl(review, img);
                 const thumbUrl = pb.files.getUrl(review, img, { thumb: '200x200' });
+                const imgUrl = pb.files.getUrl(review, img);
                 return `<img src="${thumbUrl}" data-full="${imgUrl}" alt="리뷰 이미지" class="review-image" 
                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #ddd;">`;
             }).join('');
             imagesHTML = `<div class="review-images d-flex flex-wrap mt-2" style="gap: 8px;">${imageItems}</div>`;
         }
 
-        // 아바타 HTML 생성: 아바타가 있으면 이미지, 없으면 네비게이션바 스타일 아이콘
         const avatarHTML = userAvatar
             ? `<img src="${userAvatar}" class="mr-3 rounded-circle" alt="${escapeHtml(userName)}" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.parentElement.innerHTML='<i class=\\'tf-ion-android-person mr-3\\' style=\\'font-size: 32px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #666;\\'></i>'">`
             : `<i class="tf-ion-android-person mr-3" style="font-size: 32px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #666;"></i>`;
@@ -210,20 +224,11 @@ const Reviews = (function () {
         const currentRating = reviewElement.dataset.rating;
         const currentContent = reviewElement.dataset.content;
 
-        // Create modal
         const modal = document.createElement('div');
         modal.id = 'edit-review-modal';
         modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;
         `;
         modal.innerHTML = `
             <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
@@ -250,59 +255,37 @@ const Reviews = (function () {
                 </form>
             </div>
         `;
-
         document.body.appendChild(modal);
 
-        // Handle cancel
         modal.querySelector('#cancel-edit').addEventListener('click', () => modal.remove());
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
-        });
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 
-        // Handle save
         modal.querySelector('#edit-review-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const newRating = parseInt(document.getElementById('edit-rating').value);
             const newContent = document.getElementById('edit-content').value.trim();
             const saveBtn = modal.querySelector('#save-edit');
 
-            if (!newContent) {
-                alert('리뷰 내용을 입력해주세요.');
-                return;
-            }
+            if (!newContent) { alert('리뷰 내용을 입력해주세요.'); return; }
 
             try {
-                saveBtn.disabled = true;
-                saveBtn.textContent = '저장 중...';
-
-                await pb.collection('reviews').update(reviewId, {
-                    rating: newRating,
-                    content: newContent
-                });
-
+                saveBtn.disabled = true; saveBtn.textContent = '저장 중...';
+                await pb.collection('reviews').update(reviewId, { rating: newRating, content: newContent });
                 modal.remove();
                 showSuccessMessage('리뷰가 수정되었습니다.');
-                loadReviews(); // Reload reviews
-
+                loadReviews();
             } catch (error) {
                 console.error('Error updating review:', error);
                 alert('리뷰 수정에 실패했습니다: ' + error.message);
-                saveBtn.disabled = false;
-                saveBtn.textContent = '저장';
+                saveBtn.disabled = false; saveBtn.textContent = '저장';
             }
         });
     }
 
     async function confirmDeleteReview(reviewId) {
-        if (!confirm('정말로 이 리뷰를 삭제하시겠습니까?')) {
-            return;
-        }
-
+        if (!confirm('정말로 이 리뷰를 삭제하시겠습니까?')) return;
         try {
             await pb.collection('reviews').delete(reviewId);
-
-            // Remove from DOM with animation
             const reviewElement = document.querySelector(`[data-review-id="${reviewId}"]`);
             if (reviewElement) {
                 reviewElement.style.transition = 'all 0.3s ease-out';
@@ -310,188 +293,122 @@ const Reviews = (function () {
                 reviewElement.style.transform = 'translateX(-20px)';
                 setTimeout(() => {
                     reviewElement.remove();
-
-                    // Check if no reviews left
                     if (reviewList && reviewList.children.length === 0) {
                         reviewList.innerHTML = '<p class="text-center text-muted">아직 리뷰가 없습니다. 첫 번째 리뷰를 작성해보세요!</p>';
                     }
                 }, 300);
             }
-
             showSuccessMessage('리뷰가 삭제되었습니다.');
-
         } catch (error) {
             console.error('Error deleting review:', error);
             alert('리뷰 삭제에 실패했습니다: ' + error.message);
         }
     }
 
+    function showSuccessMessage(message) {
+        const toast = document.createElement('div');
+        toast.className = 'alert alert-success';
+        toast.style.cssText = `position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease-out; box-shadow: 0 4px 12px rgba(0,0,0,0.15);`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.animation = 'slideOut 0.3s ease-in'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+
     function openLightbox(src) {
         const lightbox = document.createElement('div');
         lightbox.id = 'review-lightbox';
         lightbox.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            cursor: zoom-out;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center;
+            z-index: 10000; cursor: zoom-out;
         `;
         lightbox.innerHTML = `
             <img src="${src}" style="max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 8px;">
             <button style="position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; 
                            border-radius: 50%; border: none; background: white; font-size: 24px; cursor: pointer;">×</button>
         `;
-
         lightbox.addEventListener('click', () => lightbox.remove());
         document.body.appendChild(lightbox);
     }
 
     async function handleReviewSubmit(e) {
         e.preventDefault();
+        if (!pb.authStore.isValid) { alert('리뷰를 작성하려면 로그인이 필요합니다.'); return; }
 
-        if (!pb.authStore.isValid) {
-            alert('리뷰를 작성하려면 로그인이 필요합니다.');
-            return;
-        }
-
-        // Support both select and radio input for rating
         const ratingSelect = document.getElementById('review-rating');
         const ratingRadio = document.querySelector('input[name="rating"]:checked');
         const rating = ratingSelect?.value || ratingRadio?.value;
-
         const contentInput = document.getElementById('review-content');
         const content = contentInput?.value?.trim();
         const submitBtn = reviewForm.querySelector('button[type="submit"]');
 
-        if (!rating) {
-            alert('평점을 선택해주세요.');
-            return;
-        }
-
-        if (!content) {
-            alert('리뷰 내용을 입력해주세요.');
-            return;
-        }
+        if (!rating) { alert('평점을 선택해주세요.'); return; }
+        if (!content) { alert('리뷰 내용을 입력해주세요.'); return; }
 
         try {
-            submitBtn.disabled = true;
-            submitBtn.innerText = '제출 중...';
-
-            // Create FormData for file upload
+            submitBtn.disabled = true; submitBtn.innerText = '제출 중...';
             const formData = new FormData();
             formData.append('user', pb.authStore.model.id);
             formData.append('product_id', currentProductId);
             formData.append('rating', parseInt(rating));
             formData.append('content', content);
+            selectedFiles.forEach(file => formData.append('images', file));
 
-            // Add images if any
-            selectedFiles.forEach(file => {
-                formData.append('images', file);
-            });
+            const newReview = await pb.collection('reviews').create(formData, { expand: 'user' });
 
-            const newReview = await pb.collection('reviews').create(formData, {
-                expand: 'user'
-            });
-
-            // Reset form and selected files
             reviewForm.reset();
             selectedFiles = [];
             updateImagePreview();
-
-            // Immediately add new review to the top (real-time update)
             addNewReviewToList(newReview);
-
-            // Show success feedback
             showSuccessMessage('리뷰가 성공적으로 등록되었습니다!');
-
         } catch (error) {
             console.error('Error submitting review:', error);
-            alert('리뷰 제출에 실패했습니다: ' + error.message);
+            let errorMsg = '리뷰 제출에 실패했습니다.';
+            if (error.data && error.data.data) {
+                const fieldErrors = Object.entries(error.data.data).map(([field, err]) => `- ${field}: ${err.message}`).join('\n');
+                if (fieldErrors) errorMsg += '\n' + fieldErrors;
+            } else if (error.message) {
+                errorMsg += '\n(' + error.message + ')';
+            }
+            alert(errorMsg);
         } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerText = '리뷰 제출';
+            submitBtn.disabled = false; submitBtn.innerText = '리뷰 제출';
         }
     }
 
     function addNewReviewToList(newReview) {
         if (!reviewList) return;
-
-        // If this is the first review, clear the "no reviews" message
         const noReviewsMsg = reviewList.querySelector('.text-muted');
         if (noReviewsMsg && noReviewsMsg.textContent.includes('아직 리뷰가 없습니다')) {
             reviewList.innerHTML = '';
         }
-
-        // Create the new review HTML
-        const newReviewHTML = createReviewHTML({
-            ...newReview,
-            expand: {
-                user: pb.authStore.model
-            }
-        });
-
-        // Add to the top of the list with animation
+        const newReviewHTML = createReviewHTML({ ...newReview, expand: { user: pb.authStore.model } });
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = newReviewHTML;
         const newElement = tempDiv.firstElementChild;
-
-        // Add animation class
         newElement.style.opacity = '0';
         newElement.style.transform = 'translateY(-20px)';
         newElement.style.transition = 'all 0.3s ease-out';
-
         reviewList.insertBefore(newElement, reviewList.firstChild);
-
-        // Add event listeners to new element
         attachReviewEventListeners();
-
-        // Trigger animation
-        requestAnimationFrame(() => {
-            newElement.style.opacity = '1';
-            newElement.style.transform = 'translateY(0)';
-        });
+        requestAnimationFrame(() => { newElement.style.opacity = '1'; newElement.style.transform = 'translateY(0)'; });
     }
 
     function showSuccessMessage(message) {
-        // Create a toast-like success message
         const toast = document.createElement('div');
         toast.className = 'alert alert-success';
-        toast.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            animation: slideIn 0.3s ease-out;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        `;
+        toast.style.cssText = `position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease-out; box-shadow: 0 4px 12px rgba(0,0,0,0.15);`;
         toast.textContent = message;
-
         document.body.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.animation = 'slideOut 0.3s ease-in';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+        setTimeout(() => { toast.style.animation = 'slideOut 0.3s ease-in'; setTimeout(() => toast.remove(), 300); }, 3000);
     }
 
     function escapeHtml(text) {
         if (!text) return '';
-        return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
     return {
-        init: init,
-        loadReviews: loadReviews
+        init: init
     };
 })();

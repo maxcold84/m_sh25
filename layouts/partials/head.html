@@ -40,6 +40,13 @@
   <!-- Portone V2 SDK -->
   <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 
+  <!-- Site Configuration -->
+  <script>
+    window.SiteConfig = {
+      pocketbaseUrl: "{{ site.Params.pocketbase.url }}"
+    };
+  </script>
+
   <!-- Shop Configuration -->
   <script>
     window.ShopConfig = {

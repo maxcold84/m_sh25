@@ -2,12 +2,13 @@ import PocketBase from 'pocketbase';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { ensureDirectory, downloadFile, generateFrontmatter, config } from './utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Configuration
-const PB_URL = 'http://127.0.0.1:8090';
+const PB_URL = config.pbUrl;
 // Target directory for Posts (Single File mode)
 const CONTENT_DIR = path.join(__dirname, '../content/korean/blog');
 // Images directory
@@ -27,15 +28,9 @@ async function syncPosts() {
 
         console.log(`Found ${posts.length} posts.`);
 
-        // Ensure content directory exists
-        if (!fs.existsSync(CONTENT_DIR)) {
-            fs.mkdirSync(CONTENT_DIR, { recursive: true });
-        }
-
-        // Ensure images directory exists
-        if (!fs.existsSync(IMAGES_DIR)) {
-            fs.mkdirSync(IMAGES_DIR, { recursive: true });
-        }
+        // Ensure directories exist
+        ensureDirectory(CONTENT_DIR);
+        ensureDirectory(IMAGES_DIR);
 
         // Collect valid slugs from PocketBase
         const validSlugs = new Set(posts.map(p => p.slug || p.id));
@@ -80,17 +75,13 @@ async function syncPosts() {
                 const localImageName = `${slug}${ext}`;
                 const localImagePath = path.join(IMAGES_DIR, localImageName);
 
-                try {
-                    const response = await fetch(imageUrl);
-                    if (response.ok) {
-                        const buffer = await response.arrayBuffer();
-                        fs.writeFileSync(localImagePath, Buffer.from(buffer));
-                        // Store path relative to assets for Hugo
-                        imagePath = `images/blog/${localImageName}`;
-                        console.log(`  Downloaded image: ${localImageName}`);
-                    }
-                } catch (err) {
-                    console.error(`  Failed to download image for ${slug}:`, err.message);
+                const success = await downloadFile(imageUrl, localImagePath);
+                if (success) {
+                    // Store path relative to assets for Hugo
+                    imagePath = `images/blog/${localImageName}`;
+                    console.log(`  Downloaded image: ${localImageName}`);
+                } else {
+                    console.error(`  Failed to download image for ${slug}`);
                 }
             }
 
@@ -106,7 +97,7 @@ async function syncPosts() {
             } catch (e) { categories = []; }
 
             // Construct Frontmatter
-            const frontmatter = {
+            const frontmatterData = {
                 title: post.title,
                 date: post.created,
                 draft: !post.published,
@@ -116,20 +107,7 @@ async function syncPosts() {
                 categories: categories
             };
 
-            // Generate YAML
-            const yaml = Object.entries(frontmatter)
-                .map(([key, val]) => {
-                    if (val === undefined || val === null || val === '') return null;
-                    if (Array.isArray(val)) {
-                        if (val.length === 0) return null;
-                        return `${key}: [${val.map(v => `"${v}"`).join(', ')}]`;
-                    }
-                    if (typeof val === 'boolean') return `${key}: ${val}`;
-                    return `${key}: "${val}"`;
-                })
-                .filter(v => v !== null)
-                .join('\n');
-
+            const yaml = generateFrontmatter(frontmatterData);
             const fileContent = `---\n${yaml}\n---\n\n${post.content || ''}`;
 
             fs.writeFileSync(filePath, fileContent);
@@ -147,3 +125,4 @@ async function syncPosts() {
 }
 
 syncPosts();
+
