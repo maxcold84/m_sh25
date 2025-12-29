@@ -120,10 +120,10 @@ const QnA = (function () {
         let contentDisplay = '';
         if (canView) {
             contentDisplay = `
-                <p class="mb-2 qna-content">${escapeHtml(item.content)}</p>
+                <p class="mb-2 qna-content">${Utils.escapeHtml(item.content)}</p>
                 ${item.reply ? `<div class="admin-reply bg-light p-3 rounded mt-3">
                     <strong class="text-primary">답변:</strong>
-                    <p class="mb-0 mt-1">${escapeHtml(item.reply)}</p>
+                    <p class="mb-0 mt-1">${Utils.escapeHtml(item.reply)}</p>
                     <small class="text-muted">${new Date(item.reply_date || item.updated).toLocaleDateString('ko-KR')}</small>
                 </div>` : ''}
             `;
@@ -162,7 +162,7 @@ const QnA = (function () {
                 <div class="d-flex justify-content-between align-items-start">
                     <div class="w-100">
                         <div class="mb-1">
-                            <span class="font-weight-bold mr-2">${isSecret ? '<i class="tf-ion-locked text-warning" title="비밀글"></i> ' : ''}${canView ? escapeHtml(userName) : '***'}</span>
+                            <span class="font-weight-bold mr-2">${isSecret ? '<i class="tf-ion-locked text-warning" title="비밀글"></i> ' : ''}${canView ? Utils.escapeHtml(userName) : '***'}</span>
                             <small class="text-muted">${createdDate}</small>
                             <span class="badge badge-pill ${item.reply ? 'badge-success' : 'badge-secondary'} ml-2">
                                 ${item.reply ? '답변완료' : '답변대기'}
@@ -273,15 +273,7 @@ const QnA = (function () {
         return '';
     }
 
-    function escapeHtml(text) {
-        if (!text) return '';
-        return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
+    // escapeHtml -> Utils.escapeHtml 사용
 
     return {
         init: init

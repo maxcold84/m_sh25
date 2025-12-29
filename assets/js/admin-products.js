@@ -216,9 +216,9 @@ const AdminProducts = {
                     <td>${categorySelectHtml}</td>
                     <td>${product.title}</td>
                     <td>${product.discount_price && product.discount_price > 0
-                        ? `<del class="text-muted small">${product.price.toLocaleString()}</del> <br><span class="text-danger font-weight-bold">${product.discount_price.toLocaleString()}</span>`
-                        : product.price.toLocaleString()
-                    }</td>
+        ? `<del class="text-muted small">${product.price.toLocaleString()}</del> <br><span class="text-danger font-weight-bold">${product.discount_price.toLocaleString()}</span>`
+        : product.price.toLocaleString()
+}</td>
                     <td>${product.stock || 0}</td>
                     <td class="text-center">${inquiryBadge}</td>
                     <td>
@@ -403,7 +403,7 @@ const AdminProducts = {
         // Step 1: Upload new files and update other fields
         // PocketBase appends new files to the existing list
         if (newFiles.length > 0) {
-            for (let file of newFiles) {
+            for (const file of newFiles) {
                 formData.append('images', file);
             }
         }

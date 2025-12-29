@@ -67,6 +67,9 @@
   {{ $pbClient := resources.Get "js/core/pb-client.js" }}
   <script src="{{ $pbClient.Permalink }}?v={{ now.Unix }}"></script>
 
+  {{ $utils := resources.Get "js/core/utils.js" }}
+  <script src="{{ $utils.Permalink }}?v={{ now.Unix }}"></script>
+
   {{ $mustache := resources.Get "js/mustache.min.js" }}
   <script src="{{ $mustache.Permalink }}"></script>
 

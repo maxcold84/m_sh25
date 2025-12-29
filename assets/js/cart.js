@@ -56,7 +56,7 @@ const Cart = {
                     localStorage.setItem('cart_id', userCart.id);
                     return userCart;
                 } else {
-                    // No user cart exists. 
+                    // No user cart exists.
                     // Check if we have a local guest cart to assign
                     const localCartId = localStorage.getItem('cart_id');
                     if (localCartId) {
@@ -99,12 +99,12 @@ const Cart = {
         }
 
         // 2. Guest Logic (Existing)
-        let cartId = localStorage.getItem('cart_id');
+        const cartId = localStorage.getItem('cart_id');
         if (cartId) {
             try {
                 const cart = await pb.collection('carts').getOne(cartId);
 
-                // Security Check: If we are a guest, but this cart belongs to a user, 
+                // Security Check: If we are a guest, but this cart belongs to a user,
                 // we should NOT access it. It likely belongs to a previously logged-in user.
                 if (cart.user && cart.user !== '') {
                     console.log('Found user cart while in guest mode. Clearing and creating new guest cart.');
@@ -167,7 +167,7 @@ const Cart = {
             }
 
             // Delete the old cart if empty/abandoned (optional, but good for cleanup)
-            // await pb.collection('carts').delete(fromCartId); 
+            // await pb.collection('carts').delete(fromCartId);
 
         } catch (e) {
             console.error('Error merging carts:', e);

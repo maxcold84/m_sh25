@@ -200,16 +200,16 @@ const Reviews = (function () {
         }
 
         const avatarHTML = userAvatar
-            ? `<img src="${userAvatar}" class="mr-3 rounded-circle" alt="${escapeHtml(userName)}" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.parentElement.innerHTML='<i class=\\'tf-ion-android-person mr-3\\' style=\\'font-size: 32px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #666;\\'></i>'">`
+            ? `<img src="${userAvatar}" class="mr-3 rounded-circle" alt="${Utils.escapeHtml(userName)}" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.parentElement.innerHTML='<i class=\'tf-ion-android-person mr-3\' style=\'font-size: 32px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #666;\'></i>'">`
             : `<i class="tf-ion-android-person mr-3" style="font-size: 32px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #666;"></i>`;
 
         return `
-            <div class="review-item media mb-4 p-3 border rounded" data-review-id="${review.id}" data-rating="${review.rating}" data-content="${escapeHtml(review.content)}">
+            <div class="review-item media mb-4 p-3 border rounded" data-review-id="${review.id}" data-rating="${review.rating}" data-content="${Utils.escapeHtml(review.content)}">
                 ${avatarHTML}
                 <div class="media-body">
-                    <h6 class="mt-0 mb-1">${escapeHtml(userName)} <small class="text-muted ml-2">${createdDate}</small></h6>
+                    <h6 class="mt-0 mb-1">${Utils.escapeHtml(userName)} <small class="text-muted ml-2">${createdDate}</small></h6>
                     <div class="text-warning mb-2">${stars}</div>
-                    <p class="mb-2 review-content-text">${escapeHtml(review.content)}</p>
+                    <p class="mb-2 review-content-text">${Utils.escapeHtml(review.content)}</p>
                     ${imagesHTML}
                     ${actionsHTML}
                 </div>
@@ -403,10 +403,7 @@ const Reviews = (function () {
         setTimeout(() => { toast.style.animation = 'slideOut 0.3s ease-in'; setTimeout(() => toast.remove(), 300); }, 3000);
     }
 
-    function escapeHtml(text) {
-        if (!text) return '';
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
+    // escapeHtml -> Utils.escapeHtml 사용
 
     return {
         init: init

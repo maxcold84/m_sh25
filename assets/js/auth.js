@@ -24,7 +24,7 @@ const Auth = (function () {
 
         // Update hash on tab click
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-            const target = $(e.target).attr("href");
+            const target = $(e.target).attr('href');
             if (history.pushState) {
                 history.pushState(null, null, target);
             } else {
@@ -195,12 +195,12 @@ const Auth = (function () {
 
         try {
             const data = {
-                "username": nickname, // Use nickname as username
-                "email": email,
-                "emailVisibility": true,
-                "password": password,
-                "passwordConfirm": passwordConfirm,
-                "name": name
+                'username': nickname, // Use nickname as username
+                'email': email,
+                'emailVisibility': true,
+                'password': password,
+                'passwordConfirm': passwordConfirm,
+                'name': name
             };
 
             await pb.collection('users').create(data);
@@ -302,7 +302,7 @@ const Auth = (function () {
         const domains = ['gmail.com', 'naver.com', 'daum.net', 'kakao.com', 'outlook.com', 'hanmail.net', 'nate.com'];
         let selectedIndex = -1;
 
-        let dropdownContainer = document.createElement('div');
+        const dropdownContainer = document.createElement('div');
         dropdownContainer.className = 'email-domain-dropdown';
         dropdownContainer.style.cssText = `
             position: absolute; background: white; border: 1px solid #ddd; border-radius: 4px;

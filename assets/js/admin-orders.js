@@ -4,7 +4,7 @@ window.AdminOrders = (function () {
     const ITEMS_PER_PAGE = 20;
     let currentPage = 1;
     let currentOrderId = null;
-    let selectedOrders = new Set();
+    const selectedOrders = new Set();
     let deleteTargetId = null;
 
     // 택배사 목록
@@ -72,7 +72,7 @@ window.AdminOrders = (function () {
 
         try {
             // Fetch all orders sorted by latest
-            // Note: For large scale, we should use getList with pagination from DB. 
+            // Note: For large scale, we should use getList with pagination from DB.
             // For now, getting full list to handle client-side filtering easily as per requirement scope.
             const records = await pb.collection('orders').getFullList({
                 sort: '-created',
@@ -134,8 +134,7 @@ window.AdminOrders = (function () {
             let statusClass = 'badge badge-secondary';
             let statusText = order.status || '-';
             if (order.status === 'paid') statusClass = 'badge badge-success';
-            else if (order.status === 'shipping') { statusClass = 'badge badge-info'; statusText = '배송중'; }
-            else if (order.status === 'pending') statusClass = 'badge badge-warning';
+            else if (order.status === 'shipping') { statusClass = 'badge badge-info'; statusText = '배송중'; } else if (order.status === 'pending') statusClass = 'badge badge-warning';
             else if (order.status === 'cancelled') statusClass = 'badge badge-danger';
             else if (order.status === 'archived') { statusClass = 'badge badge-dark'; statusText = '보관됨'; }
 
@@ -279,9 +278,9 @@ window.AdminOrders = (function () {
         const shipping = buyerDetails.shipping_info || {};
 
         // Get buyer name from available sources
-        let buyerName = customer.fullName || shipping.receiver || user?.name || '-';
-        let buyerPhone = customer.phoneNumber || shipping.phone || user?.phone || '-';
-        let buyerEmail = customer.email || user?.email || '-';
+        const buyerName = customer.fullName || shipping.receiver || user?.name || '-';
+        const buyerPhone = customer.phoneNumber || shipping.phone || user?.phone || '-';
+        const buyerEmail = customer.email || user?.email || '-';
         let address = '-';
 
         if (shipping.address) {

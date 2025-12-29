@@ -5,11 +5,16 @@
     "type": "module",
     "main": "scripts/sync-products.js",
     "scripts": {
-        "sync": "node scripts/sync-products.js && node scripts/sync-posts.js"
+        "sync": "node scripts/sync-products.js && node scripts/sync-posts.js",
+        "lint": "eslint assets/js --ext .js",
+        "lint:fix": "eslint assets/js --ext .js --fix"
     },
     "dependencies": {
-        "pocketbase": "^0.21.0",
         "dotenv": "^16.0.0",
+        "pocketbase": "^0.21.0",
         "slugify": "^1.6.6"
+    },
+    "devDependencies": {
+        "eslint": "^8.57.1"
     }
 }

@@ -41,17 +41,17 @@ const AdminPosts = {
             spellChecker: false,
             status: false,
             toolbar: [
-                "bold", "italic", "heading", "|",
-                "quote", "unordered-list", "ordered-list", "|",
-                "link", "image",
+                'bold', 'italic', 'heading', '|',
+                'quote', 'unordered-list', 'ordered-list', '|',
+                'link', 'image',
                 {
-                    name: "video",
+                    name: 'video',
                     action: (editor) => { AdminPosts.drawVideoButton(editor); },
-                    className: "fa fa-video-camera", // FontAwesome icon class
-                    title: "Insert Video",
+                    className: 'fa fa-video-camera', // FontAwesome icon class
+                    title: 'Insert Video',
                 },
-                "|",
-                "preview", "side-by-side", "fullscreen", "|", "guide"
+                '|',
+                'preview', 'side-by-side', 'fullscreen', '|', 'guide'
             ]
         });
 
@@ -262,7 +262,7 @@ const AdminPosts = {
                 const preview = document.getElementById('post-image-preview');
                 preview.querySelector('img').src = e.target.result;
                 preview.style.display = 'block';
-            }
+            };
             reader.readAsDataURL(file);
         }
     },
@@ -322,14 +322,14 @@ const AdminPosts = {
 
     drawVideoButton: function (editor) {
         const cm = editor.codemirror;
-        const input = prompt("동영상 URL 또는 Embed 코드를 입력하세요 (YouTube, Vimeo, .mp4):");
+        const input = prompt('동영상 URL 또는 Embed 코드를 입력하세요 (YouTube, Vimeo, .mp4):');
 
         if (!input) return;
 
         const info = AdminPosts._extractVideoInfo(input);
 
         if (!info) {
-            alert("유효한 동영상 링크나 코드가 아닙니다.\n지원: YouTube, Vimeo, .mp4 파일 링크");
+            alert('유효한 동영상 링크나 코드가 아닙니다.\n지원: YouTube, Vimeo, .mp4 파일 링크');
             return;
         }
 
