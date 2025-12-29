@@ -79,6 +79,16 @@
   {{ if hugo.IsProduction }}
   {{ $js = $js | fingerprint }}
   {{ end }}
-  <script src="{{ $js.RelPermalink }}?v={{ now.Unix }}" defer></script>
+  <script src="{{ $js.RelPermalink }}?v={{ now.Unix }}"></script>
+
+  <!-- 페이지별 모듈 -->
+  {{ $reviews := resources.Get "js/reviews.js" }}
+  <script src="{{ $reviews.Permalink }}?v={{ now.Unix }}"></script>
+
+  {{ $qna := resources.Get "js/qna.js" }}
+  <script src="{{ $qna.Permalink }}?v={{ now.Unix }}"></script>
+
+  {{ $profile := resources.Get "js/profile.js" }}
+  <script src="{{ $profile.Permalink }}?v={{ now.Unix }}"></script>
 
 </head>
