@@ -28,7 +28,8 @@ window.AdminOrders = (function () {
             return;
         }
 
-        pb = new PocketBase('http://127.0.0.1:8090');
+        // Use shared PocketBase instance from AdminAuth or PBClient
+        pb = window.AdminAuth?.pb || window.PBClient.getInstance();
 
         // Strict Admin Check
         if (!AdminAuth.checkAdmin()) {

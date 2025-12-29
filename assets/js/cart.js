@@ -1,5 +1,5 @@
-// Initialize PocketBase
-const pb = new PocketBase(window.SiteConfig.pocketbaseUrl);
+// Use shared PocketBase instance
+const pb = window.PBClient.getInstance();
 
 // Cart State Management
 const Cart = {

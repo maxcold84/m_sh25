@@ -5,7 +5,7 @@
 
 class ProductsApi {
     constructor() {
-        this.pb = new PocketBase(window.SiteConfig.pocketbaseUrl);
+        this.pb = window.PBClient.getInstance();
         this.collection = 'products';
         this.currentLang = document.documentElement.lang || 'ko';
     }

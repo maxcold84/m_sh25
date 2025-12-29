@@ -123,7 +123,8 @@ const AdminProducts = {
     sortable: null,
 
     init: async function () {
-        this.pb = new PocketBase('http://127.0.0.1:8090');
+        // Use shared PocketBase instance
+        this.pb = window.AdminAuth?.pb || window.PBClient.getInstance();
 
         // Check auth
         if (!AdminAuth.checkAdmin()) {

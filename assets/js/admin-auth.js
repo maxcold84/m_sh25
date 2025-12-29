@@ -1,5 +1,5 @@
 const AdminAuth = (function () {
-    const pb = new PocketBase('http://127.0.0.1:8090');
+    const pb = window.PBClient.getInstance();
 
     function checkAdmin() {
         if (!pb.authStore.isValid || !pb.authStore.isAdmin) {

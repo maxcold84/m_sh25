@@ -1,5 +1,5 @@
 const Auth = (function () {
-    const pb = new PocketBase(window.SiteConfig.pocketbaseUrl);
+    const pb = window.PBClient.getInstance();
 
     // Track nickname check status
     let nicknameChecked = false;

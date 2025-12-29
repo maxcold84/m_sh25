@@ -1,5 +1,5 @@
 const QnA = (function () {
-    const pb = new PocketBase('http://127.0.0.1:8090');
+    const pb = window.PBClient.getInstance();
     let qnaForm = null;
     let qnaList = null;
     let authMessage = null;

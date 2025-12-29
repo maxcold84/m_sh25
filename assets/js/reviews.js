@@ -1,5 +1,5 @@
 const Reviews = (function () {
-    const pb = new PocketBase(window.SiteConfig.pocketbaseUrl);
+    const pb = window.PBClient.getInstance();
     let reviewForm = null;
     let reviewList = null;
     let authMessage = null;
