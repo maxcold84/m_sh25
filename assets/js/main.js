@@ -17,6 +17,9 @@ import * as Utils from './core/utils.js';
 import { Cart } from './cart.js';
 import { Auth } from './auth.js';
 import { ProductsApi, productsApi } from './products-api.js';
+import { Reviews } from './reviews.js';
+import { QnA } from './qna.js';
+import { Profile } from './profile.js';
 
 // ============================================
 // 하위 호환성: 전역 노출
@@ -38,6 +41,9 @@ if (typeof window !== 'undefined') {
     window.Auth = Auth;
     window.ProductsApi = ProductsApi;
     window.productsApi = productsApi;
+    window.Reviews = Reviews;
+    window.QnA = QnA;
+    window.Profile = Profile;
 }
 
 // ============================================
@@ -48,6 +54,7 @@ function initializeApp() {
 
     // Auth는 자체적으로 init 호출
     // Cart는 config가 필요하므로 여기서 호출하지 않음
+    // Profile, Reviews, QnA는 페이지별 로직이 있거나 호출 시점이 다르므로 여기서 호출하지 않음
 
     console.log('[Main] Application initialized');
 }
@@ -75,5 +82,8 @@ export {
     Cart,
     Auth,
     ProductsApi,
-    productsApi
+    productsApi,
+    Reviews,
+    QnA,
+    Profile
 };
