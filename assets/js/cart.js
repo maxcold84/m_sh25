@@ -1,8 +1,13 @@
-// Use shared PocketBase instance
-const pb = window.PBClient.getInstance();
+/**
+ * Cart Module (ES6)
+ * 장바구니 상태 관리 및 기능
+ * @module cart
+ */
+import { pb } from './core/pb-client.js';
+import { formatCurrency as formatCurrencyUtil } from './core/utils.js';
 
 // Cart State Management
-const Cart = {
+export const Cart = {
     async init(config) {
         console.log('Cart initialized with config:', config);
         this.config = config;
@@ -294,11 +299,8 @@ const Cart = {
     },
 
     formatCurrency(amount) {
-        const isKorean = document.documentElement.lang === 'ko' || window.location.pathname.includes('/korean/');
-        const currency = isKorean ? 'KRW' : 'USD';
-        const locale = isKorean ? 'ko-KR' : 'en-US';
-
-        return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(amount);
+        // Utils.formatCurrency 사용
+        return formatCurrencyUtil(amount);
     },
 
     async removeItem(itemId) {
@@ -481,14 +483,26 @@ const Cart = {
     }
 };
 
-// Expose to window for HTMX or inline calls
-window.Cart = Cart;
-console.log('Cart object exposed to window');
+// ============================================
+// 하위 호환성: 전역 노출
+// ============================================
+if (typeof window !== 'undefined') {
+    window.Cart = Cart;
+}
 
 // Custom Event Listeners
-document.addEventListener('DOMContentLoaded', function () {
+function setupCartEvents() {
     document.body.addEventListener('cart-updated', function () {
         console.log('cart-updated event received');
         Cart.renderCart();
     });
-});
+}
+
+// Auto-setup if loaded directly
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupCartEvents);
+} else {
+    setupCartEvents();
+}
+
+export default Cart;

@@ -1,6 +1,12 @@
-const Auth = (function () {
-    const pb = window.PBClient.getInstance();
+/**
+ * Auth Module (ES6)
+ * 사용자 인증 관리 (로그인, 회원가입, OAuth)
+ * @module auth
+ */
+import { pb } from './core/pb-client.js';
+import { showToast as toastUtil, showMessage as messageUtil } from './core/utils.js';
 
+const Auth = (function () {
     // Track nickname check status
     let nicknameChecked = false;
     let checkedNickname = '';
@@ -18,75 +24,50 @@ const Auth = (function () {
         const hash = window.location.hash;
         if (hash === '#signup') {
             $('#authTab a[href="#signup"]').tab('show');
-        } else {
-            $('#authTab a[href="#login"]').tab('show');
         }
 
-        // Update hash on tab click
-        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-            const target = $(e.target).attr('href');
-            if (history.pushState) {
-                history.pushState(null, null, target);
-            } else {
-                location.hash = target;
-            }
-        });
-
-        const loginForm = document.getElementById('login-form');
-        const signupForm = document.getElementById('signup-form');
-        const logoutBtn = document.getElementById('logout-btn'); // Handles navbar logout if present
-        const authLogoutLink = document.getElementById('auth-logout-link'); // Handles auth page logout
-
-        if (loginForm) {
-            loginForm.addEventListener('submit', handleLogin);
-            setupEmailAutocomplete(loginForm, 'login-email');
-
-            // Load saved email
-            const savedEmail = localStorage.getItem('savedEmail');
-            if (savedEmail) {
-                const emailInput = document.getElementById('login-email');
-                const rememberCheckbox = document.getElementById('remember-email');
-                if (emailInput) emailInput.value = savedEmail;
-                if (rememberCheckbox) rememberCheckbox.checked = true;
-            }
-        }
-
-        if (signupForm) {
-            signupForm.addEventListener('submit', handleSignup);
-            setupEmailAutocomplete(signupForm, 'signup-email');
-            setupNicknameCheck();
-        }
-
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', handleLogout);
-        }
-
-        if (authLogoutLink) {
-            authLogoutLink.addEventListener('click', (e) => {
+        // LOGOUT Handler
+        const logoutButton = document.getElementById('auth-logout-link');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', (e) => {
                 e.preventDefault();
-                handleLogout();
+                logout();
             });
         }
 
-        // Profile Update Form
-        const profileForm = document.getElementById('profile-form');
-        if (profileForm) {
-            loadProfile();
-            profileForm.addEventListener('submit', handleProfileUpdate);
+        // Login Form Submission
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', handleLogin);
         }
 
-        // OAuth2 Login Handlers
-        const oauthButtons = document.querySelectorAll('.oauth-btn');
-        oauthButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                // Find the closest button element if click target was an icon/text inside
-                const button = e.target.closest('.oauth-btn');
+        // Signup Form Submission
+        const signupForm = document.getElementById('signup-form');
+        if (signupForm) {
+            signupForm.addEventListener('submit', handleSignup);
+        }
+
+        // Email Autocomplete
+        const emailInputs = document.querySelectorAll('input[type="email"]');
+        emailInputs.forEach(input => {
+            input.addEventListener('input', handleEmailAutocomplete);
+        });
+
+        // OAuth buttons
+        const oauthButtons = document.querySelectorAll('.oauth-login-btn');
+        oauthButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const button = e.currentTarget;
                 if (button) {
                     const provider = button.dataset.provider;
                     handleOAuth2Login(provider);
                 }
             });
         });
+
+        // Nickname check setup
+        setupNicknameCheck();
     }
 
     function updateAuthUI() {
@@ -115,156 +96,122 @@ const Auth = (function () {
             if (profileLink) profileLink.style.display = 'none';
         }
 
-        // Update User Info Display
-        const userNameEls = document.querySelectorAll('.auth-user-name');
-        if (userNameEls.length > 0) {
-            const name = user?.name || user?.username || 'User';
-            userNameEls.forEach(el => el.textContent = name);
+        // User display
+        const userDisplay = document.getElementById('auth-user-name');
+        const avatarEl = document.getElementById('auth-user-avatar');
+
+        if (userDisplay && isLoggedIn && user) {
+            userDisplay.textContent = user.name || user.username || user.email || 'User';
         }
 
-        // Avatar
-        const avatarEls = document.querySelectorAll('.auth-user-avatar');
-        const avatarImg = document.getElementById('nav-avatar-img');
-        const avatarIcon = document.getElementById('nav-avatar-icon');
-
-        if (user?.avatar) {
-            const avatarUrl = pb.files.getUrl(user, user.avatar, { thumb: '100x100' });
-            avatarEls.forEach(el => el.src = avatarUrl);
-
-            if (avatarImg) {
-                avatarImg.src = avatarUrl;
-                avatarImg.style.display = 'block';
-            }
-            if (avatarIcon) avatarIcon.style.display = 'none';
-        } else {
-            if (avatarImg) avatarImg.style.display = 'none';
-            if (avatarIcon) avatarIcon.style.display = 'block';
-        }
-
-        // Welcome toast
-        if (isLoggedIn && !sessionStorage.getItem('welcomeShown')) {
-            const userName = user.name || user.email;
-            showToast(`환영합니다, ${userName}님!`);
-            sessionStorage.setItem('welcomeShown', 'true');
-        } else if (!isLoggedIn) {
-            sessionStorage.removeItem('welcomeShown');
+        if (avatarEl && isLoggedIn && user && user.avatar) {
+            const avatarUrl = pb.files.getUrl(user, user.avatar, { thumb: '50x50' });
+            avatarEl.src = avatarUrl;
+            avatarEl.style.display = 'block';
+        } else if (avatarEl) {
+            avatarEl.style.display = 'none';
         }
     }
 
-    async function handleLogin(e) {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        const rememberCheckbox = document.getElementById('remember-email');
-        const messageEl = document.getElementById('auth-message');
-
-        if (rememberCheckbox && rememberCheckbox.checked) {
-            localStorage.setItem('savedEmail', email);
-        } else {
-            localStorage.removeItem('savedEmail');
-        }
+    async function handleLogin(event) {
+        event.preventDefault();
+        const form = event.target;
+        const email = form.email.value;
+        const password = form.password.value;
+        const messageEl = document.getElementById('login-message');
 
         try {
+            showMessage(messageEl, '로그인 중...', 'text-info');
             await pb.collection('users').authWithPassword(email, password);
-            window.location.href = '/';
+            showMessage(messageEl, '로그인 성공!', 'text-success');
+            showToast('로그인 성공!');
+
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 500);
         } catch (error) {
             console.error('Login failed:', error);
-            showMessage(messageEl, '로그인 실패: 이메일 또는 비밀번호를 확인해주세요.', 'text-danger');
+            showMessage(messageEl, '이메일 또는 비밀번호가 일치하지 않습니다.', 'text-danger');
         }
     }
 
-    async function handleSignup(e) {
-        e.preventDefault();
-        const email = document.getElementById('signup-email').value;
-        const password = document.getElementById('signup-password').value;
-        const passwordConfirm = document.getElementById('signup-passwordConfirm').value || document.getElementById('signup-password-confirm').value; // Handle both IDs just in case
-        const name = document.getElementById('signup-name').value;
-        const nickname = document.getElementById('signup-nickname').value.trim();
-        const messageEl = document.getElementById('auth-message');
-
-        // Check if nickname was verified
-        if (!nicknameChecked || nickname !== checkedNickname) {
-            showMessage(messageEl, '닉네임 중복 확인을 해주세요.', 'text-danger');
-            return;
-        }
+    async function handleSignup(event) {
+        event.preventDefault();
+        const form = event.target;
+        const email = form.email.value;
+        const password = form.password.value;
+        const passwordConfirm = form.passwordConfirm.value;
+        const name = form.name?.value || '';
+        const nickname = form.nickname?.value || '';
+        const messageEl = document.getElementById('signup-message');
 
         if (password !== passwordConfirm) {
             showMessage(messageEl, '비밀번호가 일치하지 않습니다.', 'text-danger');
             return;
         }
 
+        if (nickname && !nicknameChecked) {
+            showMessage(messageEl, '닉네임 중복 확인이 필요합니다.', 'text-warning');
+            return;
+        }
+
         try {
+            showMessage(messageEl, '회원가입 처리 중...', 'text-info');
+
             const data = {
-                'username': nickname, // Use nickname as username
-                'email': email,
-                'emailVisibility': true,
-                'password': password,
-                'passwordConfirm': passwordConfirm,
-                'name': name
+                email: email,
+                password: password,
+                passwordConfirm: passwordConfirm,
+                name: name,
+                username: nickname || email.split('@')[0]
             };
 
             await pb.collection('users').create(data);
             await pb.collection('users').authWithPassword(email, password);
 
-            alert('회원가입 성공!');
-            window.location.href = '/';
+            showMessage(messageEl, '회원가입 성공! 로그인 중...', 'text-success');
+            showToast('회원가입을 축하합니다!');
 
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
         } catch (error) {
             console.error('Signup failed:', error);
-            let msg = '회원가입 실패';
-            if (error.data && error.data.data) {
-                msg += ': ' + Object.keys(error.data.data).join(', ') + ' 오류';
-            } else if (error.message) {
-                msg += ': ' + error.message;
+            let errorMsg = '회원가입에 실패했습니다.';
+            if (error.data?.data?.email) {
+                errorMsg = '이미 가입된 이메일입니다.';
+            } else if (error.data?.data?.username) {
+                errorMsg = '이미 사용 중인 닉네임입니다.';
             }
-            showMessage(messageEl, msg, 'text-danger');
+            showMessage(messageEl, errorMsg, 'text-danger');
         }
     }
 
     async function handleOAuth2Login(provider) {
         try {
-            const authData = await pb.collection('users').authWithOAuth2({ provider: provider });
-            window.location.href = '/';
+            // Store current URL for redirect after login
+            const currentUrl = window.location.pathname + window.location.search;
+            localStorage.setItem('auth_redirect', currentUrl);
+
+            const authData = await pb.collection('users').authWithOAuth2({ provider });
+
+            if (authData && authData.record) {
+                showToast(`${provider} 로그인 성공!`);
+                const redirectUrl = localStorage.getItem('auth_redirect') || '/';
+                localStorage.removeItem('auth_redirect');
+                window.location.href = redirectUrl;
+            }
         } catch (error) {
-            const messageEl = document.getElementById('auth-message');
-            showMessage(messageEl, `Login with ${provider} failed: ` + error.message, 'text-danger');
+            console.error(`${provider} OAuth login failed:`, error);
+            showToast(`${provider} 로그인에 실패했습니다.`);
         }
     }
 
-    function handleLogout() {
+    function logout() {
         pb.authStore.clear();
-        localStorage.removeItem('cart_id');
+        showToast('로그아웃 되었습니다.');
         window.location.href = '/';
     }
-
-    async function loadProfile() {
-        if (!pb.authStore.isValid) return;
-        const user = pb.authStore.model;
-
-        const nameInput = document.getElementById('profile-name');
-        const emailInput = document.getElementById('profile-email');
-
-        if (nameInput) nameInput.value = user.name || '';
-        if (emailInput) emailInput.value = user.email || '';
-    }
-
-    async function handleProfileUpdate(e) {
-        e.preventDefault();
-        const name = document.getElementById('profile-name').value;
-
-        try {
-            await pb.collection('users').update(pb.authStore.model.id, {
-                name: name
-            });
-            alert('프로필이 업데이트되었습니다.');
-            updateAuthUI();
-        } catch (error) {
-            console.error('Profile update failed:', error);
-            alert('업데이트 실패: ' + error.message);
-        }
-    }
-
-    // --- Helper Functions ---
 
     function showMessage(el, message, className) {
         if (el) {
@@ -295,128 +242,78 @@ const Auth = (function () {
         }, 3000);
     }
 
-    function setupEmailAutocomplete(form, emailInputId) {
-        const emailInput = form.querySelector('#' + emailInputId);
-        if (!emailInput) return;
+    function handleEmailAutocomplete(event) {
+        const input = event.target;
+        const value = input.value;
+        const atIndex = value.indexOf('@');
 
-        const domains = ['gmail.com', 'naver.com', 'daum.net', 'kakao.com', 'outlook.com', 'hanmail.net', 'nate.com'];
-        let selectedIndex = -1;
-
-        const dropdownContainer = document.createElement('div');
-        dropdownContainer.className = 'email-domain-dropdown';
-        dropdownContainer.style.cssText = `
-            position: absolute; background: white; border: 1px solid #ddd; border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15); max-height: 200px; overflow-y: auto; z-index: 1000;
-            display: none; width: 100%;
-        `;
-        emailInput.parentElement.style.position = 'relative';
-        emailInput.parentElement.appendChild(dropdownContainer);
-
-        function updateSelection() {
-            const options = dropdownContainer.querySelectorAll('.email-domain-option');
-            options.forEach((opt, idx) => {
-                opt.style.backgroundColor = (idx === selectedIndex) ? '#e0e7ff' : 'white';
-                if (idx === selectedIndex) opt.scrollIntoView({ block: 'nearest' });
-            });
+        if (atIndex === -1 || value.endsWith('@')) {
+            return;
         }
 
-        function showDomainSuggestions(username, filterText = '') {
-            dropdownContainer.innerHTML = '';
-            selectedIndex = -1;
-            const filteredDomains = filterText ? domains.filter(d => d.startsWith(filterText.toLowerCase())) : domains;
+        const domains = ['gmail.com', 'naver.com', 'daum.net', 'hanmail.net', 'kakao.com'];
+        const currentDomain = value.slice(atIndex + 1);
+        const matchedDomain = domains.find(d => d.startsWith(currentDomain) && d !== currentDomain);
 
-            if (filteredDomains.length === 0) {
-                dropdownContainer.style.display = 'none';
-                return;
-            }
-
-            filteredDomains.forEach(domain => {
-                const option = document.createElement('div');
-                option.className = 'email-domain-option';
-                option.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee; transition: background-color 0.1s;';
-                option.textContent = username + '@' + domain;
-                option.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    emailInput.value = username + '@' + domain;
-                    dropdownContainer.style.display = 'none';
-                });
-                option.addEventListener('mouseenter', () => {
-                    selectedIndex = Array.from(dropdownContainer.children).indexOf(option);
-                    updateSelection();
-                });
-                dropdownContainer.appendChild(option);
-            });
-            dropdownContainer.style.display = 'block';
+        let datalist = document.getElementById('email-suggestions');
+        if (!datalist) {
+            datalist = document.createElement('datalist');
+            datalist.id = 'email-suggestions';
+            document.body.appendChild(datalist);
+            input.setAttribute('list', 'email-suggestions');
         }
 
-        emailInput.addEventListener('input', function () {
-            const value = emailInput.value;
-            const atIndex = value.indexOf('@');
-            if (atIndex !== -1) {
-                const username = value.substring(0, atIndex);
-                const afterAt = value.substring(atIndex + 1);
-                if (username) showDomainSuggestions(username, afterAt);
-                else dropdownContainer.style.display = 'none';
-            } else {
-                dropdownContainer.style.display = 'none';
-            }
-        });
-
-        emailInput.addEventListener('blur', function () {
-            setTimeout(() => { dropdownContainer.style.display = 'none'; }, 150);
-        });
-
-        // Keyboard nav (simplified)
-        emailInput.addEventListener('keydown', function (e) {
-            if (dropdownContainer.style.display === 'block') {
-                const options = dropdownContainer.querySelectorAll('.email-domain-option');
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    selectedIndex = (selectedIndex + 1) % options.length;
-                    updateSelection();
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    selectedIndex = (selectedIndex - 1 + options.length) % options.length;
-                    updateSelection();
-                } else if (e.key === 'Enter') {
-                    if (selectedIndex >= 0) {
-                        e.preventDefault();
-                        emailInput.value = options[selectedIndex].textContent;
-                        dropdownContainer.style.display = 'none';
-                    }
+        datalist.innerHTML = '';
+        if (matchedDomain) {
+            const localPart = value.slice(0, atIndex);
+            domains.forEach(domain => {
+                if (domain.startsWith(currentDomain)) {
+                    const option = document.createElement('option');
+                    option.value = localPart + '@' + domain;
+                    datalist.appendChild(option);
                 }
+            });
+        }
+    }
+
+    async function checkNickname(nickname) {
+        if (!nickname || nickname.length < 2) {
+            updateNicknameStatus('', '');
+            nicknameChecked = false;
+            return;
+        }
+
+        try {
+            const result = await pb.collection('users').getList(1, 1, {
+                filter: `username = "${nickname}"`
+            });
+
+            if (result.totalItems > 0) {
+                updateNicknameStatus('이미 사용 중인 닉네임입니다.', 'text-danger');
+                nicknameChecked = false;
+            } else {
+                updateNicknameStatus('사용 가능한 닉네임입니다.', 'text-success');
+                nicknameChecked = true;
+                checkedNickname = nickname;
             }
-        });
+        } catch (error) {
+            console.error('Nickname check failed:', error);
+            updateNicknameStatus('닉네임 확인 중 오류가 발생했습니다.', 'text-warning');
+            nicknameChecked = false;
+        }
+    }
+
+    function updateNicknameStatus(message, className) {
+        const statusEl = document.getElementById('nickname-status');
+        if (statusEl) {
+            statusEl.textContent = message;
+            statusEl.className = 'small ' + className;
+        }
     }
 
     function setupNicknameCheck() {
         const nicknameInput = document.getElementById('signup-nickname');
-        const feedbackEl = document.getElementById('nickname-feedback');
-        if (!nicknameInput || !feedbackEl) return;
-
-        async function checkNickname(nickname) {
-            if (!nickname || nickname.length < 2) {
-                feedbackEl.style.display = 'none';
-                nicknameChecked = false;
-                return;
-            }
-            try {
-                const result = await pb.collection('users').getList(1, 1, { filter: `username = "${nickname}"` });
-                if (result.totalItems > 0) {
-                    nicknameChecked = false;
-                    feedbackEl.textContent = '이미 사용 중인 닉네임입니다.';
-                    feedbackEl.className = 'form-text text-danger';
-                } else {
-                    nicknameChecked = true;
-                    checkedNickname = nickname;
-                    feedbackEl.textContent = '사용 가능한 닉네임입니다.';
-                    feedbackEl.className = 'form-text text-success';
-                }
-                feedbackEl.style.display = 'block';
-            } catch (error) {
-                console.error(error);
-            }
-        }
+        if (!nicknameInput) return;
 
         nicknameInput.addEventListener('input', function () {
             const nickname = nicknameInput.value.trim();
@@ -431,9 +328,19 @@ const Auth = (function () {
     };
 })();
 
-// Initialize
+// ============================================
+// 하위 호환성: 전역 노출
+// ============================================
+if (typeof window !== 'undefined') {
+    window.Auth = Auth;
+}
+
+// Auto-init
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => Auth.init());
 } else {
     Auth.init();
 }
+
+export { Auth };
+export default Auth;

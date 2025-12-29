@@ -1,11 +1,13 @@
 /**
- * PocketBase Products API Client
+ * PocketBase Products API Client (ES6)
  * Handles fetching product data from the backend
+ * @module products-api
  */
+import { pb } from './core/pb-client.js';
 
-class ProductsApi {
+export class ProductsApi {
     constructor() {
-        this.pb = window.PBClient.getInstance();
+        this.pb = pb;
         this.collection = 'products';
         this.currentLang = document.documentElement.lang || 'ko';
     }
@@ -86,5 +88,15 @@ class ProductsApi {
     }
 }
 
-// Export instance
-window.productsApi = new ProductsApi();
+// ============================================
+// 하위 호환성: 전역 노출
+// ============================================
+const productsApi = new ProductsApi();
+
+if (typeof window !== 'undefined') {
+    window.productsApi = productsApi;
+    window.ProductsApi = ProductsApi;
+}
+
+export { productsApi };
+export default ProductsApi;

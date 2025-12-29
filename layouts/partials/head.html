@@ -60,26 +60,25 @@
     };
   </script>
 
-  <!-- PocketBase & HTMX & Mustache -->
+  <!-- PocketBase & Mustache (외부 라이브러리) -->
   {{ $pb := resources.Get "js/pocketbase.umd.js" }}
   <script src="{{ $pb.Permalink }}"></script>
-
-  {{ $pbClient := resources.Get "js/core/pb-client.js" }}
-  <script src="{{ $pbClient.Permalink }}?v={{ now.Unix }}"></script>
-
-  {{ $utils := resources.Get "js/core/utils.js" }}
-  <script src="{{ $utils.Permalink }}?v={{ now.Unix }}"></script>
 
   {{ $mustache := resources.Get "js/mustache.min.js" }}
   <script src="{{ $mustache.Permalink }}"></script>
 
-  {{ $auth := resources.Get "js/auth.js" }}
-  <script src="{{ $auth.Permalink }}?v={{ now.Unix }}"></script>
-
-  {{ $cart := resources.Get "js/cart.js" }}
-  <script src="{{ $cart.Permalink }}?v={{ now.Unix }}"></script>
-
-  {{ $productsApi := resources.Get "js/products-api.js" }}
-  <script src="{{ $productsApi.Permalink }}?v={{ now.Unix }}"></script>
+  <!-- Main Bundle (Hugo js.Build) -->
+  {{ $opts := dict
+  "targetPath" "js/bundle.js"
+  "minify" hugo.IsProduction
+  "target" "es2020"
+  "format" "iife"
+  "globalName" "App"
+  }}
+  {{ $js := resources.Get "js/main.js" | js.Build $opts }}
+  {{ if hugo.IsProduction }}
+  {{ $js = $js | fingerprint }}
+  {{ end }}
+  <script src="{{ $js.RelPermalink }}?v={{ now.Unix }}" defer></script>
 
 </head>
