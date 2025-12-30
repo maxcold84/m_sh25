@@ -15,6 +15,18 @@ const Auth = (function () {
     function init() {
         updateAuthUI();
 
+        // Redirect if already logged in and on login/signup page
+        const isAuthPage = window.location.pathname.includes('/login/') ||
+            window.location.pathname.includes('/signup/') ||
+            window.location.pathname.endsWith('/login') ||
+            window.location.pathname.endsWith('/signup');
+
+        if (pb.authStore.isValid && isAuthPage) {
+            console.log('[Auth] Already logged in, redirecting to home...');
+            window.location.href = getHomeUrl();
+            return;
+        }
+
         // Listen for auth state changes
         pb.authStore.onChange(() => {
             updateAuthUI();
@@ -47,11 +59,23 @@ const Auth = (function () {
             signupForm.addEventListener('submit', handleSignup);
         }
 
-        // Email Autocomplete
+        // Email Autocomplete & Mailcheck
         const emailInputs = document.querySelectorAll('input[type="email"]');
         emailInputs.forEach(input => {
+            input.addEventListener('blur', handleMailcheck); // Use blur for typo check
             input.addEventListener('input', handleEmailAutocomplete);
         });
+
+        // Remember Email Initialization
+        const rememberEmailCheckbox = document.getElementById('remember-email');
+        const loginEmailInput = document.getElementById('login-email');
+        if (rememberEmailCheckbox && loginEmailInput) {
+            const savedEmail = localStorage.getItem('remembered_email');
+            if (savedEmail) {
+                loginEmailInput.value = savedEmail;
+                rememberEmailCheckbox.checked = true;
+            }
+        }
 
         // OAuth buttons
         const oauthButtons = document.querySelectorAll('.oauth-login-btn');
@@ -98,18 +122,26 @@ const Auth = (function () {
 
         // User display
         const userDisplay = document.getElementById('auth-user-name');
-        const avatarEl = document.getElementById('auth-user-avatar');
+        const avatarEl = document.getElementById('nav-avatar-img');
+        const avatarIcon = document.getElementById('nav-avatar-icon');
 
         if (userDisplay && isLoggedIn && user) {
             userDisplay.textContent = user.name || user.username || user.email || 'User';
         }
 
-        if (avatarEl && isLoggedIn && user && user.avatar) {
-            const avatarUrl = pb.files.getUrl(user, user.avatar, { thumb: '50x50' });
-            avatarEl.src = avatarUrl;
-            avatarEl.style.display = 'block';
-        } else if (avatarEl) {
-            avatarEl.style.display = 'none';
+        if (isLoggedIn && user) {
+            if (avatarEl && user.avatar) {
+                const avatarUrl = pb.files.getUrl(user, user.avatar, { thumb: '50x50' });
+                avatarEl.src = avatarUrl;
+                avatarEl.style.display = 'block';
+                if (avatarIcon) avatarIcon.style.display = 'none';
+            } else if (avatarIcon) {
+                avatarIcon.style.display = 'block';
+                if (avatarEl) avatarEl.style.display = 'none';
+            }
+        } else {
+            if (avatarEl) avatarEl.style.display = 'none';
+            if (avatarIcon) avatarIcon.style.display = 'none';
         }
     }
 
@@ -126,8 +158,18 @@ const Auth = (function () {
             showMessage(messageEl, '로그인 성공!', 'text-success');
             showToast('로그인 성공!');
 
+            // Remember Email logic
+            const rememberEmailCheckbox = document.getElementById('remember-email');
+            if (rememberEmailCheckbox && rememberEmailCheckbox.checked) {
+                localStorage.setItem('remembered_email', email);
+            } else {
+                localStorage.removeItem('remembered_email');
+            }
+
             setTimeout(() => {
-                window.location.href = '/';
+                const redirectUrl = localStorage.getItem('auth_redirect') || getHomeUrl();
+                localStorage.removeItem('auth_redirect');
+                window.location.href = redirectUrl;
             }, 500);
         } catch (error) {
             console.error('Login failed:', error);
@@ -223,6 +265,11 @@ const Auth = (function () {
         }
     }
 
+    function getHomeUrl() {
+        const isKo = document.documentElement.lang === 'ko' || window.location.pathname.includes('/ko/');
+        return isKo ? '/ko/' : '/';
+    }
+
     function showToast(message) {
         const toast = document.createElement('div');
         toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg text-sm z-50 transition-opacity duration-300';
@@ -255,12 +302,12 @@ const Auth = (function () {
         const currentDomain = value.slice(atIndex + 1);
         const matchedDomain = domains.find(d => d.startsWith(currentDomain) && d !== currentDomain);
 
-        let datalist = document.getElementById('email-suggestions');
+        let datalist = document.getElementById('emailDomains');
         if (!datalist) {
             datalist = document.createElement('datalist');
-            datalist.id = 'email-suggestions';
+            datalist.id = 'emailDomains';
             document.body.appendChild(datalist);
-            input.setAttribute('list', 'email-suggestions');
+            input.setAttribute('list', 'emailDomains');
         }
 
         datalist.innerHTML = '';
@@ -274,6 +321,32 @@ const Auth = (function () {
                 }
             });
         }
+    }
+
+    function handleMailcheck(event) {
+        const input = event.target;
+        if (typeof Mailcheck === 'undefined') return;
+
+        Mailcheck.run({
+            email: input.value,
+            suggested: function (suggestion) {
+                const suggestionLink = document.getElementById('email-suggestion-link');
+                const suggestionContainer = document.getElementById('email-suggestion');
+                if (suggestionLink && suggestionContainer) {
+                    suggestionLink.textContent = suggestion.full;
+                    suggestionContainer.style.display = 'block';
+                    suggestionLink.onclick = (e) => {
+                        e.preventDefault();
+                        input.value = suggestion.full;
+                        suggestionContainer.style.display = 'none';
+                    };
+                }
+            },
+            empty: function () {
+                const suggestionContainer = document.getElementById('email-suggestion');
+                if (suggestionContainer) suggestionContainer.style.display = 'none';
+            }
+        });
     }
 
     async function checkNickname(nickname) {
@@ -324,7 +397,9 @@ const Auth = (function () {
     }
 
     return {
-        init: init
+        init: init,
+        logout: logout,
+        handleOAuth2Login: handleOAuth2Login
     };
 })();
 

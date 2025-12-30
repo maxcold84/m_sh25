@@ -8,34 +8,37 @@
 
                     <!-- Tabs -->
                     {{ $authType := .Params.authType | default "login" }}
+                    {{ $loginStr := "login" }}
+                    {{ $signupStr := "signup" }}
                     <ul class="nav nav-tabs nav-fill mb-4" id="authTab" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link {{ if eq $authType " login" }}active{{ end }}" id="login-tab"
+                            <a class="nav-link {{ if eq $authType $loginStr }}active{{ end }}" id="login-tab"
                                 data-toggle="tab" href="#login" role="tab" aria-controls="login"
-                                aria-selected="{{ if eq $authType " login" }}true{{ else }}false{{ end }}">{{ T "login"
+                                aria-selected="{{ if eq $authType $loginStr }}true{{ else }}false{{ end }}">{{ T "login"
                                 }}</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ if eq $authType " signup" }}active{{ end }}" id="signup-tab"
+                            <a class="nav-link {{ if eq $authType $signupStr }}active{{ end }}" id="signup-tab"
                                 data-toggle="tab" href="#signup" role="tab" aria-controls="signup"
-                                aria-selected="{{ if eq $authType " signup" }}true{{ else }}false{{ end }}">{{ T
+                                aria-selected="{{ if eq $authType $signupStr }}true{{ else }}false{{ end }}">{{ T
                                 "signup" }}</a>
                         </li>
                     </ul>
 
                     <div class="tab-content" id="authTabContent">
                         <!-- Login Form -->
-                        <div class="tab-pane fade {{ if eq $authType " login" }}show active{{ end }}" id="login"
+                        <div class="tab-pane fade {{ if eq $authType $loginStr }}show active{{ end }}" id="login"
                             role="tabpanel" aria-labelledby="login-tab">
                             <form id="login-form">
                                 <div class="form-group">
                                     <label for="login-email">{{ T "email" }}</label>
-                                    <input type="email" class="form-control" id="login-email" list="emailDomains"
-                                        required>
+                                    <input type="email" class="form-control" id="login-email" name="email"
+                                        list="emailDomains" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="login-password">{{ T "password" }}</label>
-                                    <input type="password" class="form-control" id="login-password" required>
+                                    <input type="password" class="form-control" id="login-password" name="password"
+                                        required>
                                 </div>
                                 <div class="form-group form-check">
                                     <input type="checkbox" class="form-check-input" id="remember-email">
@@ -47,22 +50,23 @@
                         </div>
 
                         <!-- Signup Form -->
-                        <div class="tab-pane fade {{ if eq $authType " signup" }}show active{{ end }}" id="signup"
+                        <div class="tab-pane fade {{ if eq $authType $signupStr }}show active{{ end }}" id="signup"
                             role="tabpanel" aria-labelledby="signup-tab">
                             <form id="signup-form">
                                 <div class="form-group">
                                     <label for="signup-name">{{ T "name" }}</label>
-                                    <input type="text" class="form-control" id="signup-name" required>
+                                    <input type="text" class="form-control" id="signup-name" name="name" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="signup-nickname">닉네임</label>
-                                    <input type="text" class="form-control" id="signup-nickname" required>
-                                    <small id="nickname-feedback" class="form-text" style="display: none;"></small>
+                                    <input type="text" class="form-control" id="signup-nickname" name="nickname"
+                                        required>
+                                    <small id="nickname-status" class="form-text" style="display: none;"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="signup-email">{{ T "email" }}</label>
-                                    <input type="email" class="form-control" id="signup-email" list="emailDomains"
-                                        required>
+                                    <input type="email" class="form-control" id="signup-email" name="email"
+                                        list="emailDomains" required>
                                     <div id="email-suggestion" class="mt-2" style="display: none;">
                                         <small class="text-muted">{{ T "email_suggestion_prefix" }}<a href="#"
                                                 id="email-suggestion-link" class="text-primary"></a>{{ T
@@ -71,11 +75,13 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="signup-password">{{ T "password" }}</label>
-                                    <input type="password" class="form-control" id="signup-password" required>
+                                    <input type="password" class="form-control" id="signup-password" name="password"
+                                        required>
                                 </div>
                                 <div class="form-group">
                                     <label for="signup-passwordConfirm">{{ T "confirm_password" }}</label>
-                                    <input type="password" class="form-control" id="signup-passwordConfirm" required>
+                                    <input type="password" class="form-control" id="signup-passwordConfirm"
+                                        name="passwordConfirm" required>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-block mt-4">{{ T "signup" }}</button>
                             </form>
@@ -88,18 +94,18 @@
                         <p class="text-muted mb-3">{{ T "or_continue_with" }}</p>
                         <div class="d-flex justify-content-center" style="gap: 10px;">
                             {{ if .google.enable }}
-                            <button type="button" class="btn btn-outline-danger oauth-btn" data-provider="google">
+                            <button type="button" class="btn btn-outline-danger oauth-login-btn" data-provider="google">
                                 Google
                             </button>
                             {{ end }}
                             {{ if .kakao.enable }}
-                            <button type="button" class="btn btn-warning oauth-btn" data-provider="kakao"
+                            <button type="button" class="btn btn-warning oauth-login-btn" data-provider="kakao"
                                 style="background-color: #FEE500; border-color: #FEE500; color: #3c1e1e;">
                                 Kakao
                             </button>
                             {{ end }}
                             {{ if .naver.enable }}
-                            <button type="button" class="btn btn-success oauth-btn" data-provider="naver"
+                            <button type="button" class="btn btn-success oauth-login-btn" data-provider="naver"
                                 style="background-color: #03C75A; border-color: #03C75A; color: #fff;">
                                 Naver
                             </button>
@@ -108,6 +114,8 @@
                     </div>
                     {{ end }}
 
+                    <div id="login-message" class="mt-3 text-center" style="display: none;"></div>
+                    <div id="signup-message" class="mt-3 text-center" style="display: none;"></div>
                     <div id="auth-message" class="mt-3 text-center" style="display: none;"></div>
                 </div>
             </div>

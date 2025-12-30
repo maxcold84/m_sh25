@@ -16,7 +16,7 @@
 
   {{ "<!-- plugins -->" | safeHTML }}
   {{ range site.Params.plugins.css }}
-  <link rel="stylesheet" href="{{ .link | absURL }} ">
+  <link rel="stylesheet" href="{{ .link | absURL }}">
   {{ end }}
 
   {{ "<!-- Main Stylesheet -->" | safeHTML }}
@@ -28,8 +28,8 @@
   <link rel="stylesheet" href="{{ $cartStyles.Permalink }}" media="screen">
 
   {{ "<!--Favicon-->" | safeHTML }}
-  <link rel="shortcut icon" href="{{ `images/favicon.png` | absURL }} " type="image/x-icon">
-  <link rel="icon" href="{{ `images/favicon.png` | absURL }} " type="image/x-icon">
+  <link rel="shortcut icon" href="{{ `images/favicon.png` | absURL }}" type="image/x-icon">
+  <link rel="icon" href="{{ `images/favicon.png` | absURL }}" type="image/x-icon">
 
   {{ with .Params.image }}
   <meta property="og:image" content="{{ . | absURL }}" />
@@ -66,21 +66,5 @@
 
   {{ $mustache := resources.Get "js/mustache.min.js" }}
   <script src="{{ $mustache.Permalink }}"></script>
-
-  <!-- Main Bundle (Hugo js.Build) -->
-  {{ $opts := dict
-  "targetPath" "js/bundle.js"
-  "minify" hugo.IsProduction
-  "target" "es2020"
-  "format" "iife"
-  "globalName" "App"
-  }}
-  {{ $js := resources.Get "js/main.js" | js.Build $opts }}
-  {{ if hugo.IsProduction }}
-  {{ $js = $js | fingerprint }}
-  {{ end }}
-  <script src="{{ $js.RelPermalink }}?v={{ now.Unix }}"></script>
-
-
 
 </head>

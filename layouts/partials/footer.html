@@ -36,6 +36,20 @@
 {{ $script := resources.Get "js/script.js" }}
 <script src="{{ $script.Permalink }}"></script>
 
+<!-- Main Bundle (Hugo js.Build) -->
+{{ $opts := dict
+"targetPath" "js/bundle.js"
+"minify" hugo.IsProduction
+"target" "es2020"
+"format" "iife"
+"globalName" "App"
+}}
+{{ $js := resources.Get "js/main.js" | js.Build $opts }}
+{{ if hugo.IsProduction }}
+{{ $js = $js | fingerprint }}
+{{ end }}
+<script src="{{ $js.RelPermalink }}?v={{ now.Unix }}"></script>
+
 <!-- Auth Script -->
 <script>
   const loginUrl = "{{ "login" | relLangURL }}";
