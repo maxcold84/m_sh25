@@ -1,6 +1,6 @@
 /**
  * Reviews Module (ES6)
- * ?�품 리뷰 관�?모듈
+ * 상품 리뷰 관리 모듈
  * @module reviews
  */
 import { pb } from './core/pb-client.js';
@@ -17,8 +17,8 @@ let selectedFiles = [];
 let currentProductId = null;
 
 /**
- * 리뷰 모듈 초기??
- * @param {string} productId - ?�품 ID
+ * 리뷰 모듈 초기화
+ * @param {string} productId - 제품 ID
  */
 function init(productId) {
     currentProductId = productId;
@@ -69,11 +69,11 @@ function handleImageSelect(e) {
     const validFiles = [];
     for (const file of files) {
         if (!ALLOWED_TYPES.includes(file.type)) {
-            alert(`지?�되지 ?�는 ?�일 ?�식?�니?? ${file.name}\n(jpg, png, gif, webp�?가??`);
+            alert(`지원되지 않는 파일 형식입니다: ${file.name}\n(jpg, png, gif, webp만 가능)`);
             continue;
         }
         if (file.size > MAX_SIZE) {
-            alert(`?�일 ?�기가 ?�무 ?�니?? ${file.name}\n(최�? 10MB)`);
+            alert(`파일 크기가 너무 큽니다: ${file.name}\n(최대 10MB)`);
             continue;
         }
         validFiles.push(file);
@@ -81,7 +81,7 @@ function handleImageSelect(e) {
 
     // Limit to 5 images total
     if (selectedFiles.length + validFiles.length > 5) {
-        alert('최�? 5?�까지 ?�로?�할 ???�습?�다.');
+        alert('최대 5장까지 업로드할 수 있습니다.');
         return;
     }
 
@@ -129,7 +129,7 @@ function updateImagePreview() {
 async function loadReviews() {
     if (!currentProductId || !reviewList) return;
 
-    reviewList.innerHTML = '<p class="text-center">리뷰�?불러?�는 �?..</p>';
+    reviewList.innerHTML = '<p class="text-center">리뷰를 불러오는 중...</p>';
 
     try {
         const resultList = await pb.collection('reviews').getList(1, 50, {
@@ -141,13 +141,13 @@ async function loadReviews() {
         renderReviews(resultList.items);
     } catch (error) {
         console.error('Error loading reviews:', error);
-        reviewList.innerHTML = '<p class="text-center text-danger">리뷰�?불러?�는???�패?�습?�다.</p>';
+        reviewList.innerHTML = '<p class="text-center text-danger">리뷰를 불러오는데 실패했습니다.</p>';
     }
 }
 
 function renderReviews(reviews) {
     if (reviews.length === 0) {
-        reviewList.innerHTML = '<p class="text-center text-muted">?�직 리뷰가 ?�습?�다. �?번째 리뷰�??�성?�보?�요!</p>';
+        reviewList.innerHTML = '<p class="text-center text-muted">아직 리뷰가 없습니다. 첫 번째 리뷰를 작성해보세요!</p>';
         return;
     }
 
@@ -182,7 +182,7 @@ function attachReviewEventListeners() {
 
 function createReviewHTML(review) {
     const user = review.expand?.user;
-    const userName = user?.username || user?.name || '?�명';
+    const userName = user?.username || user?.name || '익명';
     const userAvatar = user?.avatar
         ? pb.files.getUrl(user, user.avatar)
         : null;
@@ -194,8 +194,8 @@ function createReviewHTML(review) {
 
     const actionsHTML = isOwner ? `
         <div class="review-actions mt-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary btn-edit-review mr-1">?�️ ?�정</button>
-            <button type="button" class="btn btn-sm btn-outline-danger btn-delete-review">?���???��</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-edit-review mr-1">수정</button>
+            <button type="button" class="btn btn-sm btn-outline-danger btn-delete-review">삭제</button>
         </div>
     ` : '';
 
@@ -204,7 +204,7 @@ function createReviewHTML(review) {
         const imageItems = review.images.map(img => {
             const thumbUrl = pb.files.getUrl(review, img, { thumb: '200x200' });
             const imgUrl = pb.files.getUrl(review, img);
-            return `<img src="${thumbUrl}" data-full="${imgUrl}" alt="리뷰 ?��?지" class="review-image" 
+            return `<img src="${thumbUrl}" data-full="${imgUrl}" alt="리뷰 이미지" class="review-image" 
                         style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #ddd;">`;
         }).join('');
         imagesHTML = `<div class="review-images d-flex flex-wrap mt-2" style="gap: 8px;">${imageItems}</div>`;
@@ -243,25 +243,25 @@ function openEditModal(reviewId) {
     `;
     modal.innerHTML = `
         <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
-            <h4 style="margin-bottom: 20px;">리뷰 ?�정</h4>
+            <h4 style="margin-bottom: 20px;">리뷰 수정</h4>
             <form id="edit-review-form">
                 <div class="form-group">
-                    <label for="edit-rating">?�점</label>
+                    <label for="edit-rating">평점</label>
                     <select class="form-control" id="edit-rating" required>
-                        <option value="5" ${currentRating === 5 ? 'selected' : ''}>⭐⭐⭐⭐�?(5??</option>
-                        <option value="4" ${currentRating === 4 ? 'selected' : ''}>⭐⭐⭐⭐ (4??</option>
-                        <option value="3" ${currentRating === 3 ? 'selected' : ''}>⭐⭐�?(3??</option>
-                        <option value="2" ${currentRating === 2 ? 'selected' : ''}>⭐⭐ (2??</option>
-                        <option value="1" ${currentRating === 1 ? 'selected' : ''}>�?(1??</option>
+                        <option value="5" ${Number(currentRating) === 5 ? 'selected' : ''}>⭐⭐⭐⭐⭐ (5점)</option>
+                        <option value="4" ${Number(currentRating) === 4 ? 'selected' : ''}>⭐⭐⭐⭐ (4점)</option>
+                        <option value="3" ${Number(currentRating) === 3 ? 'selected' : ''}>⭐⭐⭐ (3점)</option>
+                        <option value="2" ${Number(currentRating) === 2 ? 'selected' : ''}>⭐⭐ (2점)</option>
+                        <option value="1" ${Number(currentRating) === 1 ? 'selected' : ''}>⭐ (1점)</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="edit-content">?�용</label>
+                    <label for="edit-content">내용</label>
                     <textarea class="form-control" id="edit-content" rows="4" required>${currentContent}</textarea>
                 </div>
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button type="button" class="btn btn-secondary" id="cancel-edit">취소</button>
-                    <button type="submit" class="btn btn-primary" id="save-edit">?�??/button>
+                    <button type="submit" class="btn btn-primary" id="save-edit">저장</button>
                 </div>
             </form>
         </div>
@@ -277,24 +277,24 @@ function openEditModal(reviewId) {
         const newContent = document.getElementById('edit-content').value.trim();
         const saveBtn = modal.querySelector('#save-edit');
 
-        if (!newContent) { alert('리뷰 ?�용???�력?�주?�요.'); return; }
+        if (!newContent) { alert('리뷰 내용을 입력해주세요.'); return; }
 
         try {
-            saveBtn.disabled = true; saveBtn.textContent = '?�??�?..';
+            saveBtn.disabled = true; saveBtn.textContent = '저장 중...';
             await pb.collection('reviews').update(reviewId, { rating: newRating, content: newContent });
             modal.remove();
-            showSuccessMessage('리뷰가 ?�정?�었?�니??');
+            showSuccessMessage('리뷰가 수정되었습니다.');
             loadReviews();
         } catch (error) {
             console.error('Error updating review:', error);
-            alert('리뷰 ?�정???�패?�습?�다: ' + error.message);
+            alert('리뷰 수정에 실패했습니다: ' + error.message);
             saveBtn.disabled = false; saveBtn.textContent = '저장';
         }
     });
 }
 
 async function confirmDeleteReview(reviewId) {
-    if (!confirm('?�말�???리뷰�???��?�시겠습?�까?')) return;
+    if (!confirm('정말로 이 리뷰를 삭제하시겠습니까?')) return;
     try {
         await pb.collection('reviews').delete(reviewId);
         const reviewElement = document.querySelector(`[data-review-id="${reviewId}"]`);
@@ -305,14 +305,14 @@ async function confirmDeleteReview(reviewId) {
             setTimeout(() => {
                 reviewElement.remove();
                 if (reviewList && reviewList.children.length === 0) {
-                    reviewList.innerHTML = '<p class="text-center text-muted">?�직 리뷰가 ?�습?�다. �?번째 리뷰�??�성?�보?�요!</p>';
+                    reviewList.innerHTML = '<p class="text-center text-muted">아직 리뷰가 없습니다. 첫 번째 리뷰를 작성해보세요!</p>';
                 }
             }, 300);
         }
-        showSuccessMessage('리뷰가 ??��?�었?�니??');
+        showSuccessMessage('리뷰가 삭제되었습니다.');
     } catch (error) {
         console.error('Error deleting review:', error);
-        alert('리뷰 ??��???�패?�습?�다: ' + error.message);
+        alert('리뷰 삭제에 실패했습니다: ' + error.message);
     }
 }
 
@@ -344,7 +344,7 @@ function openLightbox(src) {
 
 async function handleReviewSubmit(e) {
     e.preventDefault();
-    if (!pb.authStore.isValid) { alert('리뷰�??�성?�려�?로그?�이 ?�요?�니??'); return; }
+    if (!pb.authStore.isValid) { alert('리뷰를 작성하려면 로그인이 필요합니다.'); return; }
 
     const ratingSelect = document.getElementById('review-rating');
     const ratingRadio = document.querySelector('input[name="rating"]:checked');
@@ -353,11 +353,11 @@ async function handleReviewSubmit(e) {
     const content = contentInput?.value?.trim();
     const submitBtn = reviewForm.querySelector('button[type="submit"]');
 
-    if (!rating) { alert('?�점???�택?�주?�요.'); return; }
-    if (!content) { alert('리뷰 ?�용???�력?�주?�요.'); return; }
+    if (!rating) { alert('평점을 선택해주세요.'); return; }
+    if (!content) { alert('리뷰 내용을 입력해주세요.'); return; }
 
     try {
-        submitBtn.disabled = true; submitBtn.innerText = '?�출 �?..';
+        submitBtn.disabled = true; submitBtn.innerText = '제출 중...';
         const formData = new FormData();
         formData.append('user', pb.authStore.model.id);
         formData.append('product_id', currentProductId);
@@ -371,10 +371,10 @@ async function handleReviewSubmit(e) {
         selectedFiles = [];
         updateImagePreview();
         addNewReviewToList(newReview);
-        showSuccessMessage('리뷰가 ?�공?�으�??�록?�었?�니??');
+        showSuccessMessage('리뷰가 성공적으로 등록되었습니다!');
     } catch (error) {
         console.error('Error submitting review:', error);
-        let errorMsg = '리뷰 ?�출???�패?�습?�다.';
+        let errorMsg = '리뷰 제출에 실패했습니다.';
         if (error.data && error.data.data) {
             const fieldErrors = Object.entries(error.data.data).map(([field, err]) => `- ${field}: ${err.message}`).join('\n');
             if (fieldErrors) errorMsg += '\n' + fieldErrors;
@@ -383,14 +383,14 @@ async function handleReviewSubmit(e) {
         }
         alert(errorMsg);
     } finally {
-        submitBtn.disabled = false; submitBtn.innerText = '리뷰 ?�출';
+        submitBtn.disabled = false; submitBtn.innerText = '리뷰 제출';
     }
 }
 
 function addNewReviewToList(newReview) {
     if (!reviewList) return;
     const noReviewsMsg = reviewList.querySelector('.text-muted');
-    if (noReviewsMsg && noReviewsMsg.textContent.includes('?�직 리뷰가 ?�습?�다')) {
+    if (noReviewsMsg && noReviewsMsg.textContent.includes('아직 리뷰가 없습니다')) {
         reviewList.innerHTML = '';
     }
     const newReviewHTML = createReviewHTML({ ...newReview, expand: { user: pb.authStore.model } });
@@ -412,7 +412,7 @@ export const Reviews = {
     init
 };
 
-// ?�위 ?�환?? ?�역 ?�출
+// 하위 호환성: 전역 노출
 if (typeof window !== 'undefined') {
     window.Reviews = Reviews;
 }
