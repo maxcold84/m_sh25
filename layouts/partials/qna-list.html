@@ -42,10 +42,13 @@
 </div>
 
 <!-- Load QnA Script -->
+{{ $qna := resources.Get "js/qna.js" }}
+<script src="{{ $qna.Permalink }}?v={{ now.Unix }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        if (window.QnA) {
-            QnA.init('{{ .Params.id }}');
-        }
+        // Wait for PocketBase to assume readiness or simple init
+        // Assuming 'pb' global is available or Init inside QnA handles it? 
+        // QnA defines its own 'const pb = ...' internally so it's fine.
+        QnA.init('{{ .Params.id }}');
     });
 </script>

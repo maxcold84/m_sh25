@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+  <meta charset="utf-8">
+  <title>개인정보 처리방침</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' * 'unsafe-inline' 'unsafe-eval' data: blob:;">
+
+  <!-- mobile responsive meta -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description"
+    content="메타 설명입니다">
+  
+  <meta name="author" content="Themefisher">
+  <meta name="generator" content="Hugo 0.152.2">
+
+  
+  <meta name="theme-name" content="vex-hugo" />
+
+  <!-- plugins -->
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid&#43;Serif:400%7cJosefin&#43;Sans:300,400,600,700">
+  
+  <link rel="stylesheet" href="/plugins/bootstrap/bootstrap.min.css">
+  
+  <link rel="stylesheet" href="/plugins/themefisher-font/themefisher-font.min.css">
+  
+  <link rel="stylesheet" href="/plugins/slick/slick.min.css">
+  
+
+  <!-- Main Stylesheet -->
+  
+  <link rel="stylesheet" href="/scss/style.min.css" media="screen">
+
+  <!-- Cart Styles -->
+  
+  <link rel="stylesheet" href="/scss/cart-styles.min.css" media="screen">
+
+  <!--Favicon-->
+  <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon">
+  <link rel="icon" href="/images/favicon.png" type="image/x-icon">
+
+  
+  <meta property="og:url" content="/ko/privacy-policy/">
+  <meta property="og:site_name" content="Vex Hugo (Korean)">
+  <meta property="og:title" content="개인정보 처리방침">
+  <meta property="og:description" content="메타 설명입니다">
+  <meta property="og:locale" content="ko">
+  <meta property="og:type" content="website">
+
+  
+
+  
+  <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+
+  
+  <script>
+    window.SiteConfig = {
+      pocketbaseUrl: "http:\/\/127.0.0.1:8090"
+    };
+  </script>
+
+  
+  <script>
+    window.ShopConfig = {
+      storeId: "store-9f6b78d6-2b0d-4a7c-96c4-7e4adb83bed9",
+      channels: {
+        "inicis": "channel-key-54930405-2c88-4283-9be0-298b3d1c117a",
+        "kakaopay": "channel-key-3f5d70b2-ea6a-4261-a72b-23745a45524b",
+        "korean_payment": "channel-key-9cdf78c0-a02b-46fc-bff4-57dd47c3ad7b"
+      },
+      koreanPaymentPassKey: "uC8xslzJfLSuc67mrBTGAC7ANOX8EbIa"
+    };
+  </script>
+
+  
+  
+  <script src="/js/pocketbase.umd.js"></script>
+
+  
+  <script src="/js/mustache.min.js"></script>
+
+</head><body id="body">
+<header class="sticky-top bg-white">
+  <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light">
+      <a class="navbar-brand" href="/ko/" style="width: 100px;">
+        
+        
+<div class="img-fluid">
+	<img src="/images/logo.png" alt="Vex Hugo (Korean)" class="img-fluid">
+</div>
+
+        
+      </a>
+
+      
+      <button class="cart" id="cart-trigger" onclick="Cart.toggleDrawer()">
+        <i class="tf-ion-android-cart"></i>
+      </button>
+
+      <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navigation"
+        aria-controls="navigation" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse text-center" id="navigation">
+        <ul class="navbar-nav ml-auto">
+          
+          <li class="nav-item">
+            <a class="nav-link"
+              href="/ko/">홈</a>
+          </li>
+          
+          <li class="nav-item">
+            <a class="nav-link"
+              href="/ko/products">제품</a>
+          </li>
+          
+          <li class="nav-item">
+            <a class="nav-link"
+              href="/ko/blog">블로그</a>
+          </li>
+          
+          <li class="nav-item">
+            <a class="nav-link"
+              href="/ko/#testimonial">리뷰</a>
+          </li>
+          
+          <li class="nav-item">
+            <a class="nav-link"
+              href="/ko/contact">연락처</a>
+          </li>
+          
+          
+
+
+
+<li class="nav-item" id="auth-login-link">
+    <a class="nav-link" href="/ko/login">로그인</a>
+</li>
+<li class="nav-item" id="auth-signup-link">
+    <a class="nav-link" href="/ko/login#signup">회원가입</a>
+</li>
+<li class="nav-item" id="auth-logout-link" style="display: none;">
+    <a class="nav-link" href="#" onclick="Auth.logout(); return false;">로그아웃</a>
+</li>
+<li class="nav-item" id="auth-profile-link" style="display: none;">
+    <a class="nav-link" href="/ko/profile" style="padding-top: 0; padding-bottom: 0;">
+        <div class="d-flex align-items-center">
+            <img id="nav-avatar-img" src="" alt="Avatar" class="rounded-circle mr-2"
+                style="width: 30px; height: 30px; object-fit: cover; display: none;">
+            <i id="nav-avatar-icon" class="tf-ion-android-person" style="font-size: 24px; display: none;"></i>
+        </div>
+    </a>
+</li>
+        </ul>
+        
+        
+        <select class="lang-list" id="select-language" onchange="location = this.value;">
+          
+          
+          
+          
+          
+          
+          
+          
+          <option id="en" value="/en/privacy-policy/">English</option>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <option id="ko" value="/ko/privacy-policy/" selected>한국어
+          </option>
+          
+          
+          
+          
+        </select>
+        
+      </div>
+    </nav>
+  </div>
+</header>
+
+
+<section class="section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10 text-center mb-5">
+        <h1 class="font-weight-bold">개인정보 처리방침</h1>
+      </div>
+      <div class="col-lg-10 mb-5">
+        <div class="content">
+          <p>아래에 명시된 이용 약관을 읽어주세요. 여기에는 많은 법적 내용이 포함되어 있지만, 핵심은 고객으로서나 판매자로서나 우리 모두를 보호하는 것입니다. 법적으로 우리 자신을 보호하기 위해 이러한 조항들을 포함했지만, 문제가 발생하면 언제든지 <a href="mailto:contact@themefisher.com">contact@themefisher.com</a>으로 이메일을 보내주세요. 공정하고 신속하게 해결해 드리겠습니다.</p>
+<h3 id="제품-구매-및-배송-정책">제품 구매 및 배송 정책</h3>
+<ol>
+<li>모든 결제는 PayPal 또는 Stripe를 통해 안전하게 처리됩니다. Themefisher는 웹사이트를 통해 직접 결제를 처리하지 않습니다. 따라서 결제와 관련하여 발생하는 문제에 대해 Themefisher는 어떠한 책임도 지지 않습니다.</li>
+</ol>
+<h3 id="환불-정책">환불 정책</h3>
+<ol>
+<li>Themefisher는 비실물 및 취소 불가능한 디지털 제품을 제공하므로, 구매 후 환불을 제공하지 않습니다. 디지털 다운로드 제품에 문제가 있거나 다운로드에 어려움을 겪는 경우 문제를 해결해 드립니다.</li>
+<li>구매 후 24시간 이내에 제품을 검토하고 Themefisher가 제시한 기대치에 부합하지 않는지 확인할 수 있습니다. 환불을 원하시는 경우, Themefisher는 환불을 진행하며 제품이 기대에 미치지 못한 이유를 구체적으로 설명해 달라고 요청할 것입니다.</li>
+<li>적격한 반품을 하시는 경우, 취급 수수료를 제외한 전액을 환불해 드립니다. 환불은 일반적으로 반품 요청을 접수하고 반품 자격이 확인된 후 영업일 기준 3-5일 이내에 처리됩니다. 환불은 원래 결제 수단으로 적용됩니다.</li>
+</ol>
+<h3 id="지원-정책">지원 정책</h3>
+<ol>
+<li>Themefisher는 비실물 및 취소 불가능한 디지털 제품을 제공하므로, 구매 후 환불을 제공하지 않습니다. 디지털 다운로드 제품에 문제가 있거나 다운로드에 어려움을 겪는 경우 문제를 해결해 드립니다.</li>
+<li>구매 후 24시간 이내에 제품을 검토하고 Themefisher가 제시한 기대치에 부합하지 않는지 확인할 수 있습니다. 환불을 원하시는 경우, Themefisher는 환불을 진행하며 제품이 기대에 미치지 못한 이유를 구체적으로 설명해 달라고 요청할 것입니다.</li>
+<li>적격한 반품을 하시는 경우, 취급 수수료를 제외한 전액을 환불해 드립니다. 환불은 일반적으로 반품 요청을 접수하고 반품 자격이 확인된 후 영업일 기준 3-5일 이내에 처리됩니다. 환불은 원래 결제 수단으로 적용됩니다.</li>
+</ol>
+<h3 id="지원-범위">지원 범위:</h3>
+<ol>
+<li>테마 설치 및 설정 지원</li>
+<li>기능 및 테마 옵션 사용 도움</li>
+<li>버그 수정 – 테마/템플릿에서 버그를 발견한 경우 수정해 드립니다.</li>
+<li>광고된 대로 작동하지 않는 기능</li>
+</ol>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container text-center">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="block">
+          <a href="/ko/" class="mb-4 d-inline-block"
+            style="width: 100px;">
+            
+            
+<div class="img-fluid">
+	<img src="/images/logo.png" alt="Vex Hugo (Korean)" class="img-fluid">
+</div>
+
+            
+          </a>
+          <ul class="list-inline footer-menu">
+            
+            <li class="list-inline-item">
+              <a href="/ko/blog">블로그</a>
+            </li>
+            
+            <li class="list-inline-item">
+              <a href="/ko/contact">연락처</a>
+            </li>
+            
+            <li class="list-inline-item">
+              <a href="/ko/terms-conditions">이용 약관</a>
+            </li>
+            
+            <li class="list-inline-item">
+              <a href="/ko/privacy-policy">개인정보 처리방침</a>
+            </li>
+            
+          </ul>
+          <p class="copyright-text"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script src="/plugins/jquery/jquery.js"></script>
+
+<script src="/plugins/bootstrap/bootstrap.min.js"></script>
+
+<script src="/plugins/slick/slick.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+
+
+<script src="/js/bundle.40e3529d0abaf3e787a67661f4e80fda97f3fce321f0c0509721f3182aa038af.js?v=1770182036"></script>
+
+
+<script>
+  const loginUrl = "\/ko\/login";
+</script>
+<div id="cart-overlay" onclick="Cart.toggleDrawer()"></div>
+
+
+<div id="cart-drawer">
+  
+  <div class="cart-header">
+    <div class="d-flex align-items-center">
+      <h3>🛒 장바구니</h3>
+      <span class="cart-count" id="cart-item-count">0</span>
+    </div>
+    <button onclick="Cart.toggleDrawer()" class="close-btn" aria-label="Close cart">
+      ×
+    </button>
+  </div>
+
+  
+  <div id="cart-items-container">
+    <div class="cart-loading">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  
+  
+<script id="cart-template" type="x-tmpl-mustache">
+    [[^items]]
+    <div class="empty-cart">
+      <div class="empty-icon">🛍️</div>
+      <h4>장바구니가 비어있습니다</h4>
+      <p>쇼핑을 시작해보세요!</p>
+    </div>
+    [[/items]]
+
+    [[#items]]
+    <div class="cart-item" data-item-id="[[id]]">
+      <div class="item-content">
+        [[#productLink]]
+        [[#image]]
+        <a href="[[productLink]]" class="item-image-link">
+          <img src="[[image]]" alt="[[name]]" class="item-image item-image-clickable" loading="lazy">
+        </a>
+        [[/image]]
+        [[^image]]
+        <a href="[[productLink]]" class="item-image-link">
+          <div class="item-image item-image-clickable" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 24px;">
+            🛍️
+          </div>
+        </a>
+        [[/image]]
+        [[/productLink]]
+        [[^productLink]]
+        [[#image]]
+        <img src="[[image]]" alt="[[name]]" class="item-image" loading="lazy">
+        [[/image]]
+        [[^image]]
+        <div class="item-image" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 24px;">
+          🛍️
+        </div>
+        [[/image]]
+        [[/productLink]]
+        
+        <div class="item-details">
+          [[#productLink]]
+          <h4 class="item-name"><a href="[[productLink]]" class="item-name-link">[[name]]</a></h4>
+          [[/productLink]]
+          [[^productLink]]
+          <h4 class="item-name">[[name]]</h4>
+          [[/productLink]]
+          <div class="item-price">[[formattedPrice]]</div>
+        </div>
+      </div>
+      
+      <div class="item-actions">
+        <div class="quantity-controls">
+          <button onclick="Cart.changeQuantity('[[id]]', -1)" 
+                  [[#isMinQuantity]]disabled[[/isMinQuantity]]
+                  aria-label="Decrease quantity">
+            -
+          </button>
+          <span class="quantity-value">[[quantity]]</span>
+          <button onclick="Cart.changeQuantity('[[id]]', 1)" 
+                  aria-label="Increase quantity">
+            +
+          </button>
+        </div>
+        
+        <button onclick="Cart.removeItem('[[id]]')" 
+                class="remove-btn" 
+                aria-label="Remove item">
+          🗑️
+        </button>
+      </div>
+    </div>
+    [[/items]]
+
+    [[#hasItems]]
+    <div class="cart-extras" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+        <p style="text-align: center; color: #666; font-size: 0.9em; margin-bottom: 15px;">
+            주문하기 버튼을 누르면 주문/결제 페이지로 이동합니다.
+        </p>
+    </div>
+    [[/hasItems]]
+</script>
+
+  
+  <div class="cart-footer" style="display: none;" id="cart-footer">
+    <div class="cart-summary">
+      <div class="summary-row">
+        <span>소계</span>
+        <span class="amount" id="cart-subtotal">₩0</span>
+      </div>
+      <div class="summary-row total">
+        <span>총액</span>
+        <span class="amount" id="cart-total">₩0</span>
+      </div>
+    </div>
+
+    <button onclick="Cart.checkout()" class="checkout-btn" id="checkout-btn">
+      💳 주문하기
+    </button>
+  </div>
+</div>
+
+<script>
+  
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.ShopConfig && window.Cart) {
+      Cart.init(window.ShopConfig);
+    }
+  });
+</script></body>
+
+</html>
