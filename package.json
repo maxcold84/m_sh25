@@ -7,7 +7,11 @@
     "scripts": {
         "sync": "node scripts/sync-products.js && node scripts/sync-posts.js",
         "lint": "eslint assets/js --ext .js",
-        "lint:fix": "eslint assets/js --ext .js --fix"
+        "lint:fix": "eslint assets/js --ext .js --fix",
+        "build": "hugo --gc --minify --destination server",
+        "build:drafts": "hugo --gc --minify --buildDrafts --buildExpired --buildFuture --destination server",
+        "dev": "hugo server --destination server --disableFastRender",
+        "clean:server": "node scripts/clean-server.mjs"
     },
     "dependencies": {
         "dotenv": "^16.0.0",

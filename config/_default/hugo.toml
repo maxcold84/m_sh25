@@ -2,6 +2,7 @@
 baseurl = ""
 title = "Vex | hugo landing page template"
 theme = "vex-hugo-main"
+publishDir = "server"
 # post excert
 summarylength = "20"
 # google analytics

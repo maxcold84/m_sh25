@@ -185,7 +185,6 @@ const AdminProducts = {
 
             displayRecords.forEach(product => {
                 const tr = document.createElement('tr');
-                const categoryName = product.expand && product.expand.category ? product.expand.category.name : '-';
                 const imageUrl = product.images && product.images.length > 0
                     ? this.pb.files.getUrl(product, product.images[0], { thumb: '100x100' })
                     : 'https://via.placeholder.com/50';
@@ -215,17 +214,14 @@ const AdminProducts = {
                     <td><img src="${imageUrl}" alt="${product.title}" style="width: 50px; height: 50px; object-fit: cover;"></td>
                     <td>${categorySelectHtml}</td>
                     <td>${product.title}</td>
-                    <td>${product.discount_price && product.discount_price > 0
-                        ? `<del class="text-muted small">${product.price.toLocaleString()}</del> <br><span class="text-danger font-weight-bold">${product.discount_price.toLocaleString()}</span>`
-                        : product.price.toLocaleString()
-                    }</td>
+                    <td>${product.discount_price && product.discount_price > 0 ? `<del class="text-muted small">${product.price.toLocaleString()}</del> <br><span class="text-danger font-weight-bold">${product.discount_price.toLocaleString()}</span>` : product.price.toLocaleString()}</td>
                     <td>${product.stock || 0}</td>
                     <td class="text-center">${inquiryBadge}</td>
                     <td>
                         <div class="custom-control custom-switch">
                             <input type="checkbox" class="custom-control-input" id="status-${product.id}" 
                                 ${product.enabled ? 'checked' : ''}
-                                hx-patch="http://127.0.0.1:8090/api/collections/products/records/${product.id}"
+                                hx-patch="${window.SiteConfig?.pocketbaseUrl || ''}/api/collections/products/records/${product.id}"
                                 hx-trigger="change"
                                 hx-vals='js:{"enabled": event.target.checked}'
                                 hx-swap="none">
@@ -235,7 +231,7 @@ const AdminProducts = {
                     <td>
                         <button class="btn btn-sm btn-info" onclick="AdminProducts.openEditModal('${product.id}')">수정</button>
                         <button class="btn btn-sm btn-danger" onclick="AdminProducts.deleteProduct('${product.id}')">삭제</button>
-                        <a href="/ko/products/${product.slug}/" target="_blank" class="btn btn-sm btn-success">상세페이지</a>
+                        <a href="/${product.language || 'ko'}/products/${product.slug}/" target="_blank" class="btn btn-sm btn-success">상세페이지</a>
                     </td>
                 `;
                 tableBody.appendChild(tr);
@@ -278,8 +274,7 @@ const AdminProducts = {
                 // Remove special characters except hyphens
                 .replace(/[^\w\-가-힣]/g, '')
                 // For Korean characters, convert to romanized or use timestamp
-                .replace(/[가-힣]/g, function (match) {
-                    // Simple approach: remove Korean and use timestamp
+                .replace(/[가-힣]/g, function () {
                     return '';
                 })
                 // Remove multiple consecutive hyphens
@@ -615,3 +610,4 @@ const AdminProducts = {
 document.addEventListener('DOMContentLoaded', function () {
     AdminProducts.init();
 });
+

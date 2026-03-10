@@ -15,7 +15,7 @@
 * **HTML 검증 미작동:** 저장 버튼이 `type="button"` 이기 때문에 브라우저 기본의 폼 필수 입력(`required`) 기능이 작동하지 않아 제목 없이도 서버로 요청이 전송됨.
 
 ### 해결 방법
-* `assets/js/admin-posts.js` 및 `server/js/admin-posts.js` 파일 수정.
+* `assets/js/admin-posts.js` 원본 파일 수정 후 Hugo 빌드를 다시 실행해 `server/js/admin-posts.js` 생성물에 반영.
 * 저장 시 로직 맨 앞에 **필수 입력값(Title, Slug) 빈 값 체크** 추가.
 * 에러를 캐치하는 부분(`catch(error)`)에서 PocketBase의 응답 데이터 원본(`error.response.data`) 내부를 순회하며 **어떤 필드가 왜 에러가 났는지 구체적인 메시지**를 수집해 사용자 알림창에 상세 안내하도록 개선.
 

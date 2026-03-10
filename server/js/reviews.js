@@ -122,7 +122,7 @@ function updateImagePreview() {
     });
 
     if (imageCount) {
-        imageCount.textContent = selectedFiles.length > 0 ? `${selectedFiles.length}장 선택됨` : '';
+        imageCount.textContent = selectedFiles.length > 0 ? `${selectedFiles.length}개 선택` : '';
     }
 }
 
@@ -194,8 +194,8 @@ function createReviewHTML(review) {
 
     const actionsHTML = isOwner ? `
         <div class="review-actions mt-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary btn-edit-review mr-1">✏️ 수정</button>
-            <button type="button" class="btn btn-sm btn-outline-danger btn-delete-review">🗑️ 삭제</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-edit-review mr-1">수정</button>
+            <button type="button" class="btn btn-sm btn-outline-danger btn-delete-review">삭제</button>
         </div>
     ` : '';
 
@@ -248,11 +248,11 @@ function openEditModal(reviewId) {
                 <div class="form-group">
                     <label for="edit-rating">평점</label>
                     <select class="form-control" id="edit-rating" required>
-                        <option value="5" ${currentRating == 5 ? 'selected' : ''}>⭐⭐⭐⭐⭐ (5점)</option>
-                        <option value="4" ${currentRating == 4 ? 'selected' : ''}>⭐⭐⭐⭐ (4점)</option>
-                        <option value="3" ${currentRating == 3 ? 'selected' : ''}>⭐⭐⭐ (3점)</option>
-                        <option value="2" ${currentRating == 2 ? 'selected' : ''}>⭐⭐ (2점)</option>
-                        <option value="1" ${currentRating == 1 ? 'selected' : ''}>⭐ (1점)</option>
+                        <option value="5" ${Number(currentRating) === 5 ? 'selected' : ''}>⭐⭐⭐⭐⭐ (5점)</option>
+                        <option value="4" ${Number(currentRating) === 4 ? 'selected' : ''}>⭐⭐⭐⭐ (4점)</option>
+                        <option value="3" ${Number(currentRating) === 3 ? 'selected' : ''}>⭐⭐⭐ (3점)</option>
+                        <option value="2" ${Number(currentRating) === 2 ? 'selected' : ''}>⭐⭐ (2점)</option>
+                        <option value="1" ${Number(currentRating) === 1 ? 'selected' : ''}>⭐ (1점)</option>
                     </select>
                 </div>
                 <div class="form-group">

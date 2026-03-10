@@ -1,54 +1,26 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>최신 포스트 on Vex Hugo (Korean)</title>
-    <link>/ko/blog/</link>
-    <description>Recent content in 최신 포스트 on Vex Hugo (Korean)</description>
-    <generator>Hugo</generator>
-    <language>ko</language>
-    <lastBuildDate>Mon, 29 Dec 2025 09:50:32 +0000</lastBuildDate>
-    <atom:link href="/ko/blog/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>ㄹㅇㄴㅁㄹㅇㄴㅁㄹㄴ</title>
-      <link>/ko/blog/post-1767001784827/</link>
-      <pubDate>Mon, 29 Dec 2025 09:50:32 +0000</pubDate>
-      <guid>/ko/blog/post-1767001784827/</guid>
-      <description>&lt;p&gt;ㄹㄴㅇㅁㄹㅇㄴㅁㄹ&#xA;&lt;img src=&#34;https://i.pinimg.com/736x/5a/0d/3c/5a0d3cb1c5c688c5c7bbf879d1faa272.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;&#xA;&lt;p&gt;fdsafsdafdsafdsafdsaf&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>ㅇㅁㅇㄴㅁㅇㄴㅁㄴㅁㅁㄴㅇ</title>
-      <link>/ko/blog/post-1767001721923/</link>
-      <pubDate>Mon, 29 Dec 2025 09:48:52 +0000</pubDate>
-      <guid>/ko/blog/post-1767001721923/</guid>
-      <description>&lt;p&gt;ㅇㅁㄴㅇㄴㅁㅇㄴㅁㄴㅁㅇ&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>이런이런</title>
-      <link>/ko/blog/%EC%9D%B4%EB%9F%B0%EC%9D%B4%EB%9F%B0/</link>
-      <pubDate>Mon, 29 Dec 2025 09:46:50 +0000</pubDate>
-      <guid>/ko/blog/%EC%9D%B4%EB%9F%B0%EC%9D%B4%EB%9F%B0/</guid>
-      <description>&lt;p&gt;C:\Users\Droll\Desktop\bebffd12f894a69d5612902479bf2b37.jpg&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;#ZgotmplZ&#34; alt=&#34;&#34;&gt;&#xA;JS 모듈화 리팩터링 완료&#xA;Summary&#xA;PocketBase 싱글톤 패턴을 도입하여 assets/js 디렉토리의 JavaScript 파일들에서 중복된 인스턴스 생성 문제를 해결했습니다.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title> 블로그 게시물 레이아웃 개선</title>
-      <link>/ko/blog/%EB%B8%94%EB%A1%9C%EA%B7%B8-%EA%B2%8C%EC%8B%9C%EB%AC%BC-%EB%A0%88%EC%9D%B4%EC%95%84%EC%9B%83-%EA%B0%9C%EC%84%A0/</link>
-      <pubDate>Tue, 23 Dec 2025 15:51:20 +0000</pubDate>
-      <guid>/ko/blog/%EB%B8%94%EB%A1%9C%EA%B7%B8-%EA%B2%8C%EC%8B%9C%EB%AC%BC-%EB%A0%88%EC%9D%B4%EC%95%84%EC%9B%83-%EA%B0%9C%EC%84%A0/</guid>
-      <description>&lt;p&gt;미니멀리스트 블로그 게시물 레이아웃 개선&#xA;블로그 게시물 레이아웃이 더 현대적이고 휴고에 최적화되었으며 모바일 친화적으로 업데이트되었습니다.&lt;/p&gt;&#xA;&lt;p&gt;주요 변경 사항&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;인터랙티브 요소&#xA;읽기 진행 막대: 스크롤할 때 채워지는 화면 상단의 미묘한 막대.&#xA;목차(TOC): 섹션 간 쉽게 탐색할 수 있도록 데스크톱에 끈적끈적한 상태를 유지하는 사이드바 TOC입니다.&#xA;포스트 내비게이션: 아래쪽의 간단한 &amp;lsquo;이전 게시물&amp;rsquo; 및 &amp;lsquo;다음 게시물&amp;rsquo; 링크는 추가 읽기를 권장합니다.&lt;/li&gt;&#xA;&lt;li&gt;현대 형식 지정&#xA;읽기 시간: 휴고가 자동으로 계산하여 메타 섹션에 표시됩니다.&#xA;타이포그래피 개선: 가독성을 높이기 위해 선 높이와 간격을 최적화했습니다.&#xA;모바일 우선 디자인: 레이아웃은 작은 화면에 맞게 매끄럽게 조정됩니다(TOC는 모바일에 숨겨져 있어 미니멀하게 유지할 수 있습니다).&#xA;수정된 파일&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;dl&gt;&#xA;&lt;dt&gt;싱글.html&lt;/dt&gt;&#xA;&lt;dd&gt;더 나은 구조와 기능을 위해 템플릿을 다시 작성했습니다.&lt;/dd&gt;&#xA;&lt;dt&gt;style.scss&lt;/dt&gt;&#xA;&lt;dd&gt;새로운 구성 요소에 미니멀리스트 스타일을 추가했습니다.&#xA;검증 결과&#xA;.ReadingTime과 .TableOfContents가 올바르게 렌더링되는 것을 확인했습니다.&#xA;스크롤 진행 막대 기능이 의도대로 작동하는지 확인했습니다.&#xA;다양한 뷰포트 크기에서 응답성을 확인했습니다.&lt;/dd&gt;&#xA;&lt;/dl&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://i.pinimg.com/736x/e2/20/56/e220560befdf12681f24435784e9c2e8.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>ㄹㅇㄴ못4저ㅗㄷ슈</title>
-      <link>/ko/blog/%EB%AA%BB4%EC%A0%80%EC%8A%88/</link>
-      <pubDate>Mon, 22 Dec 2025 13:06:13 +0000</pubDate>
-      <guid>/ko/blog/%EB%AA%BB4%EC%A0%80%EC%8A%88/</guid>
-      <description>&lt;p&gt;ㅠㅅ규귝ㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱ&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://i.pinimg.com/1200x/a3/4d/91/a34d9139ff8e80078b6e38c988c76d70.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>ㄹㄷㅈㄹㅈㄷ</title>
-      <link>/ko/blog/post-1766408701846/</link>
-      <pubDate>Mon, 22 Dec 2025 13:05:16 +0000</pubDate>
-      <guid>/ko/blog/post-1766408701846/</guid>
-      <description>&lt;p&gt;ㄹㄷㅈㄹㄷㅈㄹㄷㅈㄹ&lt;img src=&#34;https://i.pinimg.com/1200x/cd/3a/83/cd3a833461657cfcad471c78966673f3.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;</description>
-    </item>
-  </channel>
-</rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>최신 포스트 on Vex Hugo (Korean)</title><link>/ko/blog/</link><description>Recent content in 최신 포스트 on Vex Hugo (Korean)</description><generator>Hugo</generator><language>ko</language><lastBuildDate>Tue, 10 Mar 2026 05:15:52 +0000</lastBuildDate><atom:link href="/ko/blog/index.xml" rel="self" type="application/rss+xml"/><item><title>bvcbvcbc</title><link>/ko/blog/bvcbvcbc/</link><pubDate>Tue, 10 Mar 2026 05:15:52 +0000</pubDate><guid>/ko/blog/bvcbvcbc/</guid><description>&lt;p&gt;bvcbvcb&lt;/p&gt;</description></item><item><title>fdf</title><link>/ko/blog/fdf/</link><pubDate>Tue, 10 Mar 2026 05:08:07 +0000</pubDate><guid>/ko/blog/fdf/</guid><description>&lt;p&gt;hghfghg&lt;/p&gt;</description></item><item><title> 블로그 게시물 레이아웃 개선</title><link>/ko/blog/%EB%B8%94%EB%A1%9C%EA%B7%B8-%EA%B2%8C%EC%8B%9C%EB%AC%BC-%EB%A0%88%EC%9D%B4%EC%95%84%EC%9B%83-%EA%B0%9C%EC%84%A0/</link><pubDate>Tue, 23 Dec 2025 15:51:20 +0000</pubDate><guid>/ko/blog/%EB%B8%94%EB%A1%9C%EA%B7%B8-%EA%B2%8C%EC%8B%9C%EB%AC%BC-%EB%A0%88%EC%9D%B4%EC%95%84%EC%9B%83-%EA%B0%9C%EC%84%A0/</guid><description>&lt;p&gt;미니멀리스트 블로그 게시물 레이아웃 개선
+블로그 게시물 레이아웃이 더 현대적이고 휴고에 최적화되었으며 모바일 친화적으로 업데이트되었습니다.&lt;/p&gt;
+&lt;p&gt;주요 변경 사항&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;인터랙티브 요소
+읽기 진행 막대: 스크롤할 때 채워지는 화면 상단의 미묘한 막대.
+목차(TOC): 섹션 간 쉽게 탐색할 수 있도록 데스크톱에 끈적끈적한 상태를 유지하는 사이드바 TOC입니다.
+포스트 내비게이션: 아래쪽의 간단한 &amp;lsquo;이전 게시물&amp;rsquo; 및 &amp;lsquo;다음 게시물&amp;rsquo; 링크는 추가 읽기를 권장합니다.&lt;/li&gt;
+&lt;li&gt;현대 형식 지정
+읽기 시간: 휴고가 자동으로 계산하여 메타 섹션에 표시됩니다.
+타이포그래피 개선: 가독성을 높이기 위해 선 높이와 간격을 최적화했습니다.
+모바일 우선 디자인: 레이아웃은 작은 화면에 맞게 매끄럽게 조정됩니다(TOC는 모바일에 숨겨져 있어 미니멀하게 유지할 수 있습니다).
+수정된 파일&lt;/li&gt;
+&lt;/ol&gt;
+&lt;dl&gt;
+&lt;dt&gt;싱글.html&lt;/dt&gt;
+&lt;dd&gt;더 나은 구조와 기능을 위해 템플릿을 다시 작성했습니다.&lt;/dd&gt;
+&lt;dt&gt;style.scss&lt;/dt&gt;
+&lt;dd&gt;새로운 구성 요소에 미니멀리스트 스타일을 추가했습니다.
+검증 결과
+.ReadingTime과 .TableOfContents가 올바르게 렌더링되는 것을 확인했습니다.
+스크롤 진행 막대 기능이 의도대로 작동하는지 확인했습니다.
+다양한 뷰포트 크기에서 응답성을 확인했습니다.&lt;/dd&gt;
+&lt;/dl&gt;
+&lt;p&gt;&lt;img src="https://i.pinimg.com/736x/e2/20/56/e220560befdf12681f24435784e9c2e8.jpg" alt=""&gt;&lt;/p&gt;</description></item><item><title>ㄹㅇㄴ못4저ㅗㄷ슈</title><link>/ko/blog/%EB%AA%BB4%EC%A0%80%EC%8A%88/</link><pubDate>Mon, 22 Dec 2025 13:06:13 +0000</pubDate><guid>/ko/blog/%EB%AA%BB4%EC%A0%80%EC%8A%88/</guid><description>&lt;p&gt;ㅠㅅ규귝ㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱ&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://i.pinimg.com/1200x/a3/4d/91/a34d9139ff8e80078b6e38c988c76d70.jpg" alt=""&gt;&lt;/p&gt;</description></item><item><title>ㄹㄷㅈㄹㅈㄷ</title><link>/ko/blog/post-1766408701846/</link><pubDate>Mon, 22 Dec 2025 13:05:16 +0000</pubDate><guid>/ko/blog/post-1766408701846/</guid><description>&lt;p&gt;ㄹㄷㅈㄹㄷㅈㄹㄷㅈㄹ&lt;img src="https://i.pinimg.com/1200x/cd/3a/83/cd3a833461657cfcad471c78966673f3.jpg" alt=""&gt;&lt;/p&gt;</description></item></channel></rss>

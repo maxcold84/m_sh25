@@ -20,7 +20,7 @@ function init() {
     if (!currentUser) {
         showToast('로그인이 필요합니다.', { isError: true });
         setTimeout(() => {
-            window.location.href = '/login';
+            window.location.href = document.documentElement.lang === 'ko' ? '/ko/login/' : '/en/login/';
         }, 1500);
         return;
     }
@@ -148,35 +148,27 @@ async function loadOrderHistory() {
 
             // Status Logic
             let statusBadge = '';
-            let statusText = '';
             switch (order.status) {
                 case 'paid':
                     statusBadge = '<span class="px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-semibold">결제완료</span>';
-                    statusText = '결제완료';
                     break;
                 case 'pending':
                     statusBadge = '<span class="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold">대기중</span>';
-                    statusText = '대기중';
                     break;
                 case 'preparing':
                     statusBadge = '<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">상품준비중</span>';
-                    statusText = '상품준비중';
                     break;
                 case 'shipping':
                     statusBadge = '<span class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-semibold">배송중</span>';
-                    statusText = '배송중';
                     break;
                 case 'delivered':
                     statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">배송완료</span>';
-                    statusText = '배송완료';
                     break;
                 case 'cancelled':
                     statusBadge = '<span class="px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-semibold">주문취소</span>';
-                    statusText = '주문취소';
                     break;
                 default:
                     statusBadge = '<span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-800 text-xs font-semibold">' + order.status + '</span>';
-                    statusText = order.status;
             }
 
             // Items Logic
@@ -353,7 +345,7 @@ const carriers = {
     'hanjin': { name: '한진택배', url: 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?mession=open&wblnum=' },
     'post': { name: '우체국택배', url: 'https://service.epost.go.kr/trace.RetrieveDomRi498.postal?sid1=' },
     'logen': { name: '로젠택배', url: 'https://www.ilogen.com/web/personal/trace/' },
-    'cu': { name: 'CU편의점택배', url: 'https://www.cupost.co.kr/postbox/delivery/localResult.cupost?invoice_no=' },
+    'cu': { name: 'CU 편의점택배', url: 'https://www.cupost.co.kr/postbox/delivery/localResult.cupost?invoice_no=' },
     'gs': { name: 'GS Postbox 택배', url: 'https://www.cvsnet.co.kr/invoice/tracking.do?invoice_no=' },
     'kdexp': { name: '경동택배', url: 'https://kdexp.com/basicNew498.kd?barcode=' }
 };
