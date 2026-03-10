@@ -31,12 +31,20 @@
 
                     {{ if .Params.image }}
                     <div class="featured-image mb-5">
-                        {{ $image := .Resources.GetMatch .Params.image }}
+                        {{ $isRemote := or (hasPrefix .Params.image "http://") (hasPrefix .Params.image "https://") (hasPrefix .Params.image "//") }}
+                        {{ $image := "" }}
+                        {{ if not $isRemote }}
+                            {{ $image = .Resources.GetMatch .Params.image }}
+                            {{ if not $image }}
+                                {{ $image = resources.Get .Params.image }}
+                            {{ end }}
+                        {{ end }}
                         {{ if $image }}
                         <img src="{{ $image.RelPermalink }}" alt="{{ .Title }}" class="img-fluid w-100 rounded">
+                        {{ else if $isRemote }}
+                        <img src="{{ .Params.image }}" alt="{{ .Title }}" class="img-fluid w-100 rounded">
                         {{ else }}
-                        {{ partial "image.html" (dict "Src" .Params.image "Alt" .Title "Class" "img-fluid w-100 rounded"
-                        ) }}
+                        {{ partial "image.html" (dict "Src" .Params.image "Alt" .Title "Class" "img-fluid w-100 rounded" ) }}
                         {{ end }}
                     </div>
                     {{ end }}

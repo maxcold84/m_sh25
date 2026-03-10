@@ -1,5 +1,15 @@
 {{ if .Src }}
 <div class="{{ .Class }}">
-	<img src="{{ .Src | absURL }}" alt="{{ .Alt }}" class="img-fluid">
+    {{ $isRemote := or (hasPrefix .Src "http://") (hasPrefix .Src "https://") (hasPrefix .Src "//") }}
+    {{ if $isRemote }}
+        <img src="{{ .Src }}" alt="{{ .Alt }}" class="img-fluid">
+    {{ else }}
+        {{ $image := resources.Get .Src }}
+        {{ if $image }}
+        <img src="{{ $image.RelPermalink }}" alt="{{ .Alt }}" class="img-fluid">
+        {{ else }}
+        <img src="{{ .Src | absURL }}" alt="{{ .Alt }}" class="img-fluid">
+        {{ end }}
+    {{ end }}
 </div>
 {{ end }}

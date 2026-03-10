@@ -206,6 +206,15 @@ const AdminPosts = {
         const tags = tagsStr ? tagsStr.split(',').map(s => s.trim()).filter(s => s) : [];
         const categories = categoriesStr ? categoriesStr.split(',').map(s => s.trim()).filter(s => s) : [];
 
+        if (!title.trim()) {
+            alert('제목을 입력해주세요.');
+            return;
+        }
+        if (!slug.trim()) {
+            alert('슬러그(URL)를 입력해주세요.');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('title', title);
         formData.append('slug', slug);
@@ -235,7 +244,21 @@ const AdminPosts = {
             this.loadPosts();
         } catch (error) {
             console.error('Error saving post:', error);
-            alert('글 저장 실패: ' + error.message);
+            let errorMsg = '글 저장 실패:\n';
+            if (error.response && error.response.data) {
+                const details = [];
+                for (const field in error.response.data) {
+                    details.push(`- ${field}: ${error.response.data[field].message}`);
+                }
+                if (details.length > 0) {
+                    errorMsg += details.join('\n');
+                } else {
+                    errorMsg += error.message;
+                }
+            } else {
+                errorMsg += error.message;
+            }
+            alert(errorMsg);
         }
     },
 
