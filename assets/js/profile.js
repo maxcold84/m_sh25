@@ -20,7 +20,7 @@ function init() {
     if (!currentUser) {
         showToast('로그인이 필요합니다.', { isError: true });
         setTimeout(() => {
-            window.location.href = '/login';
+            window.location.href = document.documentElement.lang === 'ko' ? '/ko/login/' : '/en/login/';
         }, 1500);
         return;
     }
@@ -423,3 +423,4 @@ if (document.readyState === 'loading') {
 }
 
 export default Profile;
+

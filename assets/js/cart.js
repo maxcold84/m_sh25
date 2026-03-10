@@ -341,7 +341,8 @@ export const Cart = {
                     try {
                         const product = await pb.collection('products').getOne(item.product_id);
                         if (product.slug) {
-                            productLink = `/ko/products/${product.slug}/`;
+                            const lang = document.documentElement.lang === 'ko' ? 'ko' : 'en';
+                            productLink = `/${lang}/products/${product.slug}/`;
                         }
                     } catch (e) {
                         console.warn('Failed to fetch product slug for:', item.product_id);
@@ -506,3 +507,5 @@ if (document.readyState === 'loading') {
 }
 
 export default Cart;
+
+

@@ -215,7 +215,7 @@ const Auth = (function () {
             showToast('회원가입을 축하합니다!');
 
             setTimeout(() => {
-                window.location.href = '/';
+                window.location.href = getHomeUrl();
             }, 1000);
         } catch (error) {
             console.error('Signup failed:', error);
@@ -239,7 +239,7 @@ const Auth = (function () {
 
             if (authData && authData.record) {
                 showToast(`${provider} 로그인 성공!`);
-                const redirectUrl = localStorage.getItem('auth_redirect') || '/';
+                const redirectUrl = localStorage.getItem('auth_redirect') || getHomeUrl();
                 localStorage.removeItem('auth_redirect');
                 window.location.href = redirectUrl;
             }
@@ -252,7 +252,7 @@ const Auth = (function () {
     function logout() {
         pb.authStore.clear();
         showToast('로그아웃 되었습니다.');
-        window.location.href = '/';
+        window.location.href = getHomeUrl();
     }
 
     function showMessage(el, message, className) {
@@ -419,3 +419,4 @@ if (document.readyState === 'loading') {
 
 export { Auth };
 export default Auth;
+

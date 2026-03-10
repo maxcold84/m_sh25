@@ -118,7 +118,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const pb = new PocketBase('http://127.0.0.1:8090');
+        const pb = new PocketBase(window.SiteConfig?.pocketbaseUrl || 'http://127.0.0.1:8090');
         const form = document.getElementById('admin-login-form');
         const btn = document.getElementById('login-btn');
         const errorMessage = document.getElementById('error-message');

@@ -225,7 +225,7 @@ const AdminProducts = {
                         <div class="custom-control custom-switch">
                             <input type="checkbox" class="custom-control-input" id="status-${product.id}" 
                                 ${product.enabled ? 'checked' : ''}
-                                hx-patch="http://127.0.0.1:8090/api/collections/products/records/${product.id}"
+                                hx-patch="${window.SiteConfig?.pocketbaseUrl || ""}/api/collections/products/records/${product.id}"
                                 hx-trigger="change"
                                 hx-vals='js:{"enabled": event.target.checked}'
                                 hx-swap="none">
@@ -235,7 +235,7 @@ const AdminProducts = {
                     <td>
                         <button class="btn btn-sm btn-info" onclick="AdminProducts.openEditModal('${product.id}')">수정</button>
                         <button class="btn btn-sm btn-danger" onclick="AdminProducts.deleteProduct('${product.id}')">삭제</button>
-                        <a href="/ko/products/${product.slug}/" target="_blank" class="btn btn-sm btn-success">상세페이지</a>
+                        <a href="/${product.language || 'ko'}/products/${product.slug}/" target="_blank" class="btn btn-sm btn-success">상세페이지</a>
                     </td>
                 `;
                 tableBody.appendChild(tr);
@@ -615,3 +615,4 @@ const AdminProducts = {
 document.addEventListener('DOMContentLoaded', function () {
     AdminProducts.init();
 });
+

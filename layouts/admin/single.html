@@ -36,7 +36,7 @@
 
                 <!-- Auth Check -->
                 <div id="admin-auth-check" class="alert alert-warning" style="display: none;">
-                    상품을 관리하려면 관리자로 로그인해야 합니다. <a href="/ko/login">여기서 로그인하세요</a>.
+                    상품을 관리하려면 관리자로 로그인해야 합니다. <a href="{{ "admin/login" | relLangURL }}">여기서 로그인하세요</a>.
                 </div>
 
                 <!-- Product List -->
@@ -217,3 +217,4 @@
 <script src="{{ $adminScript.Permalink }}"></script>
 
 {{ end }}
+
