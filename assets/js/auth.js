@@ -4,7 +4,6 @@
  * @module auth
  */
 import { pb } from './core/pb-client.js';
-import { showToast as toastUtil, showMessage as messageUtil } from './core/utils.js';
 
 const Auth = (function () {
     // Track nickname check status
@@ -419,4 +418,3 @@ if (document.readyState === 'loading') {
 
 export { Auth };
 export default Auth;
-

@@ -28,3 +28,7 @@ const AdminAuth = (function () {
         pb // Expose PB instance if needed by other scripts to avoid double init, though lightweight
     };
 })();
+
+
+window.AdminAuth = AdminAuth;
+

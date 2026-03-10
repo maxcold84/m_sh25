@@ -1,6 +1,6 @@
 /**
  * Profile Module (ES6)
- * 사용자 프로필 및 주문 내역 관리
+ * ?�용???�로??�?주문 ?�역 관�?
  * @module profile
  */
 import { pb } from './core/pb-client.js';
@@ -18,7 +18,7 @@ function init() {
     const currentUser = pb.authStore.model;
 
     if (!currentUser) {
-        showToast('로그인이 필요합니다.', { isError: true });
+        showToast('로그?�이 ?�요?�니??', { isError: true });
         setTimeout(() => {
             window.location.href = document.documentElement.lang === 'ko' ? '/ko/login/' : '/en/login/';
         }, 1500);
@@ -70,7 +70,7 @@ async function loadUserProfile() {
 
     } catch (error) {
         console.error('Failed to load user profile:', error);
-        showToast('프로필을 불러오는데 실패했습니다.', { isError: true });
+        showToast('?�로?�을 불러?�는???�패?�습?�다.', { isError: true });
     }
 }
 
@@ -79,7 +79,7 @@ async function handleSave() {
     const currentUser = pb.authStore.model;
 
     if (!currentUser) {
-        showToast('로그인이 필요합니다.', { isError: true });
+        showToast('로그?�이 ?�요?�니??', { isError: true });
         return;
     }
 
@@ -93,7 +93,7 @@ async function handleSave() {
 
     // Disable button during save
     saveBtn.disabled = true;
-    saveBtn.textContent = '저장중...';
+    saveBtn.textContent = '?�?�중...';
 
     try {
         const data = {
@@ -111,10 +111,10 @@ async function handleSave() {
         // Refresh auth store to get updated user data
         await pb.collection('users').authRefresh();
 
-        showToast('프로필이 성공적으로 저장되었습니다!', { isError: false });
+        showToast('?�로?�이 ?�공?�으�??�?�되?�습?�다!', { isError: false });
     } catch (error) {
         console.error('Failed to save profile:', error);
-        showToast('프로필 저장에 실패했습니다: ' + error.message, { isError: true });
+        showToast('?�로???�?�에 ?�패?�습?�다: ' + error.message, { isError: true });
     } finally {
         saveBtn.disabled = false;
         saveBtn.textContent = '저장하기';
@@ -135,7 +135,7 @@ async function loadOrderHistory() {
         });
 
         if (orders.length === 0) {
-            container.innerHTML = '<div class="text-center py-6 text-gray-400 text-sm">주문 내역이 없습니다.</div>';
+            container.innerHTML = '<div class="text-center py-6 text-gray-400 text-sm">주문 ?�역???�습?�다.</div>';
             return;
         }
 
@@ -148,42 +148,34 @@ async function loadOrderHistory() {
 
             // Status Logic
             let statusBadge = '';
-            let statusText = '';
             switch (order.status) {
                 case 'paid':
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-semibold">결제완료</span>';
-                    statusText = '결제완료';
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-semibold">결제?�료</span>';
                     break;
                 case 'pending':
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold">대기중</span>';
-                    statusText = '대기중';
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold">?�기중</span>';
                     break;
                 case 'preparing':
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">상품준비중</span>';
-                    statusText = '상품준비중';
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">?�품준비중</span>';
                     break;
                 case 'shipping':
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-semibold">배송중</span>';
-                    statusText = '배송중';
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-semibold">배송�?/span>';
                     break;
                 case 'delivered':
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">배송완료</span>';
-                    statusText = '배송완료';
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">배송?�료</span>';
                     break;
                 case 'cancelled':
                     statusBadge = '<span class="px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-semibold">주문취소</span>';
-                    statusText = '주문취소';
                     break;
                 default:
                     statusBadge = '<span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-800 text-xs font-semibold">' + order.status + '</span>';
-                    statusText = order.status;
             }
 
             // Items Logic
             let itemsHtml = '';
             if (order.items && order.items.length > 0) {
                 for (const item of order.items) {
-                    let productTitle = '상품정보 없음';
+                    let productTitle = '?�품?�보 ?�음';
                     let imgUrl = 'https://via.placeholder.com/60';
 
                     try {
@@ -193,7 +185,7 @@ async function loadOrderHistory() {
                             imgUrl = pb.files.getUrl(product, product.images[0], { thumb: '100x100' });
                         }
                     } catch (e) {
-                        productTitle = '삭제된 상품';
+                        productTitle = '??��???�품';
                     }
 
                     itemsHtml += `
@@ -201,14 +193,14 @@ async function loadOrderHistory() {
                             <img src="${imgUrl}" class="w-12 h-12 object-cover rounded bg-gray-100 flex-shrink-0">
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-gray-900 truncate">${productTitle}</p>
-                                <p class="text-xs text-gray-500">${item.qty}개 / ${(item.price || 0).toLocaleString()}원</p>
+                                <p class="text-xs text-gray-500">${item.qty}�?/ ${(item.price || 0).toLocaleString()}??/p>
                             </div>
                         </div>
                     `;
                 }
             }
 
-            // 취소 가능 여부 (pending 또는 paid 상태만 취소 가능)
+            // 취소 가???��? (pending ?�는 paid ?�태�?취소 가??
             const canCancel = order.status === 'pending' || order.status === 'paid';
             const cancelBtnHtml = canCancel ? `
                 <button onclick="Profile.cancelOrder('${order.id}')" class="mt-2 w-full py-2 px-4 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors">
@@ -216,7 +208,7 @@ async function loadOrderHistory() {
                 </button>
             ` : '';
 
-            // 배송조회 버튼 (shipping 또는 delivered 상태일 때만 표시)
+            // 배송조회 버튼 (shipping ?�는 delivered ?�태???�만 ?�시)
             const canTrack = order.status === 'shipping' || order.status === 'delivered';
             const trackingNumber = order.tracking_number || '';
             const carrier = order.carrier || '';
@@ -234,13 +226,13 @@ async function loadOrderHistory() {
             } else if (order.status === 'preparing') {
                 trackingBtnHtml = `
                     <div class="mt-2 w-full py-2 px-4 bg-gray-100 text-gray-500 text-sm font-medium rounded-lg text-center">
-                        상품 준비중입니다
+                        ?�품 준비중?�니??
                     </div>
                 `;
             } else if (order.status === 'paid') {
                 trackingBtnHtml = `
                     <div class="mt-2 w-full py-2 px-4 bg-gray-100 text-gray-500 text-sm font-medium rounded-lg text-center">
-                        배송 준비 대기중
+                        배송 준�??�기중
                     </div>
                 `;
             }
@@ -258,8 +250,8 @@ async function loadOrderHistory() {
                     ${itemsHtml}
                 </div>
                 <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center">
-                    <span class="text-sm font-medium text-gray-600">총 결제금액</span>
-                    <span class="text-base font-bold text-blue-600">${(order.total_amount || 0).toLocaleString()}원</span>
+                    <span class="text-sm font-medium text-gray-600">�?결제금액</span>
+                    <span class="text-base font-bold text-blue-600">${(order.total_amount || 0).toLocaleString()}??/span>
                 </div>
                 ${trackingBtnHtml}
                 ${cancelBtnHtml}
@@ -271,7 +263,7 @@ async function loadOrderHistory() {
 
     } catch (error) {
         console.error('Failed to load order history:', error);
-        container.innerHTML = '<div class="text-center py-6 text-red-500 text-sm">주문 내역을 불러오는데 실패했습니다.</div>';
+        container.innerHTML = '<div class="text-center py-6 text-red-500 text-sm">주문 ?�역??불러?�는???�패?�습?�다.</div>';
     }
 }
 
@@ -280,7 +272,7 @@ async function handlePasswordChange() {
     const currentUser = pb.authStore.model;
 
     if (!currentUser) {
-        showToast('로그인이 필요합니다.', { isError: true });
+        showToast('로그?�이 ?�요?�니??', { isError: true });
         return;
     }
 
@@ -289,12 +281,12 @@ async function handlePasswordChange() {
     const newPasswordConfirm = document.getElementById('newPasswordConfirm').value;
 
     if (!oldPassword || !newPassword || !newPasswordConfirm) {
-        showToast('모든 필드를 입력해주세요.', { isError: true });
+        showToast('모든 ?�드�??�력?�주?�요.', { isError: true });
         return;
     }
 
     if (newPassword !== newPasswordConfirm) {
-        showToast('새 비밀번호가 일치하지 않습니다.', { isError: true });
+        showToast('??비�?번호가 ?�치?��? ?�습?�다.', { isError: true });
         return;
     }
 
@@ -309,7 +301,7 @@ async function handlePasswordChange() {
             passwordConfirm: newPasswordConfirm
         });
 
-        showToast('비밀번호가 성공적으로 변경되었습니다.', { isError: false });
+        showToast('비�?번호가 ?�공?�으�?변경되?�습?�다.', { isError: false });
 
         // Clear inputs
         document.getElementById('oldPassword').value = '';
@@ -318,7 +310,7 @@ async function handlePasswordChange() {
 
     } catch (error) {
         console.error('Failed to change password:', error);
-        showToast('비밀번호 변경 실패: ' + error.message, { isError: true });
+        showToast('비�?번호 변�??�패: ' + error.message, { isError: true });
     } finally {
         changeBtn.disabled = false;
         changeBtn.textContent = '비밀번호 변경';
@@ -326,36 +318,36 @@ async function handlePasswordChange() {
 }
 
 async function cancelOrder(orderId) {
-    if (!confirm('정말로 이 주문을 취소하시겠습니까?\n취소 후에는 되돌릴 수 없습니다.')) {
+    if (!confirm('?�말�???주문??취소?�시겠습?�까?\n취소 ?�에???�돌�????�습?�다.')) {
         return;
     }
 
     try {
-        // 주문 상태를 cancelled로 변경
+        // 주문 ?�태�?cancelled�?변�?
         await pb.collection('orders').update(orderId, {
             status: 'cancelled'
         });
 
-        showToast('주문이 성공적으로 취소되었습니다.', { isError: false });
+        showToast('주문???�공?�으�?취소?�었?�니??', { isError: false });
 
-        // 주문 내역 새로고침
+        // 주문 ?�역 ?�로고침
         loadOrderHistory();
     } catch (error) {
         console.error('Failed to cancel order:', error);
-        showToast('주문 취소에 실패했습니다: ' + error.message, { isError: true });
+        showToast('주문 취소???�패?�습?�다: ' + error.message, { isError: true });
     }
 }
 
-// 택배사 정보
+// ?�배???�보
 const carriers = {
     'cj': { name: 'CJ대한통운', url: 'https://www.cjlogistics.com/ko/tool/parcel/tracking?gnbInvcNo=' },
-    'lotte': { name: '롯데택배', url: 'https://www.lotteglogis.com/home/reservation/tracking/index?InvNo=' },
-    'hanjin': { name: '한진택배', url: 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?mession=open&wblnum=' },
+    'lotte': { name: '�?��?�배', url: 'https://www.lotteglogis.com/home/reservation/tracking/index?InvNo=' },
+    'hanjin': { name: '?�진?�배', url: 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?mession=open&wblnum=' },
     'post': { name: '우체국택배', url: 'https://service.epost.go.kr/trace.RetrieveDomRi498.postal?sid1=' },
-    'logen': { name: '로젠택배', url: 'https://www.ilogen.com/web/personal/trace/' },
-    'cu': { name: 'CU편의점택배', url: 'https://www.cupost.co.kr/postbox/delivery/localResult.cupost?invoice_no=' },
-    'gs': { name: 'GS Postbox 택배', url: 'https://www.cvsnet.co.kr/invoice/tracking.do?invoice_no=' },
-    'kdexp': { name: '경동택배', url: 'https://kdexp.com/basicNew498.kd?barcode=' }
+    'logen': { name: '로젠?�배', url: 'https://www.ilogen.com/web/personal/trace/' },
+    'cu': { name: 'CU 편의점택배', url: 'https://www.cupost.co.kr/postbox/delivery/localResult.cupost?invoice_no=' },
+    'gs': { name: 'GS Postbox ?�배', url: 'https://www.cvsnet.co.kr/invoice/tracking.do?invoice_no=' },
+    'kdexp': { name: '경동?�배', url: 'https://kdexp.com/basicNew498.kd?barcode=' }
 };
 
 function openTrackingModal(carrier, trackingNumber) {
@@ -383,11 +375,11 @@ function trackDelivery() {
     const trackingNumber = document.getElementById('tracking-number').value.trim();
 
     if (!carrier) {
-        showToast('택배사를 선택해주세요.', { isError: true });
+        showToast('?�배?��? ?�택?�주?�요.', { isError: true });
         return;
     }
     if (!trackingNumber) {
-        showToast('운송장 번호를 입력해주세요.', { isError: true });
+        showToast('?�송??번호�??�력?�주?�요.', { isError: true });
         return;
     }
 
@@ -395,7 +387,7 @@ function trackDelivery() {
     if (carrierInfo) {
         window.open(carrierInfo.url + trackingNumber, '_blank');
     } else {
-        showToast('지원하지 않는 택배사입니다.', { isError: true });
+        showToast('지?�하지 ?�는 ?�배?�입?�다.', { isError: true });
     }
 }
 
@@ -410,7 +402,7 @@ export const Profile = {
     trackDelivery
 };
 
-// 하위 호환성: 전역 노출
+// ?�위 ?�환?? ?�역 ?�출
 if (typeof window !== 'undefined') {
     window.Profile = Profile;
 }
@@ -423,4 +415,3 @@ if (document.readyState === 'loading') {
 }
 
 export default Profile;
-

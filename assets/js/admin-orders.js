@@ -269,7 +269,6 @@ window.AdminOrders = (function () {
 
         console.log('Full Order Object:', JSON.stringify(order, null, 2));
 
-        const modal = document.getElementById('order-detail-modal');
         const statusBadge = document.getElementById('modal-order-status');
 
         // Status Class
@@ -695,7 +694,6 @@ window.AdminOrders = (function () {
     }
 
     // Override deleteOrder to handle bulk delete
-    const originalDeleteOrder = deleteOrder;
     deleteOrder = async function () {
         if (deleteTargetId === 'BULK_DELETE') {
             try {
@@ -772,3 +770,4 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('AdminOrders not loaded');
     }
 });
+

@@ -395,9 +395,8 @@ export const Cart = {
             // Simple heuristic: if price < 1000 and we are in KRW mode, assume it's USD and convert
             if (isKorean && price < 1000) {
                 price = price * 1000;
-            }
-            // If price > 1000 and we are in USD mode, assume it's KRW and convert
-            else if (!isKorean && price > 1000) {
+            } else if (!isKorean && price > 1000) {
+                // If price > 1000 and we are in USD mode, assume it's KRW and convert
                 price = price / 1000;
             }
             return sum + (price * item.quantity);
@@ -507,5 +506,3 @@ if (document.readyState === 'loading') {
 }
 
 export default Cart;
-
-

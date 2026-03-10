@@ -22,11 +22,12 @@
         "AdminOrders": "readonly",
         "AdminProducts": "readonly",
         "AdminCategories": "readonly",
-        "AdminPosts": "readonly"
+        "AdminPosts": "readonly",
+        "Mailcheck": "readonly"
     },
     "parserOptions": {
         "ecmaVersion": 2021,
-        "sourceType": "script"
+        "sourceType": "module"
     },
     "rules": {
         "no-unused-vars": [
@@ -108,3 +109,5 @@
         "assets/js/mustache.min.js"
     ]
 }
+
+
