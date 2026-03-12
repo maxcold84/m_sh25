@@ -1,0 +1,97 @@
+<div class="admin-nav-container">
+    <div class="admin-nav-inner">
+        <div class="admin-nav-left">
+            <span class="admin-nav-brand">ADMIN</span>
+        </div>
+        <div class="admin-nav-center">
+            <a href="/ko/admin/products/" class="admin-nav-link {{ if in .RelPermalink " /admin/products/" }}active{{
+                end }}">상품 관리</a>
+            <a href="/ko/admin/orders/" class="admin-nav-link {{ if in .RelPermalink " /admin/orders/" }}active{{ end
+                }}">주문 관리</a>
+            <a href="/ko/admin/posts/" class="admin-nav-link {{ if in .RelPermalink " /admin/posts/" }}active{{ end
+                }}">블로그 관리</a>
+        </div>
+        <div class="admin-nav-right">
+            <button id="admin-logout-btn" class="admin-nav-logout">로그아웃</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-nav-container {
+        border-bottom: 1px solid #eee;
+        background: #fff;
+        margin-bottom: 2rem;
+        padding: 0.75rem 0;
+    }
+
+    .admin-nav-inner {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .admin-nav-brand {
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 0.1em;
+        color: #111;
+    }
+
+    .admin-nav-center {
+        display: flex;
+        gap: 2rem;
+    }
+
+    .admin-nav-link {
+        color: #666;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        padding-bottom: 4px;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .admin-nav-link:hover {
+        color: #111;
+        text-decoration: none;
+    }
+
+    .admin-nav-link.active {
+        color: #111;
+        border-bottom-color: #111;
+    }
+
+    .admin-nav-logout {
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 0;
+        transition: color 0.2s;
+    }
+
+    .admin-nav-logout:hover {
+        color: #ff4757;
+    }
+
+    @media (max-width: 576px) {
+        .admin-nav-inner {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .admin-nav-center {
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
+</style>

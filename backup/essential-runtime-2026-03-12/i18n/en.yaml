@@ -1,0 +1,41 @@
+- id: "add_to_cart"
+  translation: "Add to Cart"
+  
+- id: "send"
+  translation: "Send Now"
+  
+- id: "subscribe"
+  translation: "Subscribe"
+  
+- id: "read_more"
+  translation: "Read More"
+
+- id: "login"
+  translation: "Login"
+
+- id: "signup"
+  translation: "Sign Up"
+
+- id: "email"
+  translation: "Email"
+
+- id: "password"
+  translation: "Password"
+
+- id: "confirm_password"
+  translation: "Confirm Password"
+
+- id: "remember_email"
+  translation: "Remember Email"
+
+- id: "name"
+  translation: "Name"
+
+- id: "or_continue_with"
+  translation: "Or continue with"
+
+- id: "email_suggestion_prefix"
+  translation: "Did you mean "
+
+- id: "email_suggestion_suffix"
+  translation: "?"

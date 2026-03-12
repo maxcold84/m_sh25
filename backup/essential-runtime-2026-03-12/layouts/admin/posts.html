@@ -1,0 +1,159 @@
+{{ define "main" }}
+
+<section class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                {{ partial "admin/nav" . }}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2>블로그 관리</h2>
+                    <div>
+                        <button id="add-post-btn" class="btn btn-main" onclick="AdminPosts.openAddModal()">
+                            <i class="tf-ion-edit"></i> 글 쓰기
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mb-4">
+                    <strong>💡 안내:</strong> 글 작성/수정 후 터미널에서 <code>npm run sync</code>를 실행하여 블로그에 반영하세요.
+                </div>
+
+                <!-- Auth Check -->
+                <div id="admin-auth-check" class="alert alert-warning" style="display: none;">
+                    관리자로 로그인해야 합니다. <a href="/ko/login">여기서 로그인하세요</a>.
+                </div>
+
+                <!-- Post List -->
+                <div id="admin-post-list" class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">이미지</th>
+                                <th>제목</th>
+                                <th>상태</th>
+                                <th>작성일</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="post-table-body">
+                            <!-- Posts will be loaded here -->
+                            <tr class="text-center">
+                                <td colspan="5">로딩 중...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="loading-spinner" class="text-center py-4">
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only">로딩 중...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Post Modal -->
+<div class="modal fade" id="postModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="postModalLabel">글 쓰기</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="닫기">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="post-form">
+                    <input type="hidden" id="post-id">
+
+                    <div class="form-group">
+                        <label for="post-title">제목</label>
+                        <input type="text" class="form-control" id="post-title" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="post-slug">슬러그 (URL)</label>
+                        <input type="text" class="form-control" id="post-slug" required placeholder="자동 생성됨">
+                        <small class="form-text text-muted">제목 입력 시 자동 생성됩니다. URL에 사용됩니다.</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="post-tags">태그 (쉼표로 구분)</label>
+                                <input type="text" class="form-control" id="post-tags" placeholder="예: 일상, 개발, 여행">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="post-categories">카테고리 (쉼표로 구분)</label>
+                                <input type="text" class="form-control" id="post-categories"
+                                    placeholder="예: News, Tech">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="post-content">내용 (Markdown)</label>
+                        <textarea class="form-control font-monospace" id="post-content" rows="15"
+                            style="font-family: 'Consolas', 'Monaco', monospace; font-size: 14px; line-height: 1.6;"
+                            placeholder="# 여기에 마크다운 내용을 작성하세요..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="post-image">대표 이미지</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="post-image" accept="image/*"
+                                onchange="AdminPosts.handleImageSelect(this)">
+                            <label class="custom-file-label" for="post-image">이미지 선택...</label>
+                        </div>
+                        <div id="post-image-preview" class="mt-2 p-2 border rounded bg-light text-center"
+                            style="display: none;">
+                            <img src="" alt="Preview" style="max-height: 200px; max-width: 100%;">
+                            <button type="button" class="btn btn-sm btn-danger mt-2 d-block mx-auto"
+                                onclick="AdminPosts.clearImage()">이미지 삭제</button>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="post-published" checked>
+                        <label class="form-check-label" for="post-published">공개 (Published)</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+                <button type="button" class="btn btn-main" onclick="AdminPosts.savePost()">저장</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+{{ $adminAuthScript := resources.Get "js/admin-auth.js" }}
+<script src="{{ $adminAuthScript.Permalink }}"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<style>
+    .EasyMDEContainer {
+        z-index: 1000;
+    }
+
+    /* Ensure it sits well in modal */
+    .editor-toolbar {
+        border-radius: 4px 4px 0 0;
+    }
+
+    .CodeMirror {
+        border-radius: 0 0 4px 4px;
+        min-height: 400px;
+    }
+</style>
+
+{{ $adminPostScript := resources.Get "js/admin-posts.js" }}
+<script src="{{ $adminPostScript.Permalink }}"></script>
+
+{{ end }}

@@ -1,0 +1,24 @@
+{
+    "name": "hugo-shop-sync",
+    "version": "1.0.0",
+    "description": "Scripts to sync PocketBase data to Hugo content",
+    "type": "module",
+    "main": "scripts/sync-products.js",
+    "scripts": {
+        "sync": "node scripts/sync-products.js && node scripts/sync-posts.js",
+        "lint": "eslint assets/js --ext .js",
+        "lint:fix": "eslint assets/js --ext .js --fix",
+        "build": "hugo --gc --minify --destination server",
+        "build:drafts": "hugo --gc --minify --buildDrafts --buildExpired --buildFuture --destination server",
+        "dev": "hugo server --destination server --disableFastRender",
+        "clean:server": "node scripts/clean-server.mjs"
+    },
+    "dependencies": {
+        "dotenv": "^16.0.0",
+        "pocketbase": "^0.21.0",
+        "slugify": "^1.6.6"
+    },
+    "devDependencies": {
+        "eslint": "^8.57.1"
+    }
+}

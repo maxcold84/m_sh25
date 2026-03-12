@@ -1,0 +1,29 @@
+<!-- Toast Notification -->
+<div id="toast"
+    class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg text-sm opacity-0 transition-opacity duration-300 pointer-events-none z-50">
+    메시지
+</div>
+
+<!-- Daum Postcode Layer (Modal) -->
+<div id="daum-layer" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white w-full max-w-md h-[500px] relative rounded-lg overflow-hidden shadow-xl mx-4">
+        <button type="button" onclick="closePostcode()"
+            class="absolute top-0 right-0 m-2 text-gray-500 hover:text-gray-800 z-10 p-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <div id="daum-postcode-container" class="w-full h-full"></div>
+    </div>
+</div>
+
+<!-- Email domain datalist -->
+<datalist id="emailDomains">
+    <option value="@gmail.com"></option>
+    <option value="@naver.com"></option>
+    <option value="@daum.net"></option>
+    <option value="@outlook.com"></option>
+    <option value="@kakao.com"></option>
+    <option value="@hanmail.net"></option>
+    <option value="@nate.com"></option>
+</datalist>

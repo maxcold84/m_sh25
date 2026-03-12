@@ -1,0 +1,153 @@
+{{ define "main" }}
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f9fafb;
+        padding: 1rem;
+    }
+
+    .login-card {
+        max-width: 360px;
+        width: 100%;
+        background: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .login-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #111;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.8125rem;
+        color: #374151;
+        margin-bottom: 0.375rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        box-sizing: border-box;
+        transition: border-color 0.15s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #111;
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 0.625rem 1rem;
+        margin-top: 0.5rem;
+        background: #111;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .login-btn:hover:not(:disabled) {
+        background: #333;
+        transform: translateY(-1px);
+    }
+
+    .login-btn:disabled {
+        background: #666;
+        cursor: not-allowed;
+    }
+
+    .error-message {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 0.625rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.8125rem;
+        margin-bottom: 1rem;
+        display: none;
+    }
+
+    .error-message.show {
+        display: block;
+    }
+</style>
+
+{{ partial "admin/nav" . }}
+<div class="login-container">
+    <div class="login-card">
+        <h2 class="login-title">관리자 로그인</h2>
+
+        <div id="error-message" class="error-message"></div>
+
+        <form id="admin-login-form">
+            <div class="form-group">
+                <label for="email-address" class="form-label">이메일</label>
+                <input id="email-address" name="email" type="email" autocomplete="email" required class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">비밀번호</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required
+                    class="form-input">
+            </div>
+            <button type="submit" id="login-btn" class="login-btn">로그인</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const pb = new PocketBase(window.SiteConfig?.pocketbaseUrl || 'http://127.0.0.1:8090');
+        const form = document.getElementById('admin-login-form');
+        const btn = document.getElementById('login-btn');
+        const errorMessage = document.getElementById('error-message');
+
+        if (pb.authStore.isValid && pb.authStore.isAdmin) {
+            window.location.href = '/ko/admin/orders';
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMessage.classList.remove('show');
+
+            const email = document.getElementById('email-address').value;
+            const password = document.getElementById('password').value;
+
+            btn.disabled = true;
+            btn.textContent = '로그인 중...';
+
+            try {
+                await pb.admins.authWithPassword(email, password);
+                window.location.href = '/ko/admin/orders';
+            } catch (err) {
+                console.error(err);
+                errorMessage.textContent = '로그인 실패: 이메일 또는 비밀번호를 확인해주세요.';
+                errorMessage.classList.add('show');
+                btn.disabled = false;
+                btn.textContent = '로그인';
+            }
+        });
+    });
+</script>
+{{ end }}

@@ -1,0 +1,80 @@
+{{ $data := index .Site.Data .Site.Language.Lang }}
+
+{{ if $data.homepage.about_product.enable }}
+{{ with $data.homepage.about_product }}
+<section class="feature-list section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="heading">
+          <h2>{{ .title | markdownify }}</h2>
+        </div>
+      </div>
+    </div>
+    {{ range $index, $element := .items }}
+    {{- if ne (mod $index 2) 1 }}
+    <div class="row mb-40">
+      <div class="col-md-6 text-center mb-5 mb-lg-0">
+        {{ partial "image.html" (dict "Src" .image "Alt" "image" "Class" "img-fluid w-100" ) }}
+      </div>
+      <div class="col-md-6 align-self-center text-center text-md-left">
+        <div class="content">
+          <h4 class="subheading">{{ .title | markdownify }}</h4>
+          <p>{{ .content | markdownify }}</p>
+          {{ if .button.enable }}
+          {{ with .button }}
+          <div class="d-flex gap-2 justify-content-center justify-content-md-start">
+            <a href="{{ .link | absURL }}" class="btn btn-main btn-main-sm">{{ .label }}</a>
+            {{ with $.ProductData }}
+            <button class="btn btn-primary btn-main-sm" onclick="event.preventDefault(); Cart.addItem({
+                      id: '{{.Title | urlize}}__{{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}}',
+                      name: '{{.Title}}',
+                      price: {{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}},
+                      image: '{{range first 1 .Params.images}}{{.|absURL}}{{end}}',
+                      options: {}
+                    })">
+              🛒 장바구니 추가
+            </button>
+            {{ end }}
+          </div>
+          {{ end }}
+          {{ end }}
+        </div>
+      </div>
+    </div>
+    {{- else }}
+    <div class="row mb-40">
+      <div class="col-md-6 order-md-1 order-2 align-self-center text-center text-md-left">
+        <div class="content">
+          <h4 class="subheading">{{ .title | markdownify }}</h4>
+          <p>{{ .content | markdownify }}</p>
+          {{ if .button.enable }}
+          {{ with .button }}
+          <div class="d-flex gap-2 justify-content-center justify-content-md-start">
+            <a href="{{ .link | absURL }}" class="btn btn-main btn-main-sm">{{ .label }}</a>
+            {{ with $.ProductData }}
+            <button class="btn btn-primary btn-main-sm" onclick="event.preventDefault(); Cart.addItem({
+                      id: '{{.Title | urlize}}__{{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}}',
+                      name: '{{.Title}}',
+                      price: {{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}},
+                      image: '{{range first 1 .Params.images}}{{.|absURL}}{{end}}',
+                      options: {}
+                    })">
+              🛒 장바구니 추가
+            </button>
+            {{ end }}
+          </div>
+          {{ end }}
+          {{ end }}
+        </div>
+      </div>
+      <div class="col-md-6 order-md-2 order-1 text-center mb-5 mb-lg-0">
+        {{ partial "image.html" (dict "Src" .image "Alt" "image" "Class" "img-fluid w-100" ) }}
+      </div>
+    </div>
+    {{ end }}
+    {{ end }}
+  </div>
+</section>
+{{ end }}
+{{ end }}

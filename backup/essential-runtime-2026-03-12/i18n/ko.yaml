@@ -1,0 +1,41 @@
+- id: "add_to_cart"
+  translation: "장바구니에 추가"
+  
+- id: "send"
+  translation: "보내기"
+  
+- id: "subscribe"
+  translation: "구독하기"
+  
+- id: "read_more"
+  translation: "더 읽기"
+
+- id: "login"
+  translation: "로그인"
+
+- id: "signup"
+  translation: "회원가입"
+
+- id: "email"
+  translation: "이메일"
+
+- id: "password"
+  translation: "비밀번호"
+
+- id: "confirm_password"
+  translation: "비밀번호 확인"
+
+- id: "remember_email"
+  translation: "이메일 기억하기"
+
+- id: "name"
+  translation: "이름"
+
+- id: "or_continue_with"
+  translation: "또는 다음으로 계속"
+
+- id: "email_suggestion_prefix"
+  translation: "혹시 "
+
+- id: "email_suggestion_suffix"
+  translation: "을(를) 의미하셨나요?"

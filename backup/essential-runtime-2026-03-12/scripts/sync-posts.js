@@ -1,0 +1,128 @@
+import PocketBase from 'pocketbase';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { ensureDirectory, downloadFile, generateFrontmatter, config } from './utils.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Configuration
+const PB_URL = config.pbUrl;
+// Target directory for Posts (Single File mode)
+const CONTENT_DIR = path.join(__dirname, '../content/korean/blog');
+// Images directory
+const IMAGES_DIR = path.join(__dirname, '../assets/images/blog');
+
+const pb = new PocketBase(PB_URL);
+
+async function syncPosts() {
+    console.log('Starting blog post sync (Single File mode)...');
+
+    try {
+        // Fetch all posts
+        // Ensure schema has: title, slug, content, published, tags (json), categories (json), image
+        const posts = await pb.collection('posts').getFullList({
+            sort: '-created',
+        });
+
+        console.log(`Found ${posts.length} posts.`);
+
+        // Ensure directories exist
+        ensureDirectory(CONTENT_DIR);
+        ensureDirectory(IMAGES_DIR);
+
+        // Collect valid slugs from PocketBase
+        const validSlugs = new Set(posts.map(p => p.slug || p.id));
+
+        // Clean up: Delete files that no longer exist in PocketBase
+        const existingFiles = fs.readdirSync(CONTENT_DIR);
+        for (const file of existingFiles) {
+            // Skip _index.md (section index) and non-md files
+            if (file === '_index.md' || !file.endsWith('.md')) continue;
+
+            const slug = file.replace('.md', '');
+            if (!validSlugs.has(slug)) {
+                // Delete the markdown file
+                const filePath = path.join(CONTENT_DIR, file);
+                fs.unlinkSync(filePath);
+                console.log(`  Deleted: ${file} (no longer in database)`);
+
+                // Also try to delete associated image
+                const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+                for (const ext of imageExtensions) {
+                    const imagePath = path.join(IMAGES_DIR, `${slug}${ext}`);
+                    if (fs.existsSync(imagePath)) {
+                        fs.unlinkSync(imagePath);
+                        console.log(`  Deleted image: ${slug}${ext}`);
+                    }
+                }
+            }
+        }
+
+        for (const post of posts) {
+            const slug = post.slug || post.id;
+
+            // Single file mode: slug.md instead of slug/index.md
+            const filePath = path.join(CONTENT_DIR, `${slug}.md`);
+
+            // Handle Image Download
+            let imagePath = '';
+            if (post.image) {
+                const imageUrl = `${PB_URL}/api/files/${post.collectionId}/${post.id}/${post.image}`;
+                // Create unique filename with slug prefix to avoid conflicts
+                const ext = path.extname(post.image);
+                const localImageName = `${slug}${ext}`;
+                const localImagePath = path.join(IMAGES_DIR, localImageName);
+
+                const success = await downloadFile(imageUrl, localImagePath);
+                if (success) {
+                    // Store path relative to assets for Hugo
+                    imagePath = `images/blog/${localImageName}`;
+                    console.log(`  Downloaded image: ${localImageName}`);
+                } else {
+                    console.error(`  Failed to download image for ${slug}`);
+                }
+            }
+
+            // Parse Tags/Categories
+            let tags = [];
+            try {
+                tags = Array.isArray(post.tags) ? post.tags : JSON.parse(post.tags || '[]');
+            } catch (e) { tags = []; }
+
+            let categories = [];
+            try {
+                categories = Array.isArray(post.categories) ? post.categories : JSON.parse(post.categories || '[]');
+            } catch (e) { categories = []; }
+
+            // Construct Frontmatter
+            const frontmatterData = {
+                title: post.title,
+                date: post.created,
+                draft: !post.published,
+                slug: slug,
+                image: imagePath, // Path relative to assets directory
+                tags: tags,
+                categories: categories
+            };
+
+            const yaml = generateFrontmatter(frontmatterData);
+            const fileContent = `---\n${yaml}\n---\n\n${post.content || ''}`;
+
+            fs.writeFileSync(filePath, fileContent);
+            console.log(`  Synced: ${slug}.md`);
+        }
+
+        console.log('Blog post sync completed.');
+
+    } catch (error) {
+        console.error('Error syncing posts:', error);
+        if (error.status === 404) {
+            console.error('  "posts" collection not found in PocketBase. Please create it.');
+        }
+    }
+}
+
+syncPosts();
+

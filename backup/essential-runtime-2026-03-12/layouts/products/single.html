@@ -1,0 +1,190 @@
+{{ define "main" }}
+
+<section class="section">
+  <div class="container">
+    <div id="product-detail-container">
+      <div class="row">
+        <div class="col-md-5 mb-4 mb-md-0">
+          <!-- Product Image Slider 휴고 메인 이미지와 슬라이더-->
+          <div class="product-image-slider" id="product-slider">
+            {{ $processedImages := slice }}
+            {{ range .Params.images }}
+            {{ $imagePath := printf "images/products/%s" . }}
+            {{ $img := resources.Get $imagePath }}
+            {{ if $img }}
+            {{ $processedImages = $processedImages | append $img }}
+            {{ end }}
+            {{ end }}
+
+            {{/* Display processed Hugo images */}}
+            {{ if gt (len $processedImages) 0 }}
+            {{ range $processedImages }}
+            {{ $large := .Resize "1200x webp q85" }}
+            {{ $medium := .Resize "800x webp q85" }}
+            {{ $small := .Resize "400x webp q85" }}
+            <div class="slide-item" data-image="{{ $medium.RelPermalink }}">
+              <picture>
+                <source srcset="{{ $small.RelPermalink }} 400w,
+                                  {{ $medium.RelPermalink }} 800w,
+                                  {{ $large.RelPermalink }} 1200w" type="image/webp"
+                  sizes="(max-width: 600px) 400px, (max-width: 1000px) 800px, 1200px">
+                <img class="img-fluid w-100" src="{{ $medium.RelPermalink }}" alt="{{ $.Title }}" loading="lazy">
+              </picture>
+            </div>
+            {{ end }}
+            {{ end }}
+          </div>
+
+        </div>
+
+        <div class="col-lg-6 col-md-7 offset-lg-1">
+          <h1 class="mb-4">{{ .Title }}</h1>
+
+          {{ with .Params.colors }}
+          <p><strong>Colors: </strong>
+            {{ range . }}{{ . }} {{ end }}
+          </p>
+          {{ end }}
+
+          {{ with .Params.sizes }}
+          <p><strong>Sizes: </strong>
+            {{ range . }}{{ . }} {{ end }}
+          </p>
+          {{ end }}
+
+          <p class="price py-4">
+            {{ if .Params.discount_price }}
+            {{ site.Params.currency }}{{ .Params.discount_price }}
+            <span class="text-muted text-decoration-line-through ml-2" style="font-size: 0.8em;">
+              {{ site.Params.currency }}{{ .Params.price }}
+            </span>
+            {{ else }}
+            {{ site.Params.currency }}{{ .Params.price }}
+            {{ end }}
+          </p>
+
+          {{ $cartImage := "" }}
+          {{ if gt (len $processedImages) 0 }}
+          {{ $firstImg := index $processedImages 0 }}
+          {{ $cartImage = $firstImg.RelPermalink }}
+          {{ end }}
+
+          <button class="btn btn-main mb-5" onclick="Cart.addItem({
+              id: '{{ .Params.id }}',
+              name: '{{ .Title }}',
+              price: {{ if .Params.discount_price }}{{ .Params.discount_price }}{{ else }}{{ .Params.price }}{{ end }},
+              image: '{{ $cartImage }}',
+              options: {
+                {{ with .Params.colors }}{{ if gt (len .) 0 }}color: '{{ index . 0 }}',{{ end }}{{ end }}
+                {{ with .Params.sizes }}{{ if gt (len .) 0 }}size: '{{ index . 0 }}'{{ end }}{{ end }}
+              }
+            })">
+            🛒 장바구니에 추가
+          </button>
+
+          <!-- Product Description -->
+          <div class="product-description">
+            <h3>설명</h3>
+            {{ .Content }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews Section -->
+      <div class="row mt-5">
+        <div class="col-12">
+          <h2>상품 리뷰</h2>
+
+          <!-- Review List -->
+          <div id="review-list" class="mb-4"></div>
+
+          <!-- Auth Message (shown when not logged in) -->
+          <div id="review-auth-message" class="alert alert-info" style="display: none;">
+            리뷰를 작성하려면 <a href="{{ "login" | relLangURL }}">로그인</a>이 필요합니다.
+          </div>
+
+          <!-- Review Form (only for logged in users) -->
+          <div id="review-form-container" class="mt-4">
+            <h3>리뷰 작성</h3>
+            <form id="review-form" style="display: none;">
+              <div class="form-group">
+                <label for="review-rating">평점</label>
+                <select class="form-control" id="review-rating" required>
+                  <option value="">선택하세요</option>
+                  <option value="5">⭐⭐⭐⭐⭐ (5점)</option>
+                  <option value="4">⭐⭐⭐⭐ (4점)</option>
+                  <option value="3">⭐⭐⭐ (3점)</option>
+                  <option value="2">⭐⭐ (2점)</option>
+                  <option value="1">⭐ (1점)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="review-content">내용</label>
+                <textarea class="form-control" id="review-content" rows="4" required
+                  placeholder="상품에 대한 솔직한 리뷰를 남겨주세요."></textarea>
+              </div>
+              <div class="form-group">
+                <label>사진 첨부 (최대 5장)</label>
+                <div class="review-image-upload">
+                  <input type="file" id="review-images" accept="image/*" multiple class="d-none">
+                  <label for="review-images" class="btn btn-outline-secondary btn-sm" style="cursor: pointer;">
+                    📷 사진 선택
+                  </label>
+                  <span id="review-image-count" class="ml-2 text-muted"></span>
+                </div>
+                <div id="review-image-preview" class="d-flex flex-wrap mt-2" style="gap: 8px;"></div>
+              </div>
+              <button type="submit" class="btn btn-primary">리뷰 제출</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q&A Section -->
+    {{ partial "qna-list.html" . }}
+
+  </div>
+</section>
+
+{{/* 관련 상품 슬라이더 - 프론트매터에서 show_related_products: false 로 비활성화 가능 */}}
+{{ partial "related-products.html" . }}
+
+<style>
+  .product-image-slider .slick-slide img {
+    max-height: 500px;
+    object-fit: contain;
+  }
+</style>
+
+<script>
+  // Initialize product slider with thumbnails
+  document.addEventListener('DOMContentLoaded', function () {
+    // Slick slider init
+    if (typeof $ !== 'undefined' && $.fn.slick) {
+      $('.product-image-slider').slick({
+        infinite: true,
+        speed: 300,
+        slidesToShow: 1,
+        adaptiveHeight: true,
+        arrows: true,
+        dots: false
+      });
+    }
+  });
+</script>
+
+
+{{/* 추가 슬라이더 수정 */}}
+{{ partial "products.html" . }}
+
+<!-- Reviews Script -->
+{{ $reviews := resources.Get "js/reviews.js" }}
+<script src="{{ $reviews.Permalink }}?v={{ now.Unix }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    Reviews.init('{{ .Params.id }}');
+  });
+</script>
+
+{{ end }}

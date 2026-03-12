@@ -1,0 +1,39 @@
+# Hugo 기본 무시 파일
+/public/
+/resources/_gen/
+/assets/jsconfig.json
+hugo_stats.json
+
+# PocketBase 데이터
+/pb_data/
+/pb_migrations/
+
+# 운영 체제 파일
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 에디터 및 IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node.js (만약 npm을 사용하는 경우)
+node_modules/
+package-lock.json
+yarn.lock
+
+# 로그 파일
+*.log
+npm-debug.log*
+
+# 환경 변수 파일
+.env
+.env.local
+.env.*.local
+
+# 임시 파일
+*.tmp
+*.temp

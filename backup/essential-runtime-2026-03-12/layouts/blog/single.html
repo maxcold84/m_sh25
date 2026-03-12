@@ -1,0 +1,99 @@
+{{ define "main" }}
+
+<!-- Reading Progress Bar -->
+<div class="reading-progress" id="reading-progress"></div>
+
+<section class="section">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar for TOC -->
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="blog-toc">
+                    <header>{{ i18n "table_of_contents" | default "목차" }}</header>
+                    {{ .TableOfContents }}
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <div class="blog-post-header mb-5">
+                    <h1 class="mb-3">{{ .Title | markdownify }}</h1>
+
+                    <div class="blog-meta mb-3">
+                        <span><i class="tf-ion-calendar"></i> {{ .PublishDate.Format "2006-01-02" }}</span>
+                        <span><i class="tf-ion-ios-timer-outline"></i> {{ .ReadingTime }} {{ i18n "min_read" | default
+                            "분" }}</span>
+
+                        <a href="/ko/admin/posts/" class="text-muted small ml-auto" target="_blank">
+                            <i class="tf-ion-settings"></i> 관리자 모드
+                        </a>
+                    </div>
+
+                    {{ if .Params.image }}
+                    <div class="featured-image mb-5">
+                        {{ $isRemote := or (hasPrefix .Params.image "http://") (hasPrefix .Params.image "https://") (hasPrefix .Params.image "//") }}
+                        {{ $image := "" }}
+                        {{ if not $isRemote }}
+                            {{ $image = .Resources.GetMatch .Params.image }}
+                            {{ if not $image }}
+                                {{ $image = resources.Get .Params.image }}
+                            {{ end }}
+                        {{ end }}
+                        {{ if $image }}
+                        <img src="{{ $image.RelPermalink }}" alt="{{ .Title }}" class="img-fluid w-100 rounded">
+                        {{ else if $isRemote }}
+                        <img src="{{ .Params.image }}" alt="{{ .Title }}" class="img-fluid w-100 rounded">
+                        {{ else }}
+                        {{ partial "image.html" (dict "Src" .Params.image "Alt" .Title "Class" "img-fluid w-100 rounded" ) }}
+                        {{ end }}
+                    </div>
+                    {{ end }}
+                </div>
+
+                <div class="content post-content">
+                    {{ .Content }}
+                </div>
+
+                {{ if .Params.tags }}
+                <div class="mt-5 pt-4 border-top">
+                    <div class="tags">
+                        {{ range .Params.tags }}
+                        <a href="{{ " /tags/" | relLangURL }}{{ . | urlize }}"
+                            class="badge badge-primary mr-2 px-3 py-2">#{{ . }}</a>
+                        {{ end }}
+                    </div>
+                </div>
+                {{ end }}
+
+                <!-- Post Navigation -->
+                <div class="post-navigation">
+                    <div class="nav-item prev">
+                        {{ with .PrevInSection }}
+                        <span class="nav-label">{{ i18n "previous_post" | default "이전 글" }}</span>
+                        <a href="{{ .Permalink }}" class="nav-title">{{ .Title }}</a>
+                        {{ end }}
+                    </div>
+                    <div class="nav-item next">
+                        {{ with .NextInSection }}
+                        <span class="nav-label">{{ i18n "next_post" | default "다음 글" }}</span>
+                        <a href="{{ .Permalink }}" class="nav-title">{{ .Title }}</a>
+                        {{ end }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('scroll', function () {
+        const docElement = document.documentElement;
+        const docBody = document.body;
+        const scrollTop = docElement['scrollTop'] || docBody['scrollTop'];
+        const scrollBottom = (docElement['scrollHeight'] || docBody['scrollHeight']) - window.innerHeight;
+        const scrollPercent = scrollTop / (scrollBottom || 1) * 100 + '%';
+        document.getElementById('reading-progress').style.width = scrollPercent;
+    });
+</script>
+
+{{ end }}

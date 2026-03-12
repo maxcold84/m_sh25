@@ -1,0 +1,121 @@
+############################# banner ############################
+banner:
+  enable: true
+  title: "기술을 믿으세요, 변화를 만드세요"
+  content: "최고의 기술력으로 당신의 삶을 변화시킵니다. 혁신적인 디자인과 기능으로 새로운 경험을 선사합니다."
+  image: "images/watch.png"
+  button:
+    enable: true
+    label: "모든 제품 보기"
+    link: "products/"
+
+############################# Feature ############################
+features:
+  enable: true
+  title: "핵심 기능"
+  image: "images/watch-2.png"
+
+  # feature at the left of the image
+  left_side:
+    # feature item loop
+    - title: "부드러운 터치"
+      icon: "tf-ion-ios-alarm-outline"
+      content: "놀랍도록 부드러운 터치감을 경험해보세요."
+
+      # feature item loop
+    - title: "우아한 디자인"
+      icon: "tf-ion-ios-bell-outline"
+      content: "어떤 스타일에도 잘 어울리는 세련된 디자인입니다."
+
+      # feature item loop
+    - title: "합리적인 가격"
+      icon: "tf-ion-ios-cart-outline"
+      content: "최고의 성능을 합리적인 가격에 만나보세요."
+
+  # feature at the right of the image
+  right_side:
+    # feature item loop
+    - title: "부드러운 터치"
+      icon: "tf-ion-ios-alarm-outline"
+      content: "놀랍도록 부드러운 터치감을 경험해보세요."
+
+      # feature item loop
+    - title: "우아한 디자인"
+      icon: "tf-ion-ios-bell-outline"
+      content: "어떤 스타일에도 잘 어울리는 세련된 디자인입니다."
+
+      # feature item loop
+    - title: "합리적인 가격"
+      icon: "tf-ion-ios-cart-outline"
+      content: "최고의 성능을 합리적인 가격에 만나보세요."
+
+############################# promo ############################
+promo:
+  enable: true
+  image: "images/watch.png"
+  title: "전문가가 디자인한, 창의적인 당신을 위한 혜택"
+  content:
+    "최고의 전문가들이 모여 당신을 위한 완벽한 제품을 만들었습니다.
+    <br><br>
+    지금 바로 경험해보세요. 당신의 일상이 달라질 것입니다."
+
+############################# About Product #######################
+about_product:
+  enable: true
+  title: "왜 애플 워치를 선택해야 할까요?"
+  items:
+    # about product item loop
+    - image: "images/showcase/showcase-4.png"
+      title: "혁신적인 기능"
+      content:
+        "애플 워치는 단순한 시계가 아닙니다. 당신의 건강을 지켜주고, 일상을 편리하게 만들어주는 최고의 파트너입니다."
+      button:
+        enable: false
+        label: "기능 확인하기"
+        link: "#/"
+
+    # about product item loop
+    - image: "images/showcase/showcase-3.png"
+      title: "아름다운 디자인"
+      content:
+        "어떤 옷차림에도 완벽하게 어울리는 세련된 디자인을 자랑합니다. 당신의 스타일을 완성해보세요."
+      button:
+        enable: false
+        label: "기능 확인하기"
+        link: "#/"
+
+#################################### Products ########################
+products:
+  enable: true
+  title: "모든 제품 확인하기"
+
+################################## Subscription ###################
+subscription:
+  enable: true
+  bg_image: "images/call-to-action.jpg"
+  title: "제품 업데이트 받기"
+  content: "최신 제품 소식과 할인 정보를 받아보세요."
+  placeholder: "이메일 주소를 입력하세요"
+
+############################## Testimonial ##########################
+testimonial:
+  enable: true
+  title: "사용자 리뷰"
+  testimonial_item:
+    # testimonial item loop
+    - name: "김철민"
+      designation: "CEO, 테마피셔"
+      image: "images/avater.png"
+      content: "이 제품을 사용하고 나서 제 삶이 완전히 바뀌었습니다. 건강 관리부터 일정 관리까지 모든 것이 완벽합니다."
+
+    # testimonial item loop
+    - name: "이영희"
+      designation: "디자이너"
+      image: "images/avater.png"
+      content: "디자인이 너무 예뻐서 매일 차고 다닙니다. 주변 사람들도 어디서 샀냐고 물어볼 정도예요."
+
+    # testimonial item loop
+    - name: "박민수"
+      designation: "개발자"
+      image: "images/avater.png"
+      content: "기능이 정말 다양하고 편리합니다. 특히 운동할 때 정말 유용하게 사용하고 있습니다."

@@ -1,0 +1,57 @@
+<!-- Admin Orders Table -->
+<!-- Bulk Actions -->
+<div id="bulk-actions" class="mb-3 d-none">
+    <div class="alert alert-info py-2 d-flex justify-content-between align-items-center">
+        <span><strong id="selected-count">0</strong>개 주문 선택됨</span>
+        <div>
+            <button type="button" class="btn btn-sm btn-warning mr-2" onclick="AdminOrders.bulkArchive()">
+                <i class="tf-ion-archive"></i> 일괄 보관
+            </button>
+            <button type="button" class="btn btn-sm btn-danger" onclick="AdminOrders.bulkDelete()">
+                <i class="tf-ion-trash-a"></i> 일괄 삭제
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th style="width: 40px;">
+                    <input type="checkbox" id="select-all-orders" onclick="AdminOrders.toggleSelectAll()" title="전체 선택">
+                </th>
+                <th>주문번호 / 날짜</th>
+                <th>주문자 정보</th>
+                <th>상품</th>
+                <th>총 결제금액</th>
+                <th>운송장</th>
+                <th class="text-center">상태</th>
+                <th class="text-center">관리</th>
+            </tr>
+        </thead>
+        <tbody id="orders-table-body">
+            <!-- Orders will be injected here -->
+            <tr>
+                <td colspan="8" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <span class="ml-2">주문 목록을 불러오는 중...</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <div>
+        <span class="text-muted">총 <strong id="total-orders-count">0</strong>건의 주문</span>
+    </div>
+    <nav aria-label="Page navigation">
+        <ul id="pagination-controls" class="pagination mb-0">
+            <!-- Pagination buttons injected by JS -->
+        </ul>
+    </nav>
+</div>

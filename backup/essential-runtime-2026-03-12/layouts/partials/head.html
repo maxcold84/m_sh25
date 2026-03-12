@@ -1,0 +1,70 @@
+<head>
+  <meta charset="utf-8">
+  <title>{{ .Title }}</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' * 'unsafe-inline' 'unsafe-eval' data: blob:;">
+
+  {{ "<!-- mobile responsive meta -->" | safeHTML }}
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description"
+    content="{{ with .Description }}{{ . }}{{ else }}{{ with site.Params.description }}{{ . }}{{ end }}{{ end }}">
+  {{ with site.Params.author }}
+  <meta name="author" content="{{ . }}">{{ end }}
+  {{ hugo.Generator }}
+
+  <!-- theme meta -->
+  <meta name="theme-name" content="vex-hugo" />
+
+  {{ "<!-- plugins -->" | safeHTML }}
+  {{ range site.Params.plugins.css }}
+  <link rel="stylesheet" href="{{ .link | absURL }}">
+  {{ end }}
+
+  {{ "<!-- Main Stylesheet -->" | safeHTML }}
+  {{ $styles := resources.Get "scss/style.scss" | toCSS | minify }}
+  <link rel="stylesheet" href="{{ $styles.Permalink }}" media="screen">
+
+  {{ "<!-- Cart Styles -->" | safeHTML }}
+  {{ $cartStyles := resources.Get "scss/cart-styles.scss" | toCSS | minify }}
+  <link rel="stylesheet" href="{{ $cartStyles.Permalink }}" media="screen">
+
+  {{ "<!--Favicon-->" | safeHTML }}
+  <link rel="shortcut icon" href="{{ `images/favicon.png` | absURL }}" type="image/x-icon">
+  <link rel="icon" href="{{ `images/favicon.png` | absURL }}" type="image/x-icon">
+
+  {{ with .Params.image }}
+  <meta property="og:image" content="{{ . | absURL }}" />
+  {{ end }}
+  {{ template "_internal/opengraph.html" . }}
+  {{ template "_internal/google_analytics.html" . }}
+
+  <!-- Portone V2 SDK -->
+  <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+
+  <!-- Site Configuration -->
+  <script>
+    window.SiteConfig = {
+      pocketbaseUrl: "{{ site.Params.pocketbase.url }}"
+    };
+  </script>
+
+  <!-- Shop Configuration -->
+  <script>
+    window.ShopConfig = {
+      storeId: "{{ site.Params.portone.store_id }}",
+      channels: {
+        "inicis": "{{ site.Params.portone.inicis_channel_key }}",
+        "kakaopay": "{{ site.Params.portone.kakaopay_channel_key }}",
+        "korean_payment": "{{ site.Params.portone.korean_payment_channel_key }}"
+      },
+      koreanPaymentPassKey: "uC8xslzJfLSuc67mrBTGAC7ANOX8EbIa"
+    };
+  </script>
+
+  <!-- PocketBase & Mustache (외부 라이브러리) -->
+  {{ $pb := resources.Get "js/pocketbase.umd.js" }}
+  <script src="{{ $pb.Permalink }}"></script>
+
+  {{ $mustache := resources.Get "js/mustache.min.js" }}
+  <script src="{{ $mustache.Permalink }}"></script>
+
+</head>
