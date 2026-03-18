@@ -1,1 +1,19 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tags on Vex Hugo (Korean)</title><link>/ko/tags/</link><description>Recent content in Tags on Vex Hugo (Korean)</description><generator>Hugo</generator><language>ko</language><lastBuildDate>Mon, 22 Dec 2025 13:05:16 +0000</lastBuildDate><atom:link href="/ko/tags/index.xml" rel="self" type="application/rss+xml"/><item><title>ㄹㄷㄹㅈㄹ</title><link>/ko/tags/%E3%84%B9%E3%84%B7%E3%84%B9%E3%85%88%E3%84%B9/</link><pubDate>Mon, 22 Dec 2025 13:05:16 +0000</pubDate><guid>/ko/tags/%E3%84%B9%E3%84%B7%E3%84%B9%E3%85%88%E3%84%B9/</guid><description/></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on Vex Hugo (Korean)</title>
+    <link>//localhost:1313/ko/tags/</link>
+    <description>Recent content in Tags on Vex Hugo (Korean)</description>
+    <generator>Hugo</generator>
+    <language>ko</language>
+    <lastBuildDate>Mon, 22 Dec 2025 13:05:16 +0000</lastBuildDate>
+    <atom:link href="//localhost:1313/ko/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>ㄹㄷㄹㅈㄹ</title>
+      <link>//localhost:1313/ko/tags/%E3%84%B9%E3%84%B7%E3%84%B9%E3%85%88%E3%84%B9/</link>
+      <pubDate>Mon, 22 Dec 2025 13:05:16 +0000</pubDate>
+      <guid>//localhost:1313/ko/tags/%E3%84%B9%E3%84%B7%E3%84%B9%E3%85%88%E3%84%B9/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>
