@@ -52,11 +52,35 @@ if (typeof window !== 'undefined') {
 function initializeApp() {
     console.log('[Main] Initializing application...');
 
-    // Auth는 자체적으로 init 호출
-    // Cart는 config가 필요하므로 여기서 호출하지 않음
-    // Profile, Reviews, QnA는 페이지별 로직이 있거나 호출 시점이 다르므로 여기서 호출하지 않음
+    bootstrapProductDetail();
+    bootstrapProfilePage();
 
     console.log('[Main] Application initialized');
+}
+
+function bootstrapProductDetail() {
+    const productDetailRoot = document.getElementById('product-detail-container');
+    const reviewRoot = document.getElementById('review-list');
+    const qnaRoot = document.getElementById('qna-list');
+    const productId = productDetailRoot?.dataset.productId || reviewRoot?.dataset.productId || qnaRoot?.dataset.productId;
+
+    if (!productId) {
+        return;
+    }
+
+    if (reviewRoot) {
+        Reviews.init(productId);
+    }
+
+    if (qnaRoot) {
+        QnA.init(productId);
+    }
+}
+
+function bootstrapProfilePage() {
+    if (document.getElementById('profile-form') || document.getElementById('save-button')) {
+        Profile.init();
+    }
 }
 
 // DOMContentLoaded에서 초기화

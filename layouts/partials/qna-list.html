@@ -9,7 +9,7 @@
         </div>
 
         <!-- Inquiry List -->
-        <div id="qna-list" class="mb-5">
+        <div id="qna-list" class="mb-5" data-product-id="{{ .Params.id }}">
             <!-- Loaded via JS -->
         </div>
 
@@ -40,15 +40,3 @@
         </div>
     </div>
 </div>
-
-<!-- Load QnA Script -->
-{{ $qna := resources.Get "js/qna.js" }}
-<script src="{{ $qna.Permalink }}?v={{ now.Unix }}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Wait for PocketBase to assume readiness or simple init
-        // Assuming 'pb' global is available or Init inside QnA handles it? 
-        // QnA defines its own 'const pb = ...' internally so it's fine.
-        QnA.init('{{ .Params.id }}');
-    });
-</script>

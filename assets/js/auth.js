@@ -10,6 +10,8 @@ const Auth = (function () {
     let nicknameChecked = false;
     let checkedNickname = '';
     let nicknameCheckTimeout = null;
+    let nicknameCheckRequestId = 0;
+    const AUTH_REDIRECT_KEY = 'auth_redirect';
 
     function init() {
         updateAuthUI();
@@ -166,9 +168,7 @@ const Auth = (function () {
             }
 
             setTimeout(() => {
-                const redirectUrl = localStorage.getItem('auth_redirect') || getHomeUrl();
-                localStorage.removeItem('auth_redirect');
-                window.location.href = redirectUrl;
+                window.location.href = consumeAuthRedirect();
             }, 500);
         } catch (error) {
             console.error('Login failed:', error);
@@ -191,7 +191,7 @@ const Auth = (function () {
             return;
         }
 
-        if (nickname && !nicknameChecked) {
+        if (nickname && (!nicknameChecked || nickname !== checkedNickname)) {
             showMessage(messageEl, '닉네임 중복 확인이 필요합니다.', 'text-warning');
             return;
         }
@@ -231,16 +231,14 @@ const Auth = (function () {
     async function handleOAuth2Login(provider) {
         try {
             // Store current URL for redirect after login
-            const currentUrl = window.location.pathname + window.location.search;
-            localStorage.setItem('auth_redirect', currentUrl);
+            const currentUrl = window.location.pathname + window.location.search + window.location.hash;
+            storeAuthRedirect(currentUrl);
 
             const authData = await pb.collection('users').authWithOAuth2({ provider });
 
             if (authData && authData.record) {
                 showToast(`${provider} 로그인 성공!`);
-                const redirectUrl = localStorage.getItem('auth_redirect') || getHomeUrl();
-                localStorage.removeItem('auth_redirect');
-                window.location.href = redirectUrl;
+                window.location.href = consumeAuthRedirect();
             }
         } catch (error) {
             console.error(`${provider} OAuth login failed:`, error);
@@ -267,6 +265,39 @@ const Auth = (function () {
     function getHomeUrl() {
         const isKo = document.documentElement.lang === 'ko' || window.location.pathname.includes('/ko/');
         return isKo ? '/ko/' : '/';
+    }
+
+    function isSafeRedirectPath(value) {
+        if (typeof value !== 'string' || value.length === 0) {
+            return false;
+        }
+
+        if (!value.startsWith('/') || value.startsWith('//')) {
+            return false;
+        }
+
+        try {
+            const url = new URL(value, window.location.origin);
+            return url.origin === window.location.origin;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function storeAuthRedirect(value) {
+        if (isSafeRedirectPath(value)) {
+            sessionStorage.setItem(AUTH_REDIRECT_KEY, value);
+            return;
+        }
+
+        sessionStorage.removeItem(AUTH_REDIRECT_KEY);
+    }
+
+    function consumeAuthRedirect() {
+        const storedRedirect = sessionStorage.getItem(AUTH_REDIRECT_KEY);
+        sessionStorage.removeItem(AUTH_REDIRECT_KEY);
+
+        return isSafeRedirectPath(storedRedirect) ? storedRedirect : getHomeUrl();
     }
 
     function showToast(message) {
@@ -352,26 +383,39 @@ const Auth = (function () {
         if (!nickname || nickname.length < 2) {
             updateNicknameStatus('', '');
             nicknameChecked = false;
+            checkedNickname = '';
             return;
         }
+
+        const requestId = ++nicknameCheckRequestId;
 
         try {
             const result = await pb.collection('users').getList(1, 1, {
                 filter: `username = "${nickname}"`
             });
 
+            if (requestId !== nicknameCheckRequestId) {
+                return;
+            }
+
             if (result.totalItems > 0) {
                 updateNicknameStatus('이미 사용 중인 닉네임입니다.', 'text-danger');
                 nicknameChecked = false;
+                checkedNickname = '';
             } else {
                 updateNicknameStatus('사용 가능한 닉네임입니다.', 'text-success');
                 nicknameChecked = true;
                 checkedNickname = nickname;
             }
         } catch (error) {
+            if (requestId !== nicknameCheckRequestId) {
+                return;
+            }
+
             console.error('Nickname check failed:', error);
             updateNicknameStatus('닉네임 확인 중 오류가 발생했습니다.', 'text-warning');
             nicknameChecked = false;
+            checkedNickname = '';
         }
     }
 
@@ -389,7 +433,10 @@ const Auth = (function () {
 
         nicknameInput.addEventListener('input', function () {
             const nickname = nicknameInput.value.trim();
-            if (nickname !== checkedNickname) nicknameChecked = false;
+            if (nickname !== checkedNickname) {
+                nicknameChecked = false;
+                checkedNickname = '';
+            }
             if (nicknameCheckTimeout) clearTimeout(nicknameCheckTimeout);
             nicknameCheckTimeout = setTimeout(() => { checkNickname(nickname); }, 500);
         });

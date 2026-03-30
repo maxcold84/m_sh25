@@ -11,7 +11,7 @@
             </button>
         </div>
 
-        <div id="qna-list" class="mb-5">
+        <div id="qna-list" class="mb-5" data-product-id="{{ $productID }}">
         </div>
 
         <div id="qna-auth-message" class="alert alert-light border text-center py-4" style="display: none;">
@@ -39,11 +39,3 @@
         </div>
     </div>
 </div>
-
-{{ $qna := resources.Get "js/qna.js" }}
-<script src="{{ $qna.Permalink }}?v={{ now.Unix }}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        QnA.init('{{ $productID }}');
-    });
-</script>

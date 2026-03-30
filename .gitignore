@@ -1,12 +1,17 @@
 # Hugo 기본 무시 파일
 /public/
+/server/
+/backup/
 /resources/_gen/
 /assets/jsconfig.json
 hugo_stats.json
+/tmp_vibe_verify_server_*/
+/tmp_hugo_cache_*/
 
 # PocketBase 데이터
 /pb_data/
 /pb_migrations/
+/docs/pb_data/
 
 # 운영 체제 파일
 .DS_Store

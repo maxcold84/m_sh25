@@ -407,11 +407,4 @@ if (typeof window !== 'undefined') {
     window.Profile = Profile;
 }
 
-// Auto-run if enabled (but safely checks for page elements)
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
-
 export default Profile;

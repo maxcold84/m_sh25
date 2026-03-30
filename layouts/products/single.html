@@ -211,7 +211,7 @@
         <div class="col-12">
           <h2>상품 리뷰</h2>
 
-          <div id="review-list" class="mb-4"></div>
+          <div id="review-list" class="mb-4" data-product-id="{{ $productID }}"></div>
 
           <div id="review-auth-message" class="alert alert-info" style="display: none;">
             리뷰를 작성하려면 <a href="{{ "login" | relLangURL }}">로그인</a>이 필요합니다.
@@ -521,13 +521,5 @@
 </script>
 
 {{ partial "products.html" . }}
-
-{{ $reviews := resources.Get "js/reviews.js" }}
-<script src="{{ $reviews.Permalink }}?v={{ now.Unix }}"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    Reviews.init('{{ $productID }}');
-  });
-</script>
 
 {{ end }}

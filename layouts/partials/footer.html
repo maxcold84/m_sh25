@@ -48,7 +48,7 @@
 {{ if hugo.IsProduction }}
 {{ $js = $js | fingerprint }}
 {{ end }}
-<script src="{{ $js.RelPermalink }}?v={{ now.Unix }}"></script>
+<script src="{{ $js.RelPermalink }}"></script>
 
 <!-- Auth Script -->
 <script>

@@ -4,12 +4,9 @@
             <span class="admin-nav-brand">ADMIN</span>
         </div>
         <div class="admin-nav-center">
-            <a href="/ko/admin/products/" class="admin-nav-link {{ if in .RelPermalink " /admin/products/" }}active{{
-                end }}">상품 관리</a>
-            <a href="/ko/admin/orders/" class="admin-nav-link {{ if in .RelPermalink " /admin/orders/" }}active{{ end
-                }}">주문 관리</a>
-            <a href="/ko/admin/posts/" class="admin-nav-link {{ if in .RelPermalink " /admin/posts/" }}active{{ end
-                }}">블로그 관리</a>
+            <a href="/ko/admin/products/" class="admin-nav-link {{ if in .RelPermalink "/admin/products/" }}active{{ end }}">상품 관리</a>
+            <a href="/ko/admin/orders/" class="admin-nav-link {{ if in .RelPermalink "/admin/orders/" }}active{{ end }}">주문 관리</a>
+            <a href="/ko/admin/posts/" class="admin-nav-link {{ if in .RelPermalink "/admin/posts/" }}active{{ end }}">블로그 관리</a>
         </div>
         <div class="admin-nav-right">
             <button id="admin-logout-btn" class="admin-nav-logout">로그아웃</button>
