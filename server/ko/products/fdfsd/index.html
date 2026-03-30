@@ -171,26 +171,96 @@
 </header>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <section class="section">
   <div class="container">
-    <div id="product-detail-container">
+    <div id="product-detail-container" class="product-detail-container"
+      data-product-id="2gkq4gmaopeuxwu"
+      data-product-name="fdfsd"
+      data-product-price="20000"
+      data-product-image="/images/products/2gkq4gmaopeuxwu_0_showcase_7_hu_8cf0e7dc77864e8a.webp"
+      data-product-slug="fdfsd"
+      data-product-url="/ko/products/fdfsd/"
+      data-product-currency="₩"
+      data-add-label="장바구니에 추가"
+      data-adding-label="추가 중...">
       <div class="row">
         <div class="col-md-5 mb-4 mb-md-0">
-          
           <div class="product-image-slider" id="product-slider">
-            
-            
-            
-            
-            
-            
-            
-            
-
-            
-            
-            
-            
             
             
             <div class="slide-item" data-image="/images/products/2gkq4gmaopeuxwu_0_showcase_7_hu_8cf0e7dc77864e8a.webp">
@@ -205,15 +275,10 @@
             
             
           </div>
-
         </div>
 
         <div class="col-lg-6 col-md-7 offset-lg-1">
           <h1 class="mb-4">fdfsd</h1>
-
-          
-
-          
 
           <p class="price py-4">
             
@@ -225,25 +290,32 @@
           </p>
 
           
-          
-          
-          
+
           
 
-          <button class="btn btn-main mb-5" onclick="Cart.addItem({
-              id: '2gkq4gmaopeuxwu',
-              name: 'fdfsd',
-              price:  20000 ,
-              image: '\/images\/products\/2gkq4gmaopeuxwu_0_showcase_7_hu_7a3b62076ef66e38_2u7qz5zxs8.webp',
-              options: {
-                
-                
-              }
-            })">
+          <div class="product-quantity-section">
+            <strong class="d-block mb-2">수량</strong>
+            <div class="product-quantity-control">
+              <button type="button" class="quantity-button" data-quantity-action="decrease" aria-label="Decrease quantity">
+                -
+              </button>
+              <input type="number" class="quantity-input" data-product-quantity min="1" step="1" value="1"
+                inputmode="numeric">
+              <button type="button" class="quantity-button" data-quantity-action="increase" aria-label="Increase quantity">
+                +
+              </button>
+            </div>
+          </div>
+
+          <div class="product-total-price mb-4">
+            <span class="text-muted mr-2">합계</span>
+            <strong data-product-total-price>₩20000</strong>
+          </div>
+
+          <button type="button" class="btn btn-main mb-5 product-add-to-cart" data-add-to-cart>
             🛒 장바구니에 추가
           </button>
 
-          
           <div class="product-description">
             <h3>설명</h3>
             <p>fdsfddsf</p>
@@ -252,20 +324,16 @@
         </div>
       </div>
 
-      
       <div class="row mt-5">
         <div class="col-12">
           <h2>상품 리뷰</h2>
 
-          
           <div id="review-list" class="mb-4"></div>
 
-          
           <div id="review-auth-message" class="alert alert-info" style="display: none;">
             리뷰를 작성하려면 <a href="/ko/login">로그인</a>이 필요합니다.
           </div>
 
-          
           <div id="review-form-container" class="mt-4">
             <h3>리뷰 작성</h3>
             <form id="review-form" style="display: none;">
@@ -304,7 +372,9 @@
     </div>
 
     
-    <div class="row mt-5">
+
+
+<div class="row mt-5">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
             <h2 class="mb-0">상품 문의</h2>
@@ -314,18 +384,14 @@
             </button>
         </div>
 
-        
         <div id="qna-list" class="mb-5">
-            
         </div>
 
-        
         <div id="qna-auth-message" class="alert alert-light border text-center py-4" style="display: none;">
             <p class="mb-3">상품 문의는 로그인 후 작성 가능합니다.</p>
             <a href="/ko/login" class="btn btn-primary btn-sm">로그인 / 회원가입</a>
         </div>
 
-        
         <div id="qna-form-container" class="bg-light p-4 rounded" style="display: none;">
             <h4 class="mb-3">문의 작성</h4>
             <form id="qna-form">
@@ -348,13 +414,9 @@
 </div>
 
 
-
-<script src="//localhost:1313/js/qna.js?v=1773123619"></script>
+<script src="//localhost:1313/js/qna.js?v=1774871343"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        
-        
-        
         QnA.init('2gkq4gmaopeuxwu');
     });
 </script>
@@ -362,7 +424,6 @@
 
   </div>
 </section>
-
 
 
 
@@ -383,6 +444,35 @@
         </div>
 
         <div class="related-products-slider" id="related-products-slider">
+            
+            <div class="related-product-item">
+                <a href="/ko/products/fdsfs/" class="product-link">
+                    <div class="product-image-wrapper">
+                        
+                        
+                        
+                        
+
+                        
+                        
+                        
+                        
+                        <img src="/images/products/m23o9ajt2e3eh35_0_a_hand_drawn_style_artistic_illustration_by_an_art_1763290839240_3hg0usma92_hu_fca67dcc85d851c5.webp" alt="fdsfs" class="product-image" loading="lazy">
+                        
+                        
+                    </div>
+
+                    <div class="product-info">
+                        <h3 class="product-title">fdsfs</h3>
+                        <div class="product-price">
+                            
+                            <span class="sale-price">₩300</span>
+                            <span class="original-price">₩5000</span>
+                            
+                        </div>
+                    </div>
+                </a>
+            </div>
             
             <div class="related-product-item">
                 <a href="/ko/products/product-1773116292395/" class="product-link">
@@ -698,35 +788,6 @@
                 </a>
             </div>
             
-            <div class="related-product-item">
-                <a href="/ko/products/fdsafas/" class="product-link">
-                    <div class="product-image-wrapper">
-                        
-                        
-                        
-                        
-
-                        
-                        
-                        
-                        
-                        <img src="/images/products/rump6wq265rejuj_0_alvertos98_tentacles_in_the_shape_of_hair_4k_blackwork_detailed_e6b4955c_d0e8_4254_a8f5_7ff41ef95586_0ldj0w9osp_hu_45224ffc89b05958.webp" alt="fdsafas" class="product-image" loading="lazy">
-                        
-                        
-                    </div>
-
-                    <div class="product-info">
-                        <h3 class="product-title">fdsafas</h3>
-                        <div class="product-price">
-                            
-                            <span class="sale-price">₩3838</span>
-                            <span class="original-price">₩527</span>
-                            
-                        </div>
-                    </div>
-                </a>
-            </div>
-            
         </div>
     </div>
 </section>
@@ -975,12 +1036,101 @@
     max-height: 500px;
     object-fit: contain;
   }
+
+  .product-image-placeholder {
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #d8d8d8;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #fbfbfb 0%, #f0f0f0 100%);
+    color: #888;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .product-option-group {
+    margin-bottom: 24px;
+  }
+
+  .product-option-current {
+    font-size: 0.95rem;
+  }
+
+  .product-option-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .product-option-chip {
+    border: 1px solid #d8d8d8;
+    background: #fff;
+    color: #333;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    line-height: 1;
+    transition: all 0.2s ease;
+  }
+
+  .product-option-chip:hover {
+    border-color: #111;
+  }
+
+  .product-option-chip.is-active {
+    border-color: #111;
+    background: #111;
+    color: #fff;
+  }
+
+  .product-quantity-section {
+    margin-bottom: 20px;
+  }
+
+  .product-quantity-control {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #d8d8d8;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .quantity-button {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    background: transparent;
+    font-size: 1.2rem;
+    color: #222;
+  }
+
+  .quantity-input {
+    width: 72px;
+    height: 44px;
+    border: 0;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .quantity-input:focus {
+    outline: none;
+  }
+
+  .product-total-price {
+    font-size: 1.05rem;
+  }
+
+  .product-add-to-cart[disabled] {
+    opacity: 0.75;
+    cursor: wait;
+  }
 </style>
 
 <script>
-  
   document.addEventListener('DOMContentLoaded', function () {
-    
     if (typeof $ !== 'undefined' && $.fn.slick) {
       $('.product-image-slider').slick({
         infinite: true,
@@ -991,10 +1141,154 @@
         dots: false
       });
     }
+
+    const productDetailRoot = document.getElementById('product-detail-container');
+    if (!productDetailRoot) {
+      return;
+    }
+
+    const quantityInput = productDetailRoot.querySelector('[data-product-quantity]');
+    const totalPriceElement = productDetailRoot.querySelector('[data-product-total-price]');
+    const addToCartButton = productDetailRoot.querySelector('[data-add-to-cart]');
+    const currency = productDetailRoot.dataset.productCurrency || '';
+    const unitPrice = Number(productDetailRoot.dataset.productPrice || 0);
+
+    const formatCurrency = function (value) {
+      const locale = document.documentElement.lang === 'ko' ? 'ko-KR' : 'en-US';
+      return currency + new Intl.NumberFormat(locale).format(value);
+    };
+
+    const clampQuantity = function (value) {
+      const parsed = Number.parseInt(value, 10);
+      if (Number.isNaN(parsed) || parsed < 1) {
+        return 1;
+      }
+      return parsed;
+    };
+
+    const updateSelectedOptionLabel = function (groupName) {
+      const group = productDetailRoot.querySelector('[data-option-group-container="' + groupName + '"]');
+      const label = productDetailRoot.querySelector('[data-selected-option="' + groupName + '"]');
+      if (!group || !label) {
+        return '';
+      }
+      const activeOption = group.querySelector('.product-option-chip.is-active');
+      const selectedValue = activeOption ? activeOption.dataset.optionValue : '';
+      label.textContent = selectedValue;
+      return selectedValue;
+    };
+
+    const getSelectedOption = function (groupName) {
+      const group = productDetailRoot.querySelector('[data-option-group-container="' + groupName + '"]');
+      if (!group) {
+        return '';
+      }
+      const activeOption = group.querySelector('.product-option-chip.is-active');
+      return activeOption ? activeOption.dataset.optionValue : '';
+    };
+
+    const updateTotalPrice = function () {
+      if (!totalPriceElement) {
+        return;
+      }
+      const quantity = clampQuantity(quantityInput ? quantityInput.value : 1);
+      if (quantityInput) {
+        quantityInput.value = quantity;
+      }
+      totalPriceElement.textContent = formatCurrency(unitPrice * quantity);
+    };
+
+    productDetailRoot.querySelectorAll('[data-option-group-container]').forEach(function (group) {
+      const groupName = group.dataset.optionGroupContainer;
+      group.querySelectorAll('.product-option-chip').forEach(function (button) {
+        button.addEventListener('click', function () {
+          group.querySelectorAll('.product-option-chip').forEach(function (chip) {
+            chip.classList.remove('is-active');
+            chip.setAttribute('aria-pressed', 'false');
+          });
+          button.classList.add('is-active');
+          button.setAttribute('aria-pressed', 'true');
+          updateSelectedOptionLabel(groupName);
+        });
+      });
+      updateSelectedOptionLabel(groupName);
+    });
+
+    if (quantityInput) {
+      quantityInput.addEventListener('input', function () {
+        updateTotalPrice();
+      });
+    }
+
+    productDetailRoot.querySelectorAll('[data-quantity-action]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        if (!quantityInput) {
+          return;
+        }
+        const currentValue = clampQuantity(quantityInput.value);
+        const nextValue = button.dataset.quantityAction === 'decrease'
+          ? Math.max(1, currentValue - 1)
+          : currentValue + 1;
+        quantityInput.value = nextValue;
+        updateTotalPrice();
+      });
+    });
+
+    updateTotalPrice();
+
+    if (addToCartButton) {
+      addToCartButton.addEventListener('click', async function () {
+        if (typeof Cart === 'undefined' || !Cart.addItem) {
+          console.error('Cart is not defined');
+          return;
+        }
+
+        const quantity = clampQuantity(quantityInput ? quantityInput.value : 1);
+        const payload = {
+          id: productDetailRoot.dataset.productId,
+          name: productDetailRoot.dataset.productName,
+          slug: productDetailRoot.dataset.productSlug || '',
+          url: productDetailRoot.dataset.productUrl || '',
+          price: unitPrice,
+          image: productDetailRoot.dataset.productImage || '',
+          quantity: quantity,
+          options: {
+            __productSlug: productDetailRoot.dataset.productSlug || '',
+            __productUrl: productDetailRoot.dataset.productUrl || ''
+          }
+        };
+
+        const selectedColor = getSelectedOption('color');
+        const selectedSize = getSelectedOption('size');
+
+        if (selectedColor) {
+          payload.options.color = selectedColor;
+        }
+        if (selectedSize) {
+          payload.options.size = selectedSize;
+        }
+
+        const defaultLabel = productDetailRoot.dataset.addLabel || addToCartButton.textContent;
+        const addingLabel = productDetailRoot.dataset.addingLabel || defaultLabel;
+
+        addToCartButton.disabled = true;
+        addToCartButton.textContent = '🛒 ' + addingLabel;
+
+        try {
+          await Cart.addItem(payload);
+        } catch (error) {
+          console.error('Failed to add product to cart:', error);
+          if (Cart.notify) {
+            Cart.notify('장바구니에 상품을 추가하지 못했습니다.', true);
+          }
+        } finally {
+          addToCartButton.disabled = false;
+          addToCartButton.textContent = '🛒 ' + defaultLabel;
+        }
+      });
+    }
   });
 </script>
-
-
 
 
 
@@ -1270,8 +1564,7 @@
 
 
 
-
-<script src="//localhost:1313/js/reviews.js?v=1773123619"></script>
+<script src="//localhost:1313/js/reviews.js?v=1774871343"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     Reviews.init('2gkq4gmaopeuxwu');
@@ -1345,7 +1638,7 @@
 
 
 
-<script src="/js/bundle.js?v=1773123619"></script>
+<script src="/js/bundle.js?v=1774871343"></script>
 
 
 <script>
@@ -1419,6 +1712,9 @@
           [[^productLink]]
           <h4 class="item-name">[[name]]</h4>
           [[/productLink]]
+          [[#optionSummary]]
+          <div class="item-options">[[optionSummary]]</div>
+          [[/optionSummary]]
           <div class="item-price">[[formattedPrice]]</div>
         </div>
       </div>
@@ -1454,6 +1750,7 @@
     </div>
     [[/hasItems]]
 </script>
+
 
   
   <div class="cart-footer" style="display: none;" id="cart-footer">

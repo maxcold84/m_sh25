@@ -1,0 +1,49 @@
+{{ $page := .page }}
+{{ $productID := .productID }}
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+            <h2 class="mb-0">상품 문의</h2>
+            <button class="btn btn-outline-primary btn-sm"
+                onclick="document.getElementById('qna-form-container').scrollIntoView({behavior: 'smooth'})">
+                문의하기
+            </button>
+        </div>
+
+        <div id="qna-list" class="mb-5">
+        </div>
+
+        <div id="qna-auth-message" class="alert alert-light border text-center py-4" style="display: none;">
+            <p class="mb-3">상품 문의는 로그인 후 작성 가능합니다.</p>
+            <a href="{{ "login" | relLangURL }}" class="btn btn-primary btn-sm">로그인 / 회원가입</a>
+        </div>
+
+        <div id="qna-form-container" class="bg-light p-4 rounded" style="display: none;">
+            <h4 class="mb-3">문의 작성</h4>
+            <form id="qna-form">
+                <div class="form-group">
+                    <textarea class="form-control" id="qna-content" rows="3"
+                        placeholder="문의 내용을 작성해주세요. (개인정보가 포함되지 않도록 주의해주세요)" required></textarea>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="qna-secret">
+                        <label class="custom-control-label user-select-none" for="qna-secret">
+                            <i class="tf-ion-locked mr-1"></i>비밀글로 작성
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-dark">등록하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{ $qna := resources.Get "js/qna.js" }}
+<script src="{{ $qna.Permalink }}?v={{ now.Unix }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        QnA.init('{{ $productID }}');
+    });
+</script>

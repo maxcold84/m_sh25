@@ -1,56 +1,130 @@
 {{ define "main" }}
 
+{{ $productID := "" }}
+{{ with .Params.id }}
+{{ $productID = trim (printf "%v" .) " " }}
+{{ end }}
+{{ with .File }}
+{{ if or (eq $productID "") (eq $productID "<nil>") }}
+{{ $productID = .ContentBaseName }}
+{{ end }}
+{{ end }}
+{{ if or (eq $productID "") (eq $productID "<nil>") }}
+{{ $productID = urlize .Title }}
+{{ end }}
+{{ $pageSlug := or .Params.slug .Slug .File.ContentBaseName }}
+
+{{ $colorLabel := "Color" }}
+{{ $sizeLabel := "Size" }}
+{{ $quantityLabel := "Quantity" }}
+{{ $totalLabel := "Total" }}
+{{ $descriptionLabel := "Description" }}
+{{ $addToCartLabel := "Add to Cart" }}
+{{ $addingToCartLabel := "Adding..." }}
+{{ $imageFallbackLabel := "Image coming soon." }}
+{{ if eq site.Language.Lang "ko" }}
+{{ $colorLabel = "색상" }}
+{{ $sizeLabel = "사이즈" }}
+{{ $quantityLabel = "수량" }}
+{{ $totalLabel = "합계" }}
+{{ $descriptionLabel = "설명" }}
+{{ $addToCartLabel = "장바구니에 추가" }}
+{{ $addingToCartLabel = "추가 중..." }}
+{{ $imageFallbackLabel = "이미지가 준비 중입니다." }}
+{{ end }}
+
+{{ $displayPrice := .Params.price }}
+{{ if .Params.discount_price }}
+{{ $displayPrice = .Params.discount_price }}
+{{ end }}
+
+{{ $rawImages := slice }}
+{{ with .Params.images }}
+{{ range . }}
+{{ $imageValue := trim (printf "%v" .) " " }}
+{{ if ne $imageValue "" }}
+{{ $rawImages = $rawImages | append $imageValue }}
+{{ end }}
+{{ end }}
+{{ end }}
+
+{{ $mainImage := "" }}
+{{ with .Params.mainImage }}
+{{ $mainImage = trim (printf "%v" .) " " }}
+{{ end }}
+{{ if and (eq (len $rawImages) 0) (ne $mainImage "") }}
+{{ $rawImages = $rawImages | append $mainImage }}
+{{ end }}
+
+{{ $imageSlides := slice }}
+{{ range $rawImages }}
+{{ $rawImage := trim (printf "%v" .) " " }}
+{{ if ne $rawImage "" }}
+{{ $normalizedImage := replaceRE "^/" "" $rawImage }}
+{{ if or (hasPrefix $normalizedImage "http://") (hasPrefix $normalizedImage "https://") (hasPrefix $normalizedImage "//") }}
+{{ $imageSlides = $imageSlides | append (dict "small" $normalizedImage "medium" $normalizedImage "large" $normalizedImage "original" $normalizedImage "alt" $.Title) }}
+{{ else }}
+{{ $resourcePath := $normalizedImage }}
+{{ if not (hasPrefix $normalizedImage "images/") }}
+{{ $resourcePath = printf "images/products/%s" $normalizedImage }}
+{{ end }}
+{{ with resources.Get $resourcePath }}
+{{ $large := .Resize "1200x webp q85" }}
+{{ $medium := .Resize "800x webp q85" }}
+{{ $small := .Resize "400x webp q85" }}
+{{ $imageSlides = $imageSlides | append (dict "small" $small.RelPermalink "medium" $medium.RelPermalink "large" $large.RelPermalink "original" $medium.RelPermalink "alt" $.Title) }}
+{{ else }}
+{{ $fallbackURL := relURL $resourcePath }}
+{{ $imageSlides = $imageSlides | append (dict "small" $fallbackURL "medium" $fallbackURL "large" $fallbackURL "original" $fallbackURL "alt" $.Title) }}
+{{ end }}
+{{ end }}
+{{ end }}
+{{ end }}
+
+{{ $cartImage := "" }}
+{{ if gt (len $imageSlides) 0 }}
+{{ $cartImage = index (index $imageSlides 0) "medium" }}
+{{ end }}
+
 <section class="section">
   <div class="container">
-    <div id="product-detail-container">
+    <div id="product-detail-container" class="product-detail-container"
+      data-product-id="{{ $productID }}"
+      data-product-name="{{ .Title }}"
+      data-product-price="{{ $displayPrice }}"
+      data-product-image="{{ $cartImage }}"
+      data-product-slug="{{ $pageSlug }}"
+      data-product-url="{{ .RelPermalink }}"
+      data-product-currency="{{ site.Params.currency }}"
+      data-add-label="{{ $addToCartLabel }}"
+      data-adding-label="{{ $addingToCartLabel }}">
       <div class="row">
         <div class="col-md-5 mb-4 mb-md-0">
-          <!-- Product Image Slider 휴고 메인 이미지와 슬라이더-->
           <div class="product-image-slider" id="product-slider">
-            {{ $processedImages := slice }}
-            {{ range .Params.images }}
-            {{ $imagePath := printf "images/products/%s" . }}
-            {{ $img := resources.Get $imagePath }}
-            {{ if $img }}
-            {{ $processedImages = $processedImages | append $img }}
-            {{ end }}
-            {{ end }}
-
-            {{/* Display processed Hugo images */}}
-            {{ if gt (len $processedImages) 0 }}
-            {{ range $processedImages }}
-            {{ $large := .Resize "1200x webp q85" }}
-            {{ $medium := .Resize "800x webp q85" }}
-            {{ $small := .Resize "400x webp q85" }}
-            <div class="slide-item" data-image="{{ $medium.RelPermalink }}">
+            {{ if gt (len $imageSlides) 0 }}
+            {{ range $imageSlides }}
+            <div class="slide-item" data-image="{{ index . "medium" }}">
               <picture>
-                <source srcset="{{ $small.RelPermalink }} 400w,
-                                  {{ $medium.RelPermalink }} 800w,
-                                  {{ $large.RelPermalink }} 1200w" type="image/webp"
+                <source srcset="{{ index . "small" }} 400w,
+                                  {{ index . "medium" }} 800w,
+                                  {{ index . "large" }} 1200w" type="image/webp"
                   sizes="(max-width: 600px) 400px, (max-width: 1000px) 800px, 1200px">
-                <img class="img-fluid w-100" src="{{ $medium.RelPermalink }}" alt="{{ $.Title }}" loading="lazy">
+                <img class="img-fluid w-100" src="{{ index . "medium" }}" alt="{{ index . "alt" }}" loading="lazy">
               </picture>
             </div>
             {{ end }}
+            {{ else }}
+            <div class="slide-item product-image-slide-placeholder">
+              <div class="product-image-placeholder">
+                <span>{{ $imageFallbackLabel }}</span>
+              </div>
+            </div>
             {{ end }}
           </div>
-
         </div>
 
         <div class="col-lg-6 col-md-7 offset-lg-1">
           <h1 class="mb-4">{{ .Title }}</h1>
-
-          {{ with .Params.colors }}
-          <p><strong>Colors: </strong>
-            {{ range . }}{{ . }} {{ end }}
-          </p>
-          {{ end }}
-
-          {{ with .Params.sizes }}
-          <p><strong>Sizes: </strong>
-            {{ range . }}{{ . }} {{ end }}
-          </p>
-          {{ end }}
 
           <p class="price py-4">
             {{ if .Params.discount_price }}
@@ -63,47 +137,86 @@
             {{ end }}
           </p>
 
-          {{ $cartImage := "" }}
-          {{ if gt (len $processedImages) 0 }}
-          {{ $firstImg := index $processedImages 0 }}
-          {{ $cartImage = $firstImg.RelPermalink }}
+          {{ with .Params.colors }}
+          {{ if gt (len .) 0 }}
+          <div class="product-option-group" data-option-group-container="color">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <strong>{{ $colorLabel }}</strong>
+              <span class="product-option-current text-muted" data-selected-option="color"></span>
+            </div>
+            <div class="product-option-list">
+              {{ range $index, $option := . }}
+              <button type="button" class="product-option-chip{{ if eq $index 0 }} is-active{{ end }}"
+                data-option-value="{{ $option }}"
+                aria-pressed="{{ if eq $index 0 }}true{{ else }}false{{ end }}">
+                {{ $option }}
+              </button>
+              {{ end }}
+            </div>
+          </div>
+          {{ end }}
           {{ end }}
 
-          <button class="btn btn-main mb-5" onclick="Cart.addItem({
-              id: '{{ .Params.id }}',
-              name: '{{ .Title }}',
-              price: {{ if .Params.discount_price }}{{ .Params.discount_price }}{{ else }}{{ .Params.price }}{{ end }},
-              image: '{{ $cartImage }}',
-              options: {
-                {{ with .Params.colors }}{{ if gt (len .) 0 }}color: '{{ index . 0 }}',{{ end }}{{ end }}
-                {{ with .Params.sizes }}{{ if gt (len .) 0 }}size: '{{ index . 0 }}'{{ end }}{{ end }}
-              }
-            })">
-            🛒 장바구니에 추가
+          {{ with .Params.sizes }}
+          {{ if gt (len .) 0 }}
+          <div class="product-option-group" data-option-group-container="size">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <strong>{{ $sizeLabel }}</strong>
+              <span class="product-option-current text-muted" data-selected-option="size"></span>
+            </div>
+            <div class="product-option-list">
+              {{ range $index, $option := . }}
+              <button type="button" class="product-option-chip{{ if eq $index 0 }} is-active{{ end }}"
+                data-option-value="{{ $option }}"
+                aria-pressed="{{ if eq $index 0 }}true{{ else }}false{{ end }}">
+                {{ $option }}
+              </button>
+              {{ end }}
+            </div>
+          </div>
+          {{ end }}
+          {{ end }}
+
+          <div class="product-quantity-section">
+            <strong class="d-block mb-2">{{ $quantityLabel }}</strong>
+            <div class="product-quantity-control">
+              <button type="button" class="quantity-button" data-quantity-action="decrease" aria-label="Decrease quantity">
+                -
+              </button>
+              <input type="number" class="quantity-input" data-product-quantity min="1" step="1" value="1"
+                inputmode="numeric">
+              <button type="button" class="quantity-button" data-quantity-action="increase" aria-label="Increase quantity">
+                +
+              </button>
+            </div>
+          </div>
+
+          <div class="product-total-price mb-4">
+            <span class="text-muted mr-2">{{ $totalLabel }}</span>
+            <strong data-product-total-price>{{ site.Params.currency }}{{ $displayPrice }}</strong>
+          </div>
+
+          <button type="button" class="btn btn-main mb-5 product-add-to-cart" data-add-to-cart>
+            🛒 {{ $addToCartLabel }}
           </button>
 
-          <!-- Product Description -->
           <div class="product-description">
-            <h3>설명</h3>
+            <h3>{{ $descriptionLabel }}</h3>
             {{ .Content }}
           </div>
         </div>
       </div>
 
-      <!-- Reviews Section -->
       <div class="row mt-5">
         <div class="col-12">
           <h2>상품 리뷰</h2>
 
-          <!-- Review List -->
           <div id="review-list" class="mb-4"></div>
 
-          <!-- Auth Message (shown when not logged in) -->
           <div id="review-auth-message" class="alert alert-info" style="display: none;">
             리뷰를 작성하려면 <a href="{{ "login" | relLangURL }}">로그인</a>이 필요합니다.
           </div>
 
-          <!-- Review Form (only for logged in users) -->
           <div id="review-form-container" class="mt-4">
             <h3>리뷰 작성</h3>
             <form id="review-form" style="display: none;">
@@ -141,13 +254,11 @@
       </div>
     </div>
 
-    <!-- Q&A Section -->
-    {{ partial "qna-list.html" . }}
+    {{ partial "product-detail-qna.html" (dict "page" . "productID" $productID) }}
 
   </div>
 </section>
 
-{{/* 관련 상품 슬라이더 - 프론트매터에서 show_related_products: false 로 비활성화 가능 */}}
 {{ partial "related-products.html" . }}
 
 <style>
@@ -155,12 +266,101 @@
     max-height: 500px;
     object-fit: contain;
   }
+
+  .product-image-placeholder {
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #d8d8d8;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #fbfbfb 0%, #f0f0f0 100%);
+    color: #888;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .product-option-group {
+    margin-bottom: 24px;
+  }
+
+  .product-option-current {
+    font-size: 0.95rem;
+  }
+
+  .product-option-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .product-option-chip {
+    border: 1px solid #d8d8d8;
+    background: #fff;
+    color: #333;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    line-height: 1;
+    transition: all 0.2s ease;
+  }
+
+  .product-option-chip:hover {
+    border-color: #111;
+  }
+
+  .product-option-chip.is-active {
+    border-color: #111;
+    background: #111;
+    color: #fff;
+  }
+
+  .product-quantity-section {
+    margin-bottom: 20px;
+  }
+
+  .product-quantity-control {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #d8d8d8;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .quantity-button {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    background: transparent;
+    font-size: 1.2rem;
+    color: #222;
+  }
+
+  .quantity-input {
+    width: 72px;
+    height: 44px;
+    border: 0;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .quantity-input:focus {
+    outline: none;
+  }
+
+  .product-total-price {
+    font-size: 1.05rem;
+  }
+
+  .product-add-to-cart[disabled] {
+    opacity: 0.75;
+    cursor: wait;
+  }
 </style>
 
 <script>
-  // Initialize product slider with thumbnails
   document.addEventListener('DOMContentLoaded', function () {
-    // Slick slider init
     if (typeof $ !== 'undefined' && $.fn.slick) {
       $('.product-image-slider').slick({
         infinite: true,
@@ -171,19 +371,162 @@
         dots: false
       });
     }
+
+    const productDetailRoot = document.getElementById('product-detail-container');
+    if (!productDetailRoot) {
+      return;
+    }
+
+    const quantityInput = productDetailRoot.querySelector('[data-product-quantity]');
+    const totalPriceElement = productDetailRoot.querySelector('[data-product-total-price]');
+    const addToCartButton = productDetailRoot.querySelector('[data-add-to-cart]');
+    const currency = productDetailRoot.dataset.productCurrency || '';
+    const unitPrice = Number(productDetailRoot.dataset.productPrice || 0);
+
+    const formatCurrency = function (value) {
+      const locale = document.documentElement.lang === 'ko' ? 'ko-KR' : 'en-US';
+      return currency + new Intl.NumberFormat(locale).format(value);
+    };
+
+    const clampQuantity = function (value) {
+      const parsed = Number.parseInt(value, 10);
+      if (Number.isNaN(parsed) || parsed < 1) {
+        return 1;
+      }
+      return parsed;
+    };
+
+    const updateSelectedOptionLabel = function (groupName) {
+      const group = productDetailRoot.querySelector('[data-option-group-container="' + groupName + '"]');
+      const label = productDetailRoot.querySelector('[data-selected-option="' + groupName + '"]');
+      if (!group || !label) {
+        return '';
+      }
+      const activeOption = group.querySelector('.product-option-chip.is-active');
+      const selectedValue = activeOption ? activeOption.dataset.optionValue : '';
+      label.textContent = selectedValue;
+      return selectedValue;
+    };
+
+    const getSelectedOption = function (groupName) {
+      const group = productDetailRoot.querySelector('[data-option-group-container="' + groupName + '"]');
+      if (!group) {
+        return '';
+      }
+      const activeOption = group.querySelector('.product-option-chip.is-active');
+      return activeOption ? activeOption.dataset.optionValue : '';
+    };
+
+    const updateTotalPrice = function () {
+      if (!totalPriceElement) {
+        return;
+      }
+      const quantity = clampQuantity(quantityInput ? quantityInput.value : 1);
+      if (quantityInput) {
+        quantityInput.value = quantity;
+      }
+      totalPriceElement.textContent = formatCurrency(unitPrice * quantity);
+    };
+
+    productDetailRoot.querySelectorAll('[data-option-group-container]').forEach(function (group) {
+      const groupName = group.dataset.optionGroupContainer;
+      group.querySelectorAll('.product-option-chip').forEach(function (button) {
+        button.addEventListener('click', function () {
+          group.querySelectorAll('.product-option-chip').forEach(function (chip) {
+            chip.classList.remove('is-active');
+            chip.setAttribute('aria-pressed', 'false');
+          });
+          button.classList.add('is-active');
+          button.setAttribute('aria-pressed', 'true');
+          updateSelectedOptionLabel(groupName);
+        });
+      });
+      updateSelectedOptionLabel(groupName);
+    });
+
+    if (quantityInput) {
+      quantityInput.addEventListener('input', function () {
+        updateTotalPrice();
+      });
+    }
+
+    productDetailRoot.querySelectorAll('[data-quantity-action]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        if (!quantityInput) {
+          return;
+        }
+        const currentValue = clampQuantity(quantityInput.value);
+        const nextValue = button.dataset.quantityAction === 'decrease'
+          ? Math.max(1, currentValue - 1)
+          : currentValue + 1;
+        quantityInput.value = nextValue;
+        updateTotalPrice();
+      });
+    });
+
+    updateTotalPrice();
+
+    if (addToCartButton) {
+      addToCartButton.addEventListener('click', async function () {
+        if (typeof Cart === 'undefined' || !Cart.addItem) {
+          console.error('Cart is not defined');
+          return;
+        }
+
+        const quantity = clampQuantity(quantityInput ? quantityInput.value : 1);
+        const payload = {
+          id: productDetailRoot.dataset.productId,
+          name: productDetailRoot.dataset.productName,
+          slug: productDetailRoot.dataset.productSlug || '',
+          url: productDetailRoot.dataset.productUrl || '',
+          price: unitPrice,
+          image: productDetailRoot.dataset.productImage || '',
+          quantity: quantity,
+          options: {
+            __productSlug: productDetailRoot.dataset.productSlug || '',
+            __productUrl: productDetailRoot.dataset.productUrl || ''
+          }
+        };
+
+        const selectedColor = getSelectedOption('color');
+        const selectedSize = getSelectedOption('size');
+
+        if (selectedColor) {
+          payload.options.color = selectedColor;
+        }
+        if (selectedSize) {
+          payload.options.size = selectedSize;
+        }
+
+        const defaultLabel = productDetailRoot.dataset.addLabel || addToCartButton.textContent;
+        const addingLabel = productDetailRoot.dataset.addingLabel || defaultLabel;
+
+        addToCartButton.disabled = true;
+        addToCartButton.textContent = '🛒 ' + addingLabel;
+
+        try {
+          await Cart.addItem(payload);
+        } catch (error) {
+          console.error('Failed to add product to cart:', error);
+          if (Cart.notify) {
+            Cart.notify('장바구니에 상품을 추가하지 못했습니다.', true);
+          }
+        } finally {
+          addToCartButton.disabled = false;
+          addToCartButton.textContent = '🛒 ' + defaultLabel;
+        }
+      });
+    }
   });
 </script>
 
-
-{{/* 추가 슬라이더 수정 */}}
 {{ partial "products.html" . }}
 
-<!-- Reviews Script -->
 {{ $reviews := resources.Get "js/reviews.js" }}
 <script src="{{ $reviews.Permalink }}?v={{ now.Unix }}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    Reviews.init('{{ .Params.id }}');
+    Reviews.init('{{ $productID }}');
   });
 </script>
 
