@@ -52,10 +52,82 @@ if (typeof window !== 'undefined') {
 function initializeApp() {
     console.log('[Main] Initializing application...');
 
+    setupHeaderNavigation();
     bootstrapProductDetail();
     bootstrapProfilePage();
 
     console.log('[Main] Application initialized');
+}
+
+function setupHeaderNavigation() {
+    const navRoot = document.querySelector('[data-site-navigation]');
+    const navPanel = document.querySelector('[data-nav-panel]');
+    const toggleButton = document.querySelector('[data-nav-toggle]');
+
+    if (!navRoot || !navPanel || !toggleButton) {
+        return;
+    }
+
+    const desktopQuery = typeof window.matchMedia === 'function'
+        ? window.matchMedia('(min-width: 768px)')
+        : { matches: true };
+    let menuOpen = false;
+
+    const syncMenuState = () => {
+        if (desktopQuery.matches) {
+            navPanel.classList.remove('hidden');
+            toggleButton.setAttribute('aria-expanded', 'false');
+            menuOpen = false;
+            return;
+        }
+
+        navPanel.classList.toggle('hidden', !menuOpen);
+        toggleButton.setAttribute('aria-expanded', String(menuOpen));
+    };
+
+    const closeMenu = () => {
+        menuOpen = false;
+        syncMenuState();
+    };
+
+    const toggleMenu = () => {
+        if (desktopQuery.matches) {
+            return;
+        }
+
+        menuOpen = !menuOpen;
+        syncMenuState();
+    };
+
+    toggleButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        toggleMenu();
+    });
+
+    navPanel.addEventListener('click', function (event) {
+        if (event.target.closest('a')) {
+            closeMenu();
+        }
+    });
+
+    document.addEventListener('click', function (event) {
+        if (desktopQuery.matches || !menuOpen) {
+            return;
+        }
+
+        if (!navRoot.contains(event.target)) {
+            closeMenu();
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !desktopQuery.matches) {
+            closeMenu();
+        }
+    });
+
+    window.addEventListener('resize', syncMenuState);
+    syncMenuState();
 }
 
 function bootstrapProductDetail() {

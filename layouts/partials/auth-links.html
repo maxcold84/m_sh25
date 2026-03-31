@@ -2,24 +2,25 @@
 {{ $login := "login" }}
 {{ $signup := "signup" }}
 {{ $profile := "profile" }}
-<li class="nav-item" id="auth-login-link">
-    <a class="nav-link" href="{{ $login | relLangURL }}">{{- if eq .Site.Language.Lang "ko" }}로그인{{ else }}Login{{ end
-        -}}</a>
+<li class="w-full md:w-auto" id="auth-login-link">
+    <a class="block rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 md:px-3 md:py-2"
+        href="{{ $login | relLangURL }}">{{- if eq .Site.Language.Lang "ko" }}로그인{{ else }}Login{{ end -}}</a>
 </li>
-<li class="nav-item" id="auth-signup-link">
-    <a class="nav-link" href="{{ $login | relLangURL }}#signup">{{- if eq .Site.Language.Lang "ko" }}회원가입{{ else }}Sign
-        Up{{ end -}}</a>
+<li class="w-full md:w-auto" id="auth-signup-link">
+    <a class="block rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 md:px-3 md:py-2"
+        href="{{ $login | relLangURL }}#signup">{{- if eq .Site.Language.Lang "ko" }}회원가입{{ else }}Sign Up{{ end -}}</a>
 </li>
-<li class="nav-item" id="auth-logout-link" style="display: none;">
-    <a class="nav-link" href="#">{{- if eq .Site.Language.Lang "ko" }}로그아웃{{ else
-        }}Logout{{ end -}}</a>
+<li class="w-full md:w-auto" id="auth-logout-link" style="display: none;">
+    <a class="block rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 md:px-3 md:py-2"
+        href="#">{{- if eq .Site.Language.Lang "ko" }}로그아웃{{ else }}Logout{{ end -}}</a>
 </li>
-<li class="nav-item" id="auth-profile-link" style="display: none;">
-    <a class="nav-link" href="{{ $profile | relLangURL }}" style="padding-top: 0; padding-bottom: 0;">
-        <div class="d-flex align-items-center">
-            <img id="nav-avatar-img" src="" alt="Avatar" class="rounded-circle mr-2"
-                style="width: 30px; height: 30px; object-fit: cover; display: none;">
-            <i id="nav-avatar-icon" class="tf-ion-android-person" style="font-size: 24px; display: none;"></i>
-        </div>
+<li class="w-full md:w-auto" id="auth-profile-link" style="display: none;">
+    <a class="block rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 md:px-3 md:py-2"
+        href="{{ $profile | relLangURL }}">
+        <span class="flex items-center gap-2">
+            <img id="nav-avatar-img" src="" alt="Avatar" class="hidden h-7 w-7 rounded-full object-cover"
+                style="display: none;">
+            <i id="nav-avatar-icon" class="hidden text-xl tf-ion-android-person" style="display: none;"></i>
+        </span>
     </a>
 </li>

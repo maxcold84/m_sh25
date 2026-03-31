@@ -73,7 +73,7 @@ const readme = [
   "## Notes",
   "- 이 백업은 현재 프로젝트를 다시 빌드/수정하는 데 필요한 원본 중심으로 구성됨.",
   "- 실행 전에는 환경에 맞는 .env 파일을 별도로 준비해야 함.",
-  "- 배포 산출물이 필요하면 이 백업을 복원한 뒤 npm run build 로 server/를 재생성하면 됨."
+  "- 배포 산출물이 필요하면 이 백업을 복원한 뒤 pnpm build 로 server/를 재생성하면 됨."
 ].join("\n");
 
 await writeFile(path.join(backupRoot, "BACKUP_README.md"), readme, "utf8");

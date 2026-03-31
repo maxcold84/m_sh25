@@ -16,6 +16,15 @@ const AdminCategories = {
                 this.addCategory();
             });
         }
+        const categoryList = document.getElementById('category-list');
+        if (categoryList && !categoryList.dataset.bound) {
+            categoryList.dataset.bound = 'true';
+            categoryList.addEventListener('click', (event) => {
+                const button = event.target.closest('[data-action="delete-category"]');
+                if (!button) return;
+                this.deleteCategory(button.dataset.categoryId);
+            });
+        }
         await this.loadCategories();
     },
 
@@ -47,10 +56,10 @@ const AdminCategories = {
         list.innerHTML = '';
         this.categories.forEach(cat => {
             const item = document.createElement('div');
-            item.className = 'list-group-item d-flex justify-content-between align-items-center';
+            item.className = 'list-group-item admin-category-item';
             item.innerHTML = `
                 <span>${cat.name}</span>
-                <button class="btn btn-sm btn-outline-danger" onclick="AdminCategories.deleteCategory('${cat.id}')">
+                <button class="btn btn-sm btn-outline-danger" type="button" data-action="delete-category" data-category-id="${cat.id}">
                     &times;
                 </button>
             `;
@@ -121,6 +130,7 @@ const AdminProducts = {
     currentProduct: null,
     visualItems: [], // Array of { type: 'existing'|'new', value: filename|File, id: uniqueId }
     sortable: null,
+    _slugGenerator: null,
 
     init: async function () {
         // Use shared PocketBase instance
@@ -133,6 +143,7 @@ const AdminProducts = {
 
         // Load categories FIRST so dropdowns can be populated
         await AdminCategories.init(this.pb);
+        this.bindEvents();
 
         // Initialize HTMX Auth
         document.body.addEventListener('htmx:configRequest', (event) => {
@@ -142,6 +153,63 @@ const AdminProducts = {
         });
 
         this.loadProducts();
+    },
+
+    bindEvents: function () {
+        const addProductBtn = document.getElementById('add-product-btn');
+        if (addProductBtn && !addProductBtn.dataset.bound) {
+            addProductBtn.dataset.bound = 'true';
+            addProductBtn.addEventListener('click', () => this.openAddModal());
+        }
+
+        const manageCategoriesBtn = document.getElementById('manage-categories-btn');
+        if (manageCategoriesBtn && !manageCategoriesBtn.dataset.bound) {
+            manageCategoriesBtn.dataset.bound = 'true';
+            manageCategoriesBtn.addEventListener('click', () => AdminCategories.openModal());
+        }
+
+        const filterCategory = document.getElementById('filter-category');
+        if (filterCategory && !filterCategory.dataset.bound) {
+            filterCategory.dataset.bound = 'true';
+            filterCategory.addEventListener('change', () => this.loadProducts());
+        }
+
+        const productImages = document.getElementById('product-images');
+        if (productImages && !productImages.dataset.bound) {
+            productImages.dataset.bound = 'true';
+            productImages.addEventListener('change', (event) => this.handleImageSelect(event.target));
+        }
+
+        const productForm = document.getElementById('product-form');
+        if (productForm && !productForm.dataset.bound) {
+            productForm.dataset.bound = 'true';
+            productForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                this.saveProduct();
+            });
+        }
+
+        const tableBody = document.getElementById('product-table-body');
+        if (tableBody && !tableBody.dataset.bound) {
+            tableBody.dataset.bound = 'true';
+            tableBody.addEventListener('click', (event) => {
+                const button = event.target.closest('[data-action]');
+                if (!button) return;
+
+                const { action, productId } = button.dataset;
+                if (action === 'edit-product') {
+                    this.openEditModal(productId);
+                } else if (action === 'delete-product') {
+                    this.deleteProduct(productId);
+                }
+            });
+
+            tableBody.addEventListener('change', (event) => {
+                const select = event.target.closest('[data-action="product-category-select"]');
+                if (!select) return;
+                this.updateCategory(select.dataset.productId, select.value);
+            });
+        }
     },
 
     loadProducts: async function () {
@@ -166,7 +234,7 @@ const AdminProducts = {
             }
 
             if (displayRecords.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7" class="text-center">등록된 상품이 없습니다</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="9" class="text-center">등록된 상품이 없습니다</td></tr>';
                 return;
             }
 
@@ -190,7 +258,7 @@ const AdminProducts = {
                     : 'https://via.placeholder.com/50';
 
                 // Generate Category Dropdown HTML
-                let categorySelectHtml = `<select class="form-control form-control-sm" onchange="AdminProducts.updateCategory('${product.id}', this.value)" style="width: 140px;">
+                let categorySelectHtml = `<select class="form-control form-control-sm admin-category-select" data-action="product-category-select" data-product-id="${product.id}">
                     <option value="">(미지정)</option>`;
 
                 AdminCategories.categories.forEach(cat => {
@@ -213,7 +281,7 @@ const AdminProducts = {
                 tr.innerHTML = `
                     <td><img src="${imageUrl}" alt="${product.title}" style="width: 50px; height: 50px; object-fit: cover;"></td>
                     <td>${categorySelectHtml}</td>
-                    <td>${product.title}</td>
+                    <td class="admin-product-title">${product.title}</td>
                     <td>${product.discount_price && product.discount_price > 0 ? `<del class="text-muted small">${product.price.toLocaleString()}</del> <br><span class="text-danger font-weight-bold">${product.discount_price.toLocaleString()}</span>` : product.price.toLocaleString()}</td>
                     <td>${product.stock || 0}</td>
                     <td class="text-center">${inquiryBadge}</td>
@@ -229,9 +297,11 @@ const AdminProducts = {
                         </div>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-info" onclick="AdminProducts.openEditModal('${product.id}')">수정</button>
-                        <button class="btn btn-sm btn-danger" onclick="AdminProducts.deleteProduct('${product.id}')">삭제</button>
-                        <a href="/${product.language || 'ko'}/products/${product.slug}/" target="_blank" class="btn btn-sm btn-success">상세페이지</a>
+                        <div class="admin-table-actions">
+                            <button class="btn btn-sm btn-info" type="button" data-action="edit-product" data-product-id="${product.id}">수정</button>
+                            <button class="btn btn-sm btn-danger" type="button" data-action="delete-product" data-product-id="${product.id}">삭제</button>
+                            <a href="/${product.language || 'ko'}/products/${product.slug}/" target="_blank" rel="noreferrer" class="btn btn-sm btn-success">상세페이지</a>
+                        </div>
                     </td>
                 `;
                 tableBody.appendChild(tr);
@@ -255,42 +325,7 @@ const AdminProducts = {
 
         this.visualItems = [];
         this.renderImages();
-
-        // Add auto-slug generation
-        const titleInput = document.getElementById('product-title');
-        const slugInput = document.getElementById('product-slug');
-
-        // Remove existing listener if any
-        titleInput.removeEventListener('input', this._slugGenerator);
-
-        // Create slug generator function
-        this._slugGenerator = function () {
-            const title = titleInput.value;
-            let slug = title
-                .toLowerCase()
-                .trim()
-                // Replace spaces with hyphens
-                .replace(/\s+/g, '-')
-                // Remove special characters except hyphens
-                .replace(/[^\w\-가-힣]/g, '')
-                // For Korean characters, convert to romanized or use timestamp
-                .replace(/[가-힣]/g, function () {
-                    return '';
-                })
-                // Remove multiple consecutive hyphens
-                .replace(/\-+/g, '-')
-                // Remove leading/trailing hyphens
-                .replace(/^-|-$/g, '');
-
-            // If slug is empty (was all Korean), use timestamp-based slug
-            if (!slug) {
-                slug = 'product-' + Date.now();
-            }
-
-            slugInput.value = slug;
-        };
-
-        titleInput.addEventListener('input', this._slugGenerator);
+        this.bindSlugGenerator();
 
         $('#productModal').modal('show');
     },
@@ -312,6 +347,7 @@ const AdminProducts = {
             document.getElementById('product-order').value = product.order;
             document.getElementById('product-enabled').checked = product.enabled;
             document.getElementById('product-language').value = product.language;
+            this.detachSlugGenerator();
 
             // Handle arrays (colors, sizes)
             const colors = product.colors ? (Array.isArray(product.colors) ? product.colors : JSON.parse(product.colors)) : [];
@@ -339,6 +375,44 @@ const AdminProducts = {
             console.error('Error fetching product details:', error);
             alert('상품 정보를 불러오는 중 오류가 발생했습니다');
         }
+    },
+
+    bindSlugGenerator: function () {
+        const titleInput = document.getElementById('product-title');
+        const slugInput = document.getElementById('product-slug');
+        if (!titleInput || !slugInput) return;
+
+        this.detachSlugGenerator();
+
+        this._slugGenerator = () => {
+            const title = titleInput.value;
+            let slug = title
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w\-가-힣]/g, '')
+                .replace(/[가-힣]/g, function () {
+                    return '';
+                })
+                .replace(/\-+/g, '-')
+                .replace(/^-|-$/g, '');
+
+            if (!slug) {
+                slug = 'product-' + Date.now();
+            }
+
+            slugInput.value = slug;
+        };
+
+        titleInput.addEventListener('input', this._slugGenerator);
+    },
+
+    detachSlugGenerator: function () {
+        const titleInput = document.getElementById('product-title');
+        if (titleInput && this._slugGenerator) {
+            titleInput.removeEventListener('input', this._slugGenerator);
+        }
+        this._slugGenerator = null;
     },
 
     saveProduct: async function () {
@@ -528,7 +602,7 @@ const AdminProducts = {
         if (!container) return;
 
         if (this.visualItems.length === 0) {
-            container.innerHTML = '<div class="w-100 text-center text-muted py-4">이미지가 없습니다</div>';
+            container.innerHTML = '<div class="admin-product-image-empty text-center text-muted py-4">이미지가 없습니다</div>';
             return;
         }
 
@@ -548,32 +622,31 @@ const AdminProducts = {
 
         this.visualItems.forEach((item, index) => {
             const div = document.createElement('div');
-            div.className = 'mr-2 mb-2 position-relative sortable-item';
+            div.className = 'admin-sortable-item';
             div.setAttribute('data-id', item.id);
-            div.style.cursor = 'move';
 
             // HTML structure placeholder
             let imgHtml = '';
 
             if (item.type === 'existing') {
                 const imgUrl = this.pb.files.getUrl(this.currentProduct, item.value, { thumb: '100x100' });
-                imgHtml = `<img src="${imgUrl}" class="w-100 h-100" style="object-fit: cover;">`;
+                imgHtml = `<img src="${imgUrl}" alt="" />`;
                 div.innerHTML = `
-                    <div class="border rounded overflow-hidden" style="width: 100px; height: 100px; background: #fff;">
+                    <div class="admin-sortable-thumb">
                         ${imgHtml}
                     </div>
                 `;
             } else {
                 div.innerHTML = `
-                    <div class="border rounded overflow-hidden" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                    <div class="admin-sortable-thumb admin-sortable-thumb--loading">
                          <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
                     </div>
                 `;
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const imgContainer = div.querySelector('.border');
+                    const imgContainer = div.querySelector('.admin-sortable-thumb');
                     imgContainer.style.background = 'none';
-                    imgContainer.innerHTML = `<img src="${e.target.result}" class="w-100 h-100" style="object-fit: cover;">`;
+                    imgContainer.innerHTML = `<img src="${e.target.result}" alt="" />`;
                 };
                 reader.readAsDataURL(item.value);
             }
@@ -581,23 +654,19 @@ const AdminProducts = {
             // Delete button
             const delBtn = document.createElement('button');
             delBtn.type = 'button';
-            delBtn.className = 'btn btn-xs btn-danger position-absolute rounded-circle p-0 d-flex justify-content-center align-items-center';
-            delBtn.style.cssText = 'top: -5px; right: -5px; width: 24px; height: 24px; z-index: 10;';
+            delBtn.className = 'btn btn-xs btn-danger admin-sortable-remove';
             delBtn.innerHTML = '&times;';
-            delBtn.onclick = (e) => {
+            delBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); // prevent drag start
                 this.deleteImage(index);
-            };
+            });
 
             div.appendChild(delBtn);
 
             // Badge for first item
             if (index === 0) {
                 const badge = document.createElement('span');
-                badge.className = 'badge badge-primary position-absolute';
-                badge.style.bottom = '5px';
-                badge.style.left = '5px';
-                badge.style.fontSize = '10px';
+                badge.className = 'badge badge-primary admin-sortable-badge';
                 badge.textContent = '대표';
                 div.appendChild(badge);
             }

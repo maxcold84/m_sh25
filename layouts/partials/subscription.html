@@ -2,23 +2,23 @@
 
 {{- if $data.homepage.subscription.enable }}
 {{- with $data.homepage.subscription }}
-<section class="call-to-action section bg-opacity" style="background-image: url('{{ .bg_image | absURL }}');">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-6 col-md-8 text-center mx-auto">
-        <h2 class="subheading text-white">{{ .title | markdownify }}</h2>
-        <p class="text-white">{{ .content | markdownify }}</p>
-        <div class="input-group">
-          <form action="{{ site.Params.subscription.mailchimp_form_action }}" method="post" class="w-100" name="mc-embedded-subscribe-form" target="_blank">
-            <input type="email" id="email" class="form-control" name="email" placeholder="{{ .placeholder }}"
-              required>
-            <button class="btn btn-main btn-submit" type="submit" name="subscribe">{{i18n "subscribe"}}</button>
-            <div style="position: absolute; left: -5000px;" aria-hidden="true">
-              <input type="text" name="{{ site.Params.subscription.mailchimp_form_name }}" tabindex="-1">
-            </div>
-          </form>
-        </div><!-- /input-group -->
+<section class="relative overflow-hidden py-16 sm:py-20 lg:py-24" style="background-image: url('{{ .bg_image | absURL }}'); background-size: cover; background-position: center;">
+  <div class="absolute inset-0 bg-slate-950/70"></div>
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-4xl rounded-3xl border border-white/10 bg-white/10 px-6 py-10 text-center shadow-2xl backdrop-blur sm:px-10 sm:py-12">
+      <div class="mx-auto max-w-2xl">
+        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">{{ .title | markdownify }}</h2>
+        <p class="mt-4 text-base leading-7 text-slate-100 sm:text-lg">{{ .content | markdownify }}</p>
       </div>
+      <form action="{{ site.Params.subscription.mailchimp_form_action }}" method="post" class="mt-8 w-full" name="mc-embedded-subscribe-form" target="_blank">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <input type="email" id="email" class="w-full rounded-full border border-white/20 bg-white px-5 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-white focus:ring-2 focus:ring-white/30" name="email" placeholder="{{ .placeholder }}" required>
+          <button class="inline-flex items-center justify-center rounded-full bg-amber-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:ring-offset-2 focus:ring-offset-slate-950" type="submit" name="subscribe">{{ i18n "subscribe" }}</button>
+        </div>
+        <div style="position: absolute; left: -5000px;" aria-hidden="true">
+          <input type="text" name="{{ site.Params.subscription.mailchimp_form_name }}" tabindex="-1">
+        </div>
+      </form>
     </div>
   </div>
 </section><!-- #call-to-action close -->

@@ -2,37 +2,45 @@
 
 {{- if $data.homepage.features.enable }}
 {{- with $data.homepage.features }}
-<section class="section" id="features">
-  <div class="container">
-    <div class="row">
-      <div class="col-12">
-        <div class="heading">
-          <h2>{{ .title | markdownify }}</h2>
-        </div>
-      </div>
-      <div class="col-md-4">
+<section id="features" class="bg-slate-50 py-16 sm:py-20 lg:py-24">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto mb-12 max-w-3xl text-center">
+      <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{{ .title | markdownify }}</h2>
+    </div>
+    <div class="grid gap-12 lg:grid-cols-3 lg:items-center lg:gap-10">
+      <div class="space-y-8">
         {{ range .left_side }}
-        <div class="mb-40 text-center text-md-left">
-          <i class="d-inlin-block h2 mb-10 {{ .icon }}"></i>
-          <h4 class="font-weight-bold mb-2">{{ .title | markdownify }}</h4>
-          <p>{{ .content | markdownify }}</p>
+        <div class="flex flex-col items-center gap-4 text-center lg:flex-row lg:items-start lg:text-left">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-500">
+            <i class="{{ .icon }} text-2xl"></i>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold text-slate-900">{{ .title | markdownify }}</h4>
+            <p class="mt-2 text-sm leading-7 text-slate-600">{{ .content | markdownify }}</p>
+          </div>
         </div>
         {{ end }}
       </div>
-      <div class="col-md-4 text-center align-self-center mb-4 mb-md-0">
-        {{ partial "image.html" (dict "Src" .image "Alt" "image" "Class" "img-fluid w-100" ) }}
+      <div class="order-first flex justify-center lg:order-none">
+        <div class="w-full max-w-md">
+          {{ partial "image.html" (dict "Src" .image "Alt" "image" "Class" "overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200" ) }}
+        </div>
       </div>
-      <div class="col-md-4">
+      <div class="space-y-8">
         {{ range .right_side }}
-        <div class="mb-40 text-center text-md-left">
-          <i class="d-inlin-block h2 mb-10 {{ .icon }}"></i>
-          <h4 class="font-weight-bold mb-2">{{ .title | markdownify }}</h4>
-          <p>{{ .content | markdownify }}</p>
+        <div class="flex flex-col items-center gap-4 text-center lg:flex-row lg:items-start lg:text-left">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-500">
+            <i class="{{ .icon }} text-2xl"></i>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold text-slate-900">{{ .title | markdownify }}</h4>
+            <p class="mt-2 text-sm leading-7 text-slate-600">{{ .content | markdownify }}</p>
+          </div>
         </div>
         {{ end }}
       </div>
     </div>
-  </div><!-- .container close -->
+  </div>
 </section>
 {{- end }}
 {{- end }}

@@ -26,11 +26,14 @@ const AdminPosts = {
             }
         });
 
+        this.bindEvents();
         this.loadPosts();
 
         // Slug generation listener
         const titleInput = document.getElementById('post-title');
-        titleInput.addEventListener('input', this._slugGenerator);
+        if (titleInput) {
+            titleInput.addEventListener('input', this._slugGenerator);
+        }
 
         // Initialize EasyMDE
         this.easyMDE = new EasyMDE({
@@ -59,6 +62,51 @@ const AdminPosts = {
         $('#postModal').on('shown.bs.modal', function () {
             if (AdminPosts.easyMDE) AdminPosts.easyMDE.codemirror.refresh();
         });
+    },
+
+    bindEvents: function () {
+        const addPostBtn = document.getElementById('add-post-btn');
+        if (addPostBtn && !addPostBtn.dataset.bound) {
+            addPostBtn.dataset.bound = 'true';
+            addPostBtn.addEventListener('click', () => this.openAddModal());
+        }
+
+        const postForm = document.getElementById('post-form');
+        if (postForm && !postForm.dataset.bound) {
+            postForm.dataset.bound = 'true';
+            postForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                this.savePost();
+            });
+        }
+
+        const postImage = document.getElementById('post-image');
+        if (postImage && !postImage.dataset.bound) {
+            postImage.dataset.bound = 'true';
+            postImage.addEventListener('change', (event) => this.handleImageSelect(event.target));
+        }
+
+        const clearImageBtn = document.getElementById('clear-post-image-btn');
+        if (clearImageBtn && !clearImageBtn.dataset.bound) {
+            clearImageBtn.dataset.bound = 'true';
+            clearImageBtn.addEventListener('click', () => this.clearImage());
+        }
+
+        const tableBody = document.getElementById('post-table-body');
+        if (tableBody && !tableBody.dataset.bound) {
+            tableBody.dataset.bound = 'true';
+            tableBody.addEventListener('click', (event) => {
+                const button = event.target.closest('[data-action]');
+                if (!button) return;
+
+                const { action, postId } = button.dataset;
+                if (action === 'edit-post') {
+                    this.openEditModal(postId);
+                } else if (action === 'delete-post') {
+                    this.deletePost(postId);
+                }
+            });
+        }
     },
 
     loadPosts: async function () {
@@ -98,7 +146,7 @@ const AdminPosts = {
 
                 tr.innerHTML = `
                     <td>
-                        <div style="width: 50px; height: 50px; overflow: hidden; border-radius: 4px; background: #f0f0f0;">
+                        <div class="admin-post-thumb">
                             ${imageHtml}
                         </div>
                     </td>
@@ -109,9 +157,11 @@ const AdminPosts = {
                     <td>${statusBadge}</td>
                     <td>${createdDate}</td>
                     <td>
-                        <button class="btn btn-sm btn-info" onclick="AdminPosts.openEditModal('${post.id}')">수정</button>
-                        <button class="btn btn-sm btn-danger" onclick="AdminPosts.deletePost('${post.id}')">삭제</button>
-                        <a href="/ko/blog/${post.slug}/" target="_blank" class="btn btn-sm btn-light">미리보기</a>
+                        <div class="admin-post-actions">
+                            <button class="btn btn-sm btn-info" type="button" data-action="edit-post" data-post-id="${post.id}">수정</button>
+                            <button class="btn btn-sm btn-danger" type="button" data-action="delete-post" data-post-id="${post.id}">삭제</button>
+                            <a href="/ko/blog/${post.slug}/" target="_blank" rel="noreferrer" class="btn btn-sm btn-light">미리보기</a>
+                        </div>
                     </td>
                 `;
                 tableBody.appendChild(tr);
@@ -268,7 +318,7 @@ const AdminPosts = {
         try {
             await this.pb.collection('posts').delete(id);
             this.loadPosts();
-            alert('글이 삭제되었습니다. 블로그에 반영하려면 터미널에서 npm run sync를 실행하세요.');
+            alert('글이 삭제되었습니다. 블로그에 반영하려면 터미널에서 pnpm sync를 실행하세요.');
         } catch (error) {
             console.error('Error deleting post:', error);
             alert('글 삭제 실패');
@@ -291,10 +341,16 @@ const AdminPosts = {
     },
 
     clearImage: function () {
-        document.getElementById('post-image').value = '';
+        const input = document.getElementById('post-image');
+        if (input) input.value = '';
+        const preview = document.getElementById('post-image-preview');
+        if (preview) {
+            const image = preview.querySelector('img');
+            if (image) image.src = '';
+            preview.style.display = 'none';
+        }
         this.imageToUpload = null;
         this.existingImage = null; // Mark for deletion if it was existing
-        document.getElementById('post-image-preview').style.display = 'none';
     },
 
     _slugGenerator: function () {

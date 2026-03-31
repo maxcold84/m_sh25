@@ -1,25 +1,24 @@
 {{ $data := index .Site.Data .Site.Language.Lang }}
 
 {{ if $data.homepage.products.enable }}
-<section class="gallery" id="products">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="heading">
-                    <h2>{{ $data.homepage.products.title | markdownify }}</h2>
-                </div>
+<section class="gallery py-12 sm:py-16" id="products">
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mb-6 text-center sm:mb-8">
+            <h2 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{{ $data.homepage.products.title | markdownify }}</h2>
+        </div>
 
-                <div class="product-slider-wrapper" style="position: relative; overflow: hidden;">
-                    <div id="product-slider-container" class="product-slider"
-                        style="display: flex; gap: 15px; will-change: transform;">
-                        <!-- Products will be loaded here -->
-                        <div class="text-center" style="width: 100%;">
-                            <div class="spinner-border" role="status">
-                                <span class="sr-only">로딩 중...</span>
-                            </div>
-                        </div>
-                    </div>
+        <div class="product-slider-wrapper relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 p-3 shadow-sm sm:p-4">
+            <div id="product-slider-container" class="product-slider flex gap-4 will-change-transform">
+                <!-- Products will be loaded here -->
+                <div class="flex w-full items-center justify-center py-16 text-slate-500">
+                    <svg class="h-8 w-8 animate-spin text-amber-500" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <span class="sr-only">로딩 중...</span>
                 </div>
+            </div>
+        </div>
 
                 <script>
                     document.addEventListener('DOMContentLoaded', async function () {
@@ -32,6 +31,7 @@
                         let isHovering = false;
                         let productWidth = 0;
                         let totalWidth = 0;
+                        let productCount = 0;
 
                         // 드래그 관련 변수
                         let isDragging = false;
@@ -41,40 +41,75 @@
                         let lastX = 0;
                         let lastTime = 0;
 
+                        function getPointerX(e) {
+                            if (e.touches && e.touches.length > 0) {
+                                return e.touches[0].pageX;
+                            }
+                            if (e.changedTouches && e.changedTouches.length > 0) {
+                                return e.changedTouches[0].pageX;
+                            }
+                            return e.pageX;
+                        }
+
+                        function measureSlider() {
+                            const firstItem = container.querySelector('.block');
+                            if (firstItem && productCount > 0) {
+                                const gapValue = parseFloat(getComputedStyle(container).gap || '0') || 0;
+                                productWidth = firstItem.offsetWidth + gapValue;
+                                totalWidth = productWidth * productCount;
+                            }
+                        }
+
                         function createProductElement(product) {
                             const imageUrl = (product.images && product.images.length > 0)
                                 ? productsApi.getImageUrl(product, product.images[0], '300x300')
                                 : 'https://via.placeholder.com/300x300?text=No+Image';
+                            const imageFallbackUrl = 'https://via.placeholder.com/300x300?text=Error';
 
                             const finalPrice = product.discount_price || product.price;
 
                             const block = document.createElement('div');
-                            block.className = 'block';
-                            block.style.cssText = 'flex: 0 0 250px; min-width: 250px;';
+                            block.className = 'block h-full';
+                            block.style.cssText = 'flex: 0 0 auto; width: clamp(15rem, 72vw, 16rem);';
                             block.innerHTML = `
-                <div class="gallery-overlay">
-                  <a href="/ko/products/${product.slug}" class="gallery-popup">
-                    <i class="tf-ion-plus-round"></i>
-                  </a>
-                  <button class="btn btn-primary btn-main-sm cart-btn"
-                    style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 10; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                    🛒 장바구니 추가
-                  </button>
-                </div>
-                <img class="img-fluid" src="${imageUrl}" alt="${product.title}" onerror="this.src='https://via.placeholder.com/300x300?text=Error'" draggable="false">
-                <div class="product-info text-center mt-2">
-                  <h4 class="mb-1">${product.title}</h4>
-                  <p class="price">
-                    ${product.discount_price ?
-                                    `{{ site.Params.currency }}${product.discount_price.toLocaleString()} <s class="text-muted">{{ site.Params.currency }}${product.price.toLocaleString()}</s>` :
-                                    `{{ site.Params.currency }}${product.price.toLocaleString()}`
-                                }
-                  </p>
-                </div>
-              `;
+                                <article class="group flex h-full flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+                                    <div class="relative aspect-square overflow-hidden bg-slate-100">
+                                        <img class="h-full w-full select-none object-cover transition duration-500 group-hover:scale-105" src="${imageUrl}" alt="${product.title}" data-fallback-src="${imageFallbackUrl}" draggable="false">
+                                        <div class="absolute inset-0 flex flex-col justify-between bg-gradient-to-t from-slate-950/40 via-transparent to-transparent p-4">
+                                            <a href="/ko/products/${product.slug}" class="inline-flex h-11 w-11 items-center justify-center self-end rounded-full bg-white/90 text-slate-700 shadow-lg backdrop-blur transition hover:bg-white hover:text-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2" aria-label="상품 상세보기">
+                                                <i class="tf-ion-plus-round text-xl"></i>
+                                            </a>
+                                            <button type="button" class="cart-btn inline-flex w-full items-center justify-center gap-2 rounded-full bg-amber-400 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-200 transition hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
+                                                <span aria-hidden="true">🛒</span>
+                                                <span>장바구니 추가</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-1 flex-col p-4 text-center sm:p-5">
+                                        <h4 class="text-base font-semibold leading-6 text-slate-900">
+                                            ${product.title}
+                                        </h4>
+                                        <p class="mt-2 text-lg font-semibold text-slate-700">
+                                            ${product.discount_price ?
+                                            `{{ site.Params.currency }}${product.discount_price.toLocaleString()} <s class="text-sm font-medium text-slate-400">{{ site.Params.currency }}${product.price.toLocaleString()}</s>` :
+                                            `{{ site.Params.currency }}${product.price.toLocaleString()}`
+                                        }
+                                        </p>
+                                    </div>
+                                </article>
+                            `;
 
                             // Add cart functionality
                             const cartBtn = block.querySelector('.cart-btn');
+                            const productImage = block.querySelector('img[data-fallback-src]');
+
+                            if (productImage) {
+                                productImage.addEventListener('error', function handleImageError() {
+                                    productImage.removeEventListener('error', handleImageError);
+                                    productImage.src = productImage.dataset.fallbackSrc || imageFallbackUrl;
+                                });
+                            }
+
                             if (cartBtn) {
                                 cartBtn.addEventListener('click', function (e) {
                                     e.preventDefault();
@@ -120,50 +155,30 @@
                             isHovering = false;
                         });
 
-                        // Mouse wheel - manual scroll control
-                        wrapper.addEventListener('wheel', function (e) {
-                            if (isHovering) {
-                                e.preventDefault();
-
-                                // Scroll horizontally based on wheel delta
-                                // deltaY is typically the vertical scroll amount
-                                const scrollAmount = e.deltaY * 2; // multiply for more sensitivity
-                                currentPosition -= scrollAmount;
-
-                                // Keep position within bounds for smooth looping
-                                if (currentPosition > 0) {
-                                    currentPosition -= totalWidth;
-                                } else if (Math.abs(currentPosition) >= totalWidth * 2) {
-                                    currentPosition += totalWidth;
-                                }
-
-                                container.style.transform = `translateX(${currentPosition}px)`;
-                            }
-                        }, { passive: false });
-
-                        // 드래그 기능 구현
-                        wrapper.addEventListener('mousedown', function (e) {
-                            // 버튼이나 링크 클릭 시 드래그 방지
+                        function beginDrag(e) {
                             if (e.target.closest('button') || e.target.closest('a')) {
                                 return;
                             }
 
                             isDragging = true;
-                            startX = e.pageX;
+                            startX = getPointerX(e);
                             startPosition = currentPosition;
-                            lastX = e.pageX;
+                            lastX = getPointerX(e);
                             lastTime = Date.now();
                             dragVelocity = 0;
 
                             wrapper.style.cursor = 'grabbing';
                             wrapper.style.userSelect = 'none';
-                        });
+                        }
 
-                        document.addEventListener('mousemove', function (e) {
+                        function moveDrag(e) {
                             if (!isDragging) return;
 
-                            e.preventDefault();
-                            const currentX = e.pageX;
+                            if (e.cancelable) {
+                                e.preventDefault();
+                            }
+
+                            const currentX = getPointerX(e);
                             const diff = currentX - startX;
                             currentPosition = startPosition + diff;
 
@@ -180,17 +195,17 @@
                             if (currentPosition > 0) {
                                 currentPosition -= totalWidth;
                                 startPosition -= totalWidth;
-                                startX = e.pageX - (currentPosition - startPosition);
+                                startX = getPointerX(e) - (currentPosition - startPosition);
                             } else if (Math.abs(currentPosition) >= totalWidth * 2) {
                                 currentPosition += totalWidth;
                                 startPosition += totalWidth;
-                                startX = e.pageX - (currentPosition - startPosition);
+                                startX = getPointerX(e) - (currentPosition - startPosition);
                             }
 
                             container.style.transform = `translateX(${currentPosition}px)`;
-                        });
+                        }
 
-                        document.addEventListener('mouseup', function () {
+                        function endDrag() {
                             if (!isDragging) return;
 
                             isDragging = false;
@@ -218,10 +233,41 @@
                                 };
                                 requestAnimationFrame(inertiaAnimation);
                             }
-                        });
+                        }
+
+                        // Mouse wheel - manual scroll control
+                        wrapper.addEventListener('wheel', function (e) {
+                            if (isHovering) {
+                                e.preventDefault();
+
+                                // Scroll horizontally based on wheel delta
+                                // deltaY is typically the vertical scroll amount
+                                const scrollAmount = e.deltaY * 2; // multiply for more sensitivity
+                                currentPosition -= scrollAmount;
+
+                                // Keep position within bounds for smooth looping
+                                if (currentPosition > 0) {
+                                    currentPosition -= totalWidth;
+                                } else if (Math.abs(currentPosition) >= totalWidth * 2) {
+                                    currentPosition += totalWidth;
+                                }
+
+                                container.style.transform = `translateX(${currentPosition}px)`;
+                            }
+                        }, { passive: false });
+
+                        // 드래그 기능 구현
+                        wrapper.addEventListener('mousedown', beginDrag);
+                        wrapper.addEventListener('touchstart', beginDrag, { passive: true });
+                        document.addEventListener('mousemove', moveDrag);
+                        document.addEventListener('touchmove', moveDrag, { passive: false });
+                        document.addEventListener('mouseup', endDrag);
+                        document.addEventListener('touchend', endDrag);
+                        document.addEventListener('touchcancel', endDrag);
 
                         // 드래그 중 이미지 드래그 방지
                         wrapper.style.cursor = 'grab';
+                        wrapper.style.touchAction = 'pan-y';
 
                         try {
                             console.log('Loading products for homepage...');
@@ -231,7 +277,8 @@
                                 console.log('Processing products:', result.items);
                                 container.innerHTML = ''; // Clear loading spinner
                                 container.style.display = 'flex';
-                                container.style.gap = '15px';
+                                container.style.gap = '1rem';
+                                productCount = result.items.length;
 
                                 // Add products multiple times for seamless loop
                                 const repeatCount = Math.max(3, Math.ceil(20 / result.items.length));
@@ -245,28 +292,29 @@
 
                                 // Calculate total width for one set of products
                                 setTimeout(() => {
-                                    const firstItem = container.querySelector('.block');
-                                    if (firstItem) {
-                                        productWidth = firstItem.offsetWidth + 15; // including gap
-                                        totalWidth = productWidth * result.items.length;
+                                    measureSlider();
 
-                                        // Start animation
-                                        animate();
-                                        console.log('Infinite scroll slider started with drag, wheel control and inertia');
-                                    }
+                                    // Start animation
+                                    animate();
+                                    console.log('Infinite scroll slider started with drag, wheel control and inertia');
                                 }, 100);
+
+                                window.addEventListener('resize', function () {
+                                    if (container.querySelector('.block')) {
+                                        measureSlider();
+                                        container.style.transform = `translateX(${currentPosition}px)`;
+                                    }
+                                });
                             } else {
                                 console.log('No products found');
-                                container.innerHTML = '<p class="text-center" style="width: 100%;">등록된 상품이 없습니다.</p>';
+                                container.innerHTML = '<p class="flex w-full items-center justify-center py-16 text-center text-slate-500">등록된 상품이 없습니다.</p>';
                             }
                         } catch (error) {
                             console.error('Failed to load products:', error);
-                            container.innerHTML = '<p class="text-center text-danger" style="width: 100%;">상품을 불러오는 중 오류가 발생했습니다: ' + error.message + '</p>';
+                            container.innerHTML = '<p class="flex w-full items-center justify-center py-16 text-center text-rose-600">상품을 불러오는 중 오류가 발생했습니다: ' + error.message + '</p>';
                         }
                     });
                 </script>
-            </div>
-        </div>
     </div>
 </section>
 {{ end }}

@@ -49,8 +49,9 @@ function bindStaticActions() {
         button.dataset.qnaBound = 'true';
         button.addEventListener('click', () => {
             const formContainer = document.getElementById('qna-form-container');
-            if (formContainer) {
-                formContainer.scrollIntoView({ behavior: 'smooth' });
+            const target = pb.authStore.isValid ? formContainer : authMessage;
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
     });
@@ -61,17 +62,26 @@ function updateUI() {
     const formContainer = document.getElementById('qna-form-container');
 
     if (formContainer) {
-        formContainer.style.display = isLoggedIn ? 'block' : 'none';
+        formContainer.classList.toggle('hidden', !isLoggedIn);
     }
     if (authMessage) {
-        authMessage.style.display = isLoggedIn ? 'none' : 'block';
+        authMessage.classList.toggle('hidden', isLoggedIn);
     }
 }
 
 async function loadInquiries() {
     if (!currentProductId || !qnaList) return;
 
-    qnaList.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>';
+    qnaList.innerHTML = `
+        <div class="flex min-h-[160px] items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-8">
+            <div class="flex items-center gap-3 text-sm font-medium text-slate-500">
+                <svg class="h-5 w-5 animate-spin text-slate-500" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
+                </svg>
+                <span>문의 목록을 불러오는 중입니다.</span>
+            </div>
+        </div>`;
 
     try {
         // Fetch inquiries
@@ -89,13 +99,19 @@ async function loadInquiries() {
             return;
         }
         console.error('Error loading inquiries:', error);
-        qnaList.innerHTML = '<div class="alert alert-danger">문의 목록을 불러오는데 실패했습니다.</div>';
+        qnaList.innerHTML = `
+            <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700">
+                문의 목록을 불러오는데 실패했습니다.
+            </div>`;
     }
 }
 
 function renderInquiries(items) {
     if (items.length === 0) {
-        qnaList.innerHTML = '<div class="text-center text-muted py-5">등록된 문의가 없습니다.</div>';
+        qnaList.innerHTML = `
+            <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
+                등록된 문의가 없습니다.
+            </div>`;
         return;
     }
 
@@ -114,18 +130,14 @@ function renderInquiries(items) {
         btn.addEventListener('click', (e) => {
             const itemEl = e.target.closest('.qna-item');
             const formEl = itemEl.querySelector('.reply-form');
-            if (formEl.style.display === 'none') {
-                formEl.style.display = 'block';
-            } else {
-                formEl.style.display = 'none';
-            }
+            formEl.classList.toggle('hidden');
         });
     });
 
     qnaList.querySelectorAll('.btn-cancel-reply').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const itemEl = e.target.closest('.qna-item');
-            itemEl.querySelector('.reply-form').style.display = 'none';
+            itemEl.querySelector('.reply-form').classList.add('hidden');
         });
     });
 
@@ -150,59 +162,68 @@ function createInquiryHTML(item) {
     let contentDisplay = '';
     if (canView) {
         contentDisplay = `
-            <p class="mb-2 qna-content">${escapeHtml(item.content)}</p>
-            ${item.reply ? `<div class="admin-reply bg-light p-3 rounded mt-3">
-                <strong class="text-primary">답변:</strong>
-                <p class="mb-0 mt-1">${escapeHtml(item.reply)}</p>
-                <small class="text-muted">${new Date(item.reply_date || item.updated).toLocaleDateString('ko-KR')}</small>
-            </div>` : ''}
+            <div class="space-y-4">
+                <p class="qna-content whitespace-pre-wrap break-words rounded-2xl bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700">${escapeHtml(item.content)}</p>
+                ${item.reply ? `<div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                        <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[11px] font-bold text-emerald-700">A</span>
+                        <span>답변</span>
+                    </div>
+                    <p class="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-slate-700">${escapeHtml(item.reply)}</p>
+                    <small class="mt-2 block text-xs text-slate-500">${new Date(item.reply_date || item.updated).toLocaleDateString('ko-KR')}</small>
+                </div>` : ''}
+            </div>
         `;
     } else {
-        contentDisplay = `<p class="mb-2 text-muted font-italic"><i class="tf-ion-locked mr-2"></i>비밀글입니다.</p>`;
+        contentDisplay = `
+            <div class="rounded-2xl border border-dashed border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-slate-600">
+                <span class="inline-flex items-center gap-2 font-medium text-amber-700">
+                    <i class="tf-ion-locked"></i>
+                    비밀글입니다.
+                </span>
+            </div>`;
     }
 
     // Actions
     let actionsHTML = '';
     if (isOwner || isAdmin) {
-        actionsHTML += `<button type="button" class="btn btn-sm btn-outline-danger btn-delete-qna mr-1">삭제</button>`;
+        actionsHTML += `<button type="button" class="btn-delete-qna inline-flex items-center justify-center rounded-full border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-50">삭제</button>`;
     }
     if (isAdmin) {
-        actionsHTML += `<button type="button" class="btn btn-sm btn-primary btn-reply-qna">💬 답변 작성/수정</button>`;
+        actionsHTML += `<button type="button" class="btn-reply-qna inline-flex items-center justify-center rounded-full border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-700">답변 작성/수정</button>`;
     }
 
     if (actionsHTML) {
-        actionsHTML = `<div class="qna-actions mt-2">${actionsHTML}</div>`;
+        actionsHTML = `<div class="qna-actions mt-4 flex flex-wrap gap-2">${actionsHTML}</div>`;
     }
 
     const replyFormHTML = isAdmin ? `
-        <div class="reply-form mt-3 p-3 bg-white border rounded" style="display: none;">
-            <div class="form-group pb-0 mb-2">
-                <label class="small text-muted">관리자 답변</label>
-                <textarea class="form-control form-control-sm admin-reply-input" rows="3">${item.reply || ''}</textarea>
+        <div class="reply-form mt-4 hidden rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div class="mb-3">
+                <label class="mb-2 block text-sm font-medium text-slate-700">관리자 답변</label>
+                <textarea class="admin-reply-input w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-200" rows="4">${escapeHtml(item.reply || '')}</textarea>
             </div>
-            <div class="text-right">
-                <button type="button" class="btn btn-sm btn-secondary btn-cancel-reply">취소</button>
-                <button type="button" class="btn btn-sm btn-primary btn-save-reply">저장</button>
+            <div class="flex justify-end gap-2">
+                <button type="button" class="btn-cancel-reply inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100">취소</button>
+                <button type="button" class="btn-save-reply inline-flex items-center justify-center rounded-full border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-700">저장</button>
             </div>
         </div>
     ` : '';
 
     return `
-        <div class="qna-item border-bottom py-3" data-id="${item.id}">
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="w-100">
-                    <div class="mb-1">
-                        <span class="font-weight-bold mr-2">${isSecret ? '<i class="tf-ion-locked text-warning" title="비밀글"></i> ' : ''}${canView ? escapeHtml(userName) : '***'}</span>
-                        <small class="text-muted">${createdDate}</small>
-                        <span class="badge badge-pill ${item.reply ? 'badge-success' : 'badge-secondary'} ml-2">
-                            ${item.reply ? '답변완료' : '답변대기'}
-                        </span>
-                    </div>
-                    ${contentDisplay}
-                    ${item.reply ? '' : actionsHTML}
-                    ${item.reply && isAdmin ? actionsHTML : ''} 
-                    ${replyFormHTML}
+        <article class="qna-item rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" data-id="${item.id}">
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
+                    <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-900">${isSecret ? '<i class="tf-ion-locked text-amber-500" title="비밀글"></i> ' : ''}${canView ? escapeHtml(userName) : '***'}</span>
+                    <span class="text-xs text-slate-500">${createdDate}</span>
+                    <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${item.reply ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}">
+                        ${item.reply ? '답변완료' : '답변대기'}
+                    </span>
                 </div>
+                ${contentDisplay}
+                ${item.reply ? '' : actionsHTML}
+                ${item.reply && isAdmin ? actionsHTML : ''}
+                ${replyFormHTML}
             </div>
         </div>
     `;

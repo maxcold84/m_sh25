@@ -1,6 +1,6 @@
 <!-- Order Detail Modal -->
 <div class="modal fade" id="order-detail-modal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -79,8 +79,7 @@
                                     placeholder="운송장번호 입력">
                             </div>
                             <div class="form-group col-md-3">
-                                <button type="button" id="save-tracking-btn" class="btn btn-success btn-sm btn-block"
-                                    onclick="AdminOrders.saveTrackingInfo()">
+                                <button type="button" id="save-tracking-btn" class="btn btn-success btn-sm btn-block">
                                     저장
                                 </button>
                             </div>
@@ -89,17 +88,14 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" id="archive-order-btn" class="btn btn-warning"
-                    onclick="AdminOrders.archiveOrder()">
+            <div class="modal-footer" style="gap: .5rem; flex-wrap: wrap;">
+                <button type="button" id="archive-order-btn" class="btn btn-warning">
                     <i class="tf-ion-archive"></i> 보관
                 </button>
-                <button type="button" id="delete-order-btn" class="btn btn-danger"
-                    onclick="AdminOrders.confirmDelete()">
+                <button type="button" id="delete-order-btn" class="btn btn-danger">
                     <i class="tf-ion-trash-a"></i> 삭제
                 </button>
-                <button type="button" id="track-delivery-btn" class="btn btn-info d-none"
-                    onclick="AdminOrders.openTrackingUrl()">
+                <button type="button" id="track-delivery-btn" class="btn btn-info d-none">
                     <i class="tf-ion-ios-location"></i> 배송조회
                 </button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>

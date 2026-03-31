@@ -12,6 +12,7 @@ const Auth = (function () {
     let nicknameCheckTimeout = null;
     let nicknameCheckRequestId = 0;
     const AUTH_REDIRECT_KEY = 'auth_redirect';
+    const AUTH_TABS = ['login', 'signup'];
 
     function init() {
         updateAuthUI();
@@ -33,11 +34,8 @@ const Auth = (function () {
             updateAuthUI();
         });
 
-        // Handle Tab Switching
-        const hash = window.location.hash;
-        if (hash === '#signup') {
-            $('#authTab a[href="#signup"]').tab('show');
-        }
+        // Tab switching
+        setupAuthTabs();
 
         // LOGOUT Handler
         const logoutButton = document.getElementById('auth-logout-link');
@@ -93,6 +91,69 @@ const Auth = (function () {
 
         // Nickname check setup
         setupNicknameCheck();
+    }
+
+    function setupAuthTabs() {
+        const tabButtons = Array.from(document.querySelectorAll('[data-auth-tab]'));
+        const tabPanels = new Map(
+            Array.from(document.querySelectorAll('[data-auth-panel]')).map(panel => [panel.dataset.authPanel, panel])
+        );
+
+        if (!tabButtons.length || !tabPanels.size) {
+            return;
+        }
+
+        const getDefaultTab = () => {
+            const activeButton = tabButtons.find(button => button.getAttribute('aria-selected') === 'true');
+            const fallbackTab = activeButton?.dataset.authTab || tabButtons[0]?.dataset.authTab || 'login';
+            return AUTH_TABS.includes(fallbackTab) ? fallbackTab : 'login';
+        };
+
+        const setActiveTab = (tabName, options = {}) => {
+            if (!AUTH_TABS.includes(tabName) || !tabPanels.has(tabName)) {
+                return;
+            }
+
+            const { updateUrl = true } = options;
+
+            tabButtons.forEach(button => {
+                const isActive = button.dataset.authTab === tabName;
+                button.classList.toggle('bg-white', isActive);
+                button.classList.toggle('text-slate-900', isActive);
+                button.classList.toggle('shadow-sm', isActive);
+                button.classList.toggle('ring-1', isActive);
+                button.classList.toggle('ring-slate-200', isActive);
+                button.classList.toggle('text-slate-500', !isActive);
+                button.setAttribute('aria-selected', String(isActive));
+                button.tabIndex = isActive ? 0 : -1;
+            });
+
+            tabPanels.forEach((panel, panelName) => {
+                panel.hidden = panelName !== tabName;
+            });
+
+            if (updateUrl) {
+                const nextUrl = new URL(window.location.href);
+                nextUrl.hash = tabName;
+                window.history.replaceState(null, '', nextUrl.toString());
+            }
+        };
+
+        const requestedTab = window.location.hash.replace('#', '');
+        setActiveTab(AUTH_TABS.includes(requestedTab) ? requestedTab : getDefaultTab(), { updateUrl: false });
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                setActiveTab(button.dataset.authTab || 'login');
+            });
+        });
+
+        window.addEventListener('hashchange', () => {
+            const hashTab = window.location.hash.replace('#', '');
+            if (AUTH_TABS.includes(hashTab)) {
+                setActiveTab(hashTab, { updateUrl: false });
+            }
+        });
     }
 
     function updateAuthUI() {
@@ -154,9 +215,9 @@ const Auth = (function () {
         const messageEl = document.getElementById('login-message');
 
         try {
-            showMessage(messageEl, '로그인 중...', 'text-info');
+            showMessage(messageEl, '로그인 중...', 'info');
             await pb.collection('users').authWithPassword(email, password);
-            showMessage(messageEl, '로그인 성공!', 'text-success');
+            showMessage(messageEl, '로그인 성공!', 'success');
             showToast('로그인 성공!');
 
             // Remember Email logic
@@ -172,7 +233,7 @@ const Auth = (function () {
             }, 500);
         } catch (error) {
             console.error('Login failed:', error);
-            showMessage(messageEl, '이메일 또는 비밀번호가 일치하지 않습니다.', 'text-danger');
+            showMessage(messageEl, '이메일 또는 비밀번호가 일치하지 않습니다.', 'danger');
         }
     }
 
@@ -187,17 +248,17 @@ const Auth = (function () {
         const messageEl = document.getElementById('signup-message');
 
         if (password !== passwordConfirm) {
-            showMessage(messageEl, '비밀번호가 일치하지 않습니다.', 'text-danger');
+            showMessage(messageEl, '비밀번호가 일치하지 않습니다.', 'danger');
             return;
         }
 
         if (nickname && (!nicknameChecked || nickname !== checkedNickname)) {
-            showMessage(messageEl, '닉네임 중복 확인이 필요합니다.', 'text-warning');
+            showMessage(messageEl, '닉네임 중복 확인이 필요합니다.', 'warning');
             return;
         }
 
         try {
-            showMessage(messageEl, '회원가입 처리 중...', 'text-info');
+            showMessage(messageEl, '회원가입 처리 중...', 'info');
 
             const data = {
                 email: email,
@@ -210,7 +271,7 @@ const Auth = (function () {
             await pb.collection('users').create(data);
             await pb.collection('users').authWithPassword(email, password);
 
-            showMessage(messageEl, '회원가입 성공! 로그인 중...', 'text-success');
+            showMessage(messageEl, '회원가입 성공! 로그인 중...', 'success');
             showToast('회원가입을 축하합니다!');
 
             setTimeout(() => {
@@ -224,7 +285,7 @@ const Auth = (function () {
             } else if (error.data?.data?.username) {
                 errorMsg = '이미 사용 중인 닉네임입니다.';
             }
-            showMessage(messageEl, errorMsg, 'text-danger');
+            showMessage(messageEl, errorMsg, 'danger');
         }
     }
 
@@ -255,10 +316,37 @@ const Auth = (function () {
     function showMessage(el, message, className) {
         if (el) {
             el.innerText = message;
-            el.className = 'mt-3 text-center ' + className;
-            el.style.display = 'block';
+            el.className = 'rounded-xl border px-4 py-3 text-center text-sm ' + getMessageToneClasses(className);
+            el.hidden = false;
         } else {
             alert(message);
+        }
+    }
+
+    function getMessageToneClasses(tone) {
+        switch (tone) {
+            case 'success':
+                return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+            case 'warning':
+                return 'border-amber-200 bg-amber-50 text-amber-700';
+            case 'danger':
+                return 'border-rose-200 bg-rose-50 text-rose-700';
+            case 'info':
+            default:
+                return 'border-sky-200 bg-sky-50 text-sky-700';
+        }
+    }
+
+    function getNicknameToneClass(tone) {
+        switch (tone) {
+            case 'success':
+                return 'text-emerald-600';
+            case 'warning':
+                return 'text-amber-600';
+            case 'danger':
+                return 'text-rose-600';
+            default:
+                return 'text-slate-500';
         }
     }
 
@@ -364,17 +452,17 @@ const Auth = (function () {
                 const suggestionContainer = document.getElementById('email-suggestion');
                 if (suggestionLink && suggestionContainer) {
                     suggestionLink.textContent = suggestion.full;
-                    suggestionContainer.style.display = 'block';
+                    suggestionContainer.hidden = false;
                     suggestionLink.onclick = (e) => {
                         e.preventDefault();
                         input.value = suggestion.full;
-                        suggestionContainer.style.display = 'none';
+                        suggestionContainer.hidden = true;
                     };
                 }
             },
             empty: function () {
                 const suggestionContainer = document.getElementById('email-suggestion');
-                if (suggestionContainer) suggestionContainer.style.display = 'none';
+                if (suggestionContainer) suggestionContainer.hidden = true;
             }
         });
     }
@@ -399,11 +487,11 @@ const Auth = (function () {
             }
 
             if (result.totalItems > 0) {
-                updateNicknameStatus('이미 사용 중인 닉네임입니다.', 'text-danger');
+                updateNicknameStatus('이미 사용 중인 닉네임입니다.', 'danger');
                 nicknameChecked = false;
                 checkedNickname = '';
             } else {
-                updateNicknameStatus('사용 가능한 닉네임입니다.', 'text-success');
+                updateNicknameStatus('사용 가능한 닉네임입니다.', 'success');
                 nicknameChecked = true;
                 checkedNickname = nickname;
             }
@@ -413,7 +501,7 @@ const Auth = (function () {
             }
 
             console.error('Nickname check failed:', error);
-            updateNicknameStatus('닉네임 확인 중 오류가 발생했습니다.', 'text-warning');
+            updateNicknameStatus('닉네임 확인 중 오류가 발생했습니다.', 'warning');
             nicknameChecked = false;
             checkedNickname = '';
         }
@@ -423,7 +511,8 @@ const Auth = (function () {
         const statusEl = document.getElementById('nickname-status');
         if (statusEl) {
             statusEl.textContent = message;
-            statusEl.className = 'small ' + className;
+            statusEl.className = 'text-sm font-medium ' + getNicknameToneClass(className);
+            statusEl.hidden = !message;
         }
     }
 

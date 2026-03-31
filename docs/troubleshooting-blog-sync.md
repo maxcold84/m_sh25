@@ -24,7 +24,7 @@
 ## 2. 블로그 화면에서 이미지가 엑스박스로 깨지는 현상
 
 ### 문제 현상
-글 동기화 툴(`npm run sync`) 실행 이후 로컬 호스트(예: `http://localhost:1313/ko/blog/fdf/`)에서 블로그 글을 열었으나 이미지가 표시되지 않고 깨짐.
+글 동기화 툴(`pnpm sync`) 실행 이후 로컬 호스트(예: `http://localhost:1313/ko/blog/fdf/`)에서 블로그 글을 열었으나 이미지가 표시되지 않고 깨짐.
 
 ### 원인
 * 동기화 스크립트가 포켓베이스에서 다운로드한 이미지를 정적 폴더(`static/`)가 아닌 리소스 폴더인 `assets/images/blog/` 에 저장함.
@@ -50,3 +50,4 @@
 * 에러가 났던 템플릿(`layouts/blog/single.html`, `layouts/partials/image.html`)으로 이동하여 인입되는 이미지 `.Src` 값 사전 검수 기능 도입.
 * `hasPrefix` 함수를 이용해 해당 문자열이 `http://`, `https://`, 또는 `//` 로 시작되는지 판별하는 구문 추가.
 * 검수 결과, 외부 웹 URL일 경우에는 `resources.Get` 함수 실행을 건너뛰고 바로 `<img>` 태그에 원래 문자열 값을 하드코딩해서 내보내도록 예외 상황 분기(Fallback) 작성 완료.
+

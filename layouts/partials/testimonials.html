@@ -1,27 +1,25 @@
 {{ $data := index .Site.Data .Site.Language.Lang }}
 
 {{ if $data.homepage.testimonial.enable }}
-<section class="testimonials section" id="testimonial">
-  <div class="container">
+<section id="testimonial" class="bg-slate-50 py-16 sm:py-20 lg:py-24">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     {{ with $data.homepage.testimonial }}
-    <div class="row justify-content-center">
-      <div class="col-12">
-        <div class="heading">
-          <h2>{{ .title | markdownify }}</h2>
-        </div>
-      </div>
+    <div class="mx-auto mb-12 max-w-3xl text-center">
+      <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{{ .title | markdownify }}</h2>
+    </div>
+    <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
       {{ range .testimonial_item }}
-      <div class="col-lg-4 col-sm-6 mb-5 mb-lg-0 text-center">
-        <div class="testimonial-block">
-          <i class="tf-ion-quote"></i>
-          <p>{{ .content | markdownify }}</p>
-          <div class="author-details">
-            {{ partial "image.html" (dict "Src" .image "Alt" .name ) }}
-            <h4>{{ .name }}</h4>
-            <span>{{ .designation }}</span>
+      <article class="flex h-full flex-col rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-200 sm:p-8">
+        <i class="tf-ion-quote mx-auto text-3xl text-amber-400"></i>
+        <p class="mt-4 text-base leading-7 text-slate-600">{{ .content | markdownify }}</p>
+        <div class="mt-6 flex flex-col items-center gap-3">
+          {{ partial "image.html" (dict "Src" .image "Alt" .name "Class" "h-16 w-16 overflow-hidden rounded-full ring-4 ring-slate-100" ) }}
+          <div>
+            <h4 class="text-base font-semibold text-slate-900">{{ .name }}</h4>
+            <span class="text-sm text-slate-500">{{ .designation }}</span>
           </div>
         </div>
-      </div>
+      </article>
       {{ end }}
     </div>
     {{ end }}

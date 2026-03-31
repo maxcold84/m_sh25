@@ -150,6 +150,41 @@ async function fetchProductsByIds(productIds) {
     }
 }
 
+function parseJsonDataAttribute(value) {
+    if (!value) {
+        return {};
+    }
+
+    try {
+        return JSON.parse(value);
+    } catch (error) {
+        console.warn('Failed to parse cart button payload:', error);
+        return {};
+    }
+}
+
+function buildCartItemFromButton(button) {
+    if (!button) {
+        return null;
+    }
+
+    const price = Number(button.dataset.cartPrice);
+    const id = button.dataset.cartId || '';
+    const name = button.dataset.cartName || '';
+
+    if (!id || !name || !Number.isFinite(price)) {
+        return null;
+    }
+
+    return {
+        id,
+        name,
+        price,
+        image: button.dataset.cartImage || '',
+        options: parseJsonDataAttribute(button.dataset.cartOptions)
+    };
+}
+
 // ============================================
 // Core / Manager
 // ============================================
@@ -689,6 +724,17 @@ function setupCartEvents() {
                 event.preventDefault();
                 Cart.toggleDrawer();
                 break;
+            case 'add-item': {
+                event.preventDefault();
+                const payload = buildCartItemFromButton(actionEl);
+
+                if (payload) {
+                    Cart.addItem(payload);
+                } else {
+                    console.warn('Cart add-item button is missing required data attributes.');
+                }
+                break;
+            }
             case 'checkout':
                 event.preventDefault();
                 Cart.checkout();

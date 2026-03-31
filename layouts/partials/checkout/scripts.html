@@ -1,73 +1,97 @@
-<script>
-    const layer = document.getElementById('daum-layer');
-    const container = document.getElementById('daum-postcode-container');
-
-    function closePostcode() {
-        layer.classList.add('hidden');
-    }
-
-    function openPostcode() {
-        new daum.Postcode({
-            oncomplete: function (data) {
-                var roadAddr = data.roadAddress;
-                var extraRoadAddr = '';
-
-                if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
-                    extraRoadAddr += data.bname;
-                }
-                if (data.buildingName !== '' && data.apartment === 'Y') {
-                    extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName);
-                }
-                if (extraRoadAddr !== '') {
-                    extraRoadAddr = ' (' + extraRoadAddr + ')';
-                }
-
-                document.getElementById('postcode').value = data.zonecode;
-
-                if (data.userSelectedType === 'R') {
-                    document.getElementById("address").value = roadAddr;
-                } else {
-                    document.getElementById("address").value = data.jibunAddress;
-                }
-
-                if (roadAddr !== '') {
-                    document.getElementById("extraAddress").value = extraRoadAddr;
-                } else {
-                    document.getElementById("extraAddress").value = '';
-                }
-
-                var guideTextBox = document.getElementById("guide");
-                if (data.autoRoadAddress) {
-                    var expRoadAddr = data.autoRoadAddress + extraRoadAddr;
-                    guideTextBox.innerHTML = '(예상 도로명 주소 : ' + expRoadAddr + ')';
-                    guideTextBox.style.display = ' block';
-                } else if (data.autoJibunAddress) {
-                    var expJibunAddr = data.autoJibunAddress;
-                    guideTextBox.innerHTML = '(예상 지번 주소 : ' + expJibunAddr + ')';
-                    guideTextBox.style.display = 'block';
-                } else {
-                    guideTextBox.innerHTML = '';
-                    guideTextBox.style.display = 'none';
-                }
-
-                document.getElementById("detailAddress").focus();
-                closePostcode();
-            },
-            width: '100%',
-            height: '100%',
-            maxSuggestItems: 5
-        }).embed(container);
-
-        layer.classList.remove('hidden');
-    }
-</script>
-
 <!-- Mailcheck.js for email typo correction -->
 <script src="https://cdn.jsdelivr.net/npm/mailcheck@1.1.2/src/mailcheck.min.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         console.log('DOM loaded, checking dependencies...');
+
+        const layer = document.getElementById('daum-layer');
+        const container = document.getElementById('daum-postcode-container');
+        const postcodeButtons = document.querySelectorAll('[data-checkout-action="open-postcode"]');
+        const closeButtons = document.querySelectorAll('[data-checkout-action="close-postcode"]');
+        const backButtons = document.querySelectorAll('[data-checkout-action="history-back"]');
+        const postcodeFields = {
+            postcode: document.getElementById('postcode'),
+            address: document.getElementById('address'),
+            detailAddress: document.getElementById('detailAddress'),
+            extraAddress: document.getElementById('extraAddress'),
+            guide: document.getElementById('guide'),
+        };
+
+        const closePostcode = () => {
+            if (layer) layer.classList.add('hidden');
+        };
+
+        const openPostcode = () => {
+            if (!layer || !container || typeof daum === 'undefined') return;
+
+            new daum.Postcode({
+                oncomplete: function (data) {
+                    var roadAddr = data.roadAddress;
+                    var extraRoadAddr = '';
+
+                    if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+                        extraRoadAddr += data.bname;
+                    }
+                    if (data.buildingName !== '' && data.apartment === 'Y') {
+                        extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                    }
+                    if (extraRoadAddr !== '') {
+                        extraRoadAddr = ' (' + extraRoadAddr + ')';
+                    }
+
+                    if (postcodeFields.postcode) postcodeFields.postcode.value = data.zonecode;
+
+                    if (data.userSelectedType === 'R') {
+                        if (postcodeFields.address) postcodeFields.address.value = roadAddr;
+                    } else {
+                        if (postcodeFields.address) postcodeFields.address.value = data.jibunAddress;
+                    }
+
+                    if (roadAddr !== '') {
+                        if (postcodeFields.extraAddress) postcodeFields.extraAddress.value = extraRoadAddr;
+                    } else {
+                        if (postcodeFields.extraAddress) postcodeFields.extraAddress.value = '';
+                    }
+
+                    var guideTextBox = postcodeFields.guide;
+                    if (guideTextBox) {
+                        if (data.autoRoadAddress) {
+                            var expRoadAddr = data.autoRoadAddress + extraRoadAddr;
+                            guideTextBox.innerHTML = '(예상 도로명 주소 : ' + expRoadAddr + ')';
+                            guideTextBox.style.display = 'block';
+                        } else if (data.autoJibunAddress) {
+                            var expJibunAddr = data.autoJibunAddress;
+                            guideTextBox.innerHTML = '(예상 지번 주소 : ' + expJibunAddr + ')';
+                            guideTextBox.style.display = 'block';
+                        } else {
+                            guideTextBox.innerHTML = '';
+                            guideTextBox.style.display = 'none';
+                        }
+                    }
+
+                    if (postcodeFields.detailAddress) postcodeFields.detailAddress.focus();
+                    closePostcode();
+                },
+                width: '100%',
+                height: '100%',
+                maxSuggestItems: 5
+            }).embed(container);
+
+            layer.classList.remove('hidden');
+        };
+
+        postcodeButtons.forEach(button => button.addEventListener('click', openPostcode));
+        closeButtons.forEach(button => button.addEventListener('click', closePostcode));
+        backButtons.forEach(button => button.addEventListener('click', () => history.back()));
+
+        if (layer) {
+            layer.addEventListener('click', function (event) {
+                if (event.target === layer) {
+                    closePostcode();
+                }
+            });
+        }
 
         // Check if PocketBase is loaded
         if (typeof PocketBase === 'undefined') {
@@ -160,7 +184,7 @@
                 return;
             }
 
-            const suggestionLink = suggestionDiv.querySelector('a');
+            let suggestionLink = suggestionDiv.querySelector('a');
 
             emailInput.addEventListener('blur', function () {
                 const email = emailInput.value.trim();
@@ -174,14 +198,16 @@
                     domains: ['gmail.com', 'naver.com', 'daum.net', 'kakao.com', 'outlook.com', 'hanmail.net', 'nate.com'],
                     topLevelDomains: ['com', 'net', 'org', 'kr'],
                     suggested: function (suggestion) {
-                        suggestionLink.textContent = suggestion.full;
-                        suggestionDiv.style.display = 'block';
-
-                        suggestionLink.onclick = function (e) {
+                        const nextLink = suggestionLink.cloneNode(true);
+                        nextLink.textContent = suggestion.full;
+                        nextLink.addEventListener('click', function (e) {
                             e.preventDefault();
                             emailInput.value = suggestion.full;
                             suggestionDiv.style.display = 'none';
-                        };
+                        });
+                        suggestionLink.replaceWith(nextLink);
+                        suggestionLink = nextLink;
+                        suggestionDiv.style.display = 'block';
                     },
                     empty: function () {
                         suggestionDiv.style.display = 'none';

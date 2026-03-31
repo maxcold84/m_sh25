@@ -15,6 +15,11 @@ let imagePreview = null;
 let imageCount = null;
 let selectedFiles = [];
 let currentProductId = null;
+let activeOverlay = null;
+
+const MAX_REVIEW_IMAGES = 5;
+const MAX_REVIEW_IMAGE_SIZE = 10 * 1024 * 1024;
+const ALLOWED_REVIEW_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
 /**
  * 리뷰 모듈 초기화
@@ -53,26 +58,24 @@ function init(productId) {
 function updateUI() {
     const isLoggedIn = pb.authStore.isValid;
     if (reviewForm) {
-        reviewForm.style.display = isLoggedIn ? 'block' : 'none';
+        reviewForm.classList.toggle('hidden', !isLoggedIn);
     }
     if (authMessage) {
-        authMessage.style.display = isLoggedIn ? 'none' : 'block';
+        authMessage.classList.toggle('hidden', isLoggedIn);
     }
 }
 
 function handleImageSelect(e) {
     const files = Array.from(e.target.files);
-    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
-    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
     // Validation
     const validFiles = [];
     for (const file of files) {
-        if (!ALLOWED_TYPES.includes(file.type)) {
+        if (!ALLOWED_REVIEW_IMAGE_TYPES.includes(file.type)) {
             alert(`지원되지 않는 파일 형식입니다: ${file.name}\n(jpg, png, gif, webp만 가능)`);
             continue;
         }
-        if (file.size > MAX_SIZE) {
+        if (file.size > MAX_REVIEW_IMAGE_SIZE) {
             alert(`파일 크기가 너무 큽니다: ${file.name}\n(최대 10MB)`);
             continue;
         }
@@ -80,12 +83,12 @@ function handleImageSelect(e) {
     }
 
     // Limit to 5 images total
-    if (selectedFiles.length + validFiles.length > 5) {
+    if (selectedFiles.length + validFiles.length > MAX_REVIEW_IMAGES) {
         alert('최대 5장까지 업로드할 수 있습니다.');
         return;
     }
 
-    selectedFiles = [...selectedFiles, ...validFiles].slice(0, 5);
+    selectedFiles = [...selectedFiles, ...validFiles].slice(0, MAX_REVIEW_IMAGES);
     updateImagePreview();
 
     // Reset input so same file can be selected again if needed
@@ -101,14 +104,10 @@ function updateImagePreview() {
         const reader = new FileReader();
         reader.onload = (e) => {
             const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'position: relative; display: inline-block;';
+            wrapper.className = 'group relative h-20 w-20 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm';
             wrapper.innerHTML = `
-                <img src="${e.target.result}" alt="Preview ${index + 1}" 
-                     style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
-                <button type="button" class="remove-image-btn" data-index="${index}"
-                        style="position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; 
-                               border-radius: 50%; border: none; background: #dc3545; color: white; 
-                               font-size: 12px; cursor: pointer; line-height: 1;">×</button>
+                <img src="${e.target.result}" alt="Preview ${index + 1}" class="h-full w-full object-cover">
+                <button type="button" class="remove-image-btn absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900/80 text-xs font-bold text-white opacity-100 transition group-hover:bg-rose-600" data-index="${index}" aria-label="Remove selected image">×</button>
             `;
             imagePreview.appendChild(wrapper);
 
@@ -122,14 +121,18 @@ function updateImagePreview() {
     });
 
     if (imageCount) {
-        imageCount.textContent = selectedFiles.length > 0 ? `${selectedFiles.length}개 선택` : '';
+        imageCount.textContent = selectedFiles.length > 0 ? `${selectedFiles.length}개 선택` : '선택된 사진 없음';
     }
 }
 
 async function loadReviews() {
     if (!currentProductId || !reviewList) return;
 
-    reviewList.innerHTML = '<p class="text-center">리뷰를 불러오는 중...</p>';
+    reviewList.innerHTML = `
+        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-sm">
+            리뷰를 불러오는 중...
+        </div>
+    `;
 
     try {
         const resultList = await pb.collection('reviews').getList(1, 50, {
@@ -141,13 +144,21 @@ async function loadReviews() {
         renderReviews(resultList.items);
     } catch (error) {
         console.error('Error loading reviews:', error);
-        reviewList.innerHTML = '<p class="text-center text-danger">리뷰를 불러오는데 실패했습니다.</p>';
+        reviewList.innerHTML = `
+            <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-sm text-rose-700 shadow-sm">
+                리뷰를 불러오는데 실패했습니다.
+            </div>
+        `;
     }
 }
 
 function renderReviews(reviews) {
     if (reviews.length === 0) {
-        reviewList.innerHTML = '<p class="text-center text-muted">아직 리뷰가 없습니다. 첫 번째 리뷰를 작성해보세요!</p>';
+        reviewList.innerHTML = `
+            <div data-empty-state="reviews" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+                아직 리뷰가 없습니다. 첫 번째 리뷰를 작성해보세요!
+            </div>
+        `;
         return;
     }
 
@@ -158,13 +169,31 @@ function renderReviews(reviews) {
 }
 
 function attachReviewEventListeners() {
+    if (!reviewList) {
+        return;
+    }
+
     // Lightbox for images
-    document.querySelectorAll('.review-image').forEach(img => {
+    reviewList.querySelectorAll('.review-image').forEach(img => {
         img.addEventListener('click', () => openLightbox(img.dataset.full || img.src));
     });
 
+    reviewList.querySelectorAll('.review-avatar-img').forEach((img) => {
+        if (img.dataset.avatarBound === 'true') {
+            return;
+        }
+
+        img.dataset.avatarBound = 'true';
+        img.addEventListener('error', function handleAvatarError() {
+            const fallback = img.dataset.avatarFallback || '';
+            if (fallback) {
+                img.outerHTML = fallback;
+            }
+        });
+    });
+
     // Edit buttons
-    document.querySelectorAll('.btn-edit-review').forEach(btn => {
+    reviewList.querySelectorAll('.btn-edit-review').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const reviewId = e.target.closest('.review-item').dataset.reviewId;
             openEditModal(reviewId);
@@ -172,7 +201,7 @@ function attachReviewEventListeners() {
     });
 
     // Delete buttons
-    document.querySelectorAll('.btn-delete-review').forEach(btn => {
+    reviewList.querySelectorAll('.btn-delete-review').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const reviewId = e.target.closest('.review-item').dataset.reviewId;
             confirmDeleteReview(reviewId);
@@ -188,14 +217,15 @@ function createReviewHTML(review) {
         : null;
 
     const createdDate = new Date(review.created).toLocaleDateString('ko-KR');
-    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+    const ratingValue = Number(review.rating) || 0;
+    const stars = '★'.repeat(ratingValue) + '☆'.repeat(Math.max(0, 5 - ratingValue));
 
     const isOwner = pb.authStore.isValid && pb.authStore.model?.id === review.user;
 
     const actionsHTML = isOwner ? `
-        <div class="review-actions mt-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary btn-edit-review mr-1">수정</button>
-            <button type="button" class="btn btn-sm btn-outline-danger btn-delete-review">삭제</button>
+        <div class="review-actions mt-4 flex flex-wrap gap-2">
+            <button type="button" class="btn-edit-review inline-flex items-center justify-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900">수정</button>
+            <button type="button" class="btn-delete-review inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100">삭제</button>
         </div>
     ` : '';
 
@@ -204,27 +234,33 @@ function createReviewHTML(review) {
         const imageItems = review.images.map(img => {
             const thumbUrl = pb.files.getUrl(review, img, { thumb: '200x200' });
             const imgUrl = pb.files.getUrl(review, img);
-            return `<img src="${thumbUrl}" data-full="${imgUrl}" alt="리뷰 이미지" class="review-image" 
-                        style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #ddd;">`;
+            return `<img src="${thumbUrl}" data-full="${imgUrl}" alt="리뷰 이미지" class="review-image h-20 w-20 cursor-zoom-in rounded-2xl object-cover ring-1 ring-slate-200 transition hover:scale-[1.02]">`;
         }).join('');
-        imagesHTML = `<div class="review-images d-flex flex-wrap mt-2" style="gap: 8px;">${imageItems}</div>`;
+        imagesHTML = `<div class="review-images mt-4 flex flex-wrap gap-2">${imageItems}</div>`;
     }
 
     const avatarHTML = userAvatar
-        ? `<img src="${userAvatar}" class="mr-3 rounded-circle" alt="${escapeHtml(userName)}" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.parentElement.innerHTML='<i class=\\'tf-ion-android-person mr-3\\' style=\\'font-size: 32px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #666;\\'></i>'">`
-        : `<i class="tf-ion-android-person mr-3" style="font-size: 32px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #666;"></i>`;
+        ? `<img src="${userAvatar}" class="review-avatar-img mr-3 h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-slate-200" alt="${escapeHtml(userName)}" data-avatar-fallback="${escapeHtml('<div class="mr-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 ring-1 ring-slate-200"><i class="tf-ion-android-person text-xl"></i></div>')}">`
+        : `<div class="mr-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 ring-1 ring-slate-200"><i class="tf-ion-android-person text-xl"></i></div>`;
 
     return `
-        <div class="review-item media mb-4 p-3 border rounded" data-review-id="${review.id}" data-rating="${review.rating}" data-content="${escapeHtml(review.content)}">
+        <article class="review-item rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 transition hover:-translate-y-0.5 hover:shadow-md sm:p-5" data-review-id="${review.id}" data-rating="${ratingValue}" data-content="${escapeHtml(review.content)}">
+            <div class="flex gap-4">
             ${avatarHTML}
-            <div class="media-body">
-                <h6 class="mt-0 mb-1">${escapeHtml(userName)} <small class="text-muted ml-2">${createdDate}</small></h6>
-                <div class="text-warning mb-2">${stars}</div>
-                <p class="mb-2 review-content-text">${escapeHtml(review.content)}</p>
+            <div class="min-w-0 flex-1">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <h6 class="text-sm font-semibold text-slate-900">${escapeHtml(userName)}</h6>
+                        <p class="mt-1 text-xs text-slate-500">${createdDate}</p>
+                    </div>
+                    <div class="text-sm font-semibold tracking-[0.2em] text-amber-500">${stars}</div>
+                </div>
+                <p class="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">${escapeHtml(review.content)}</p>
                 ${imagesHTML}
                 ${actionsHTML}
             </div>
-        </div>
+            </div>
+        </article>
     `;
 }
 
@@ -235,19 +271,25 @@ function openEditModal(reviewId) {
     const currentRating = reviewElement.dataset.rating;
     const currentContent = reviewElement.dataset.content;
 
+    closeActiveOverlay();
+
     const modal = document.createElement('div');
     modal.id = 'edit-review-modal';
-    modal.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;
-    `;
+    modal.className = 'fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm';
+    modal.dataset.reviewOverlay = 'edit';
     modal.innerHTML = `
-        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
-            <h4 style="margin-bottom: 20px;">리뷰 수정</h4>
-            <form id="edit-review-form">
-                <div class="form-group">
-                    <label for="edit-rating">평점</label>
-                    <select class="form-control" id="edit-rating" required>
+        <div class="w-full max-w-lg rounded-3xl bg-white p-5 shadow-2xl shadow-slate-900/20 sm:p-6">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Edit review</p>
+                    <h4 class="mt-1 text-xl font-bold text-slate-900">리뷰 수정</h4>
+                </div>
+                <button type="button" class="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" data-edit-close aria-label="닫기">×</button>
+            </div>
+            <form id="edit-review-form" class="mt-5 space-y-5">
+                <div>
+                    <label for="edit-rating" class="text-sm font-semibold text-slate-700">평점</label>
+                    <select id="edit-rating" required class="mt-2 block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10">
                         <option value="5" ${Number(currentRating) === 5 ? 'selected' : ''}>⭐⭐⭐⭐⭐ (5점)</option>
                         <option value="4" ${Number(currentRating) === 4 ? 'selected' : ''}>⭐⭐⭐⭐ (4점)</option>
                         <option value="3" ${Number(currentRating) === 3 ? 'selected' : ''}>⭐⭐⭐ (3점)</option>
@@ -255,40 +297,62 @@ function openEditModal(reviewId) {
                         <option value="1" ${Number(currentRating) === 1 ? 'selected' : ''}>⭐ (1점)</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="edit-content">내용</label>
-                    <textarea class="form-control" id="edit-content" rows="4" required>${currentContent}</textarea>
+                <div>
+                    <label for="edit-content" class="text-sm font-semibold text-slate-700">내용</label>
+                    <textarea id="edit-content" rows="4" required class="mt-2 block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-900 shadow-sm outline-none transition focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10">${escapeHtml(currentContent)}</textarea>
                 </div>
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button type="button" class="btn btn-secondary" id="cancel-edit">취소</button>
-                    <button type="submit" class="btn btn-primary" id="save-edit">저장</button>
+                <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900" id="cancel-edit">취소</button>
+                    <button type="submit" class="inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700" id="save-edit">저장</button>
                 </div>
             </form>
         </div>
     `;
     document.body.appendChild(modal);
+    activeOverlay = modal;
+    document.body.classList.add('overflow-hidden');
 
-    modal.querySelector('#cancel-edit').addEventListener('click', () => modal.remove());
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    const closeModal = () => {
+        document.removeEventListener('keydown', handleKeydown);
+        if (activeOverlay === modal) {
+            activeOverlay = null;
+        }
+        modal.remove();
+        document.body.classList.remove('overflow-hidden');
+    };
+
+    const handleKeydown = (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    };
+
+    modal.querySelectorAll('[data-edit-close], #cancel-edit').forEach((button) => {
+        button.addEventListener('click', closeModal);
+    });
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', handleKeydown);
 
     modal.querySelector('#edit-review-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const newRating = parseInt(document.getElementById('edit-rating').value);
-        const newContent = document.getElementById('edit-content').value.trim();
+        const newRating = parseInt(modal.querySelector('#edit-rating').value);
+        const newContent = modal.querySelector('#edit-content').value.trim();
         const saveBtn = modal.querySelector('#save-edit');
 
         if (!newContent) { alert('리뷰 내용을 입력해주세요.'); return; }
 
         try {
-            saveBtn.disabled = true; saveBtn.textContent = '저장 중...';
+            saveBtn.disabled = true;
+            saveBtn.textContent = '저장 중...';
             await pb.collection('reviews').update(reviewId, { rating: newRating, content: newContent });
-            modal.remove();
+            closeModal();
             showSuccessMessage('리뷰가 수정되었습니다.');
             loadReviews();
         } catch (error) {
             console.error('Error updating review:', error);
             alert('리뷰 수정에 실패했습니다: ' + error.message);
-            saveBtn.disabled = false; saveBtn.textContent = '저장';
+            saveBtn.disabled = false;
+            saveBtn.textContent = '저장';
         }
     });
 }
@@ -305,7 +369,11 @@ async function confirmDeleteReview(reviewId) {
             setTimeout(() => {
                 reviewElement.remove();
                 if (reviewList && reviewList.children.length === 0) {
-                    reviewList.innerHTML = '<p class="text-center text-muted">아직 리뷰가 없습니다. 첫 번째 리뷰를 작성해보세요!</p>';
+                    reviewList.innerHTML = `
+                        <div data-empty-state="reviews" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+                            아직 리뷰가 없습니다. 첫 번째 리뷰를 작성해보세요!
+                        </div>
+                    `;
                 }
             }, 300);
         }
@@ -318,28 +386,64 @@ async function confirmDeleteReview(reviewId) {
 
 function showSuccessMessage(message) {
     const toast = document.createElement('div');
-    toast.className = 'alert alert-success';
-    toast.style.cssText = `position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease-out; box-shadow: 0 4px 12px rgba(0,0,0,0.15);`;
+    toast.className = 'pointer-events-none fixed right-4 top-4 z-[9999] max-w-sm translate-y-0 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 shadow-lg shadow-emerald-950/10 transition-all duration-300 ease-out';
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px)';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
     toast.textContent = message;
     document.body.appendChild(toast);
-    setTimeout(() => { toast.style.animation = 'slideOut 0.3s ease-in'; setTimeout(() => toast.remove(), 300); }, 3000);
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    });
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
 function openLightbox(src) {
+    closeActiveOverlay();
+
     const lightbox = document.createElement('div');
     lightbox.id = 'review-lightbox';
-    lightbox.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center;
-        z-index: 10000; cursor: zoom-out;
-    `;
+    lightbox.className = 'fixed inset-0 z-[10000] flex cursor-zoom-out items-center justify-center bg-slate-950/90 px-4 py-6 backdrop-blur-sm';
+    lightbox.dataset.reviewOverlay = 'lightbox';
     lightbox.innerHTML = `
-        <img src="${src}" style="max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 8px;">
-        <button style="position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; 
-                       border-radius: 50%; border: none; background: white; font-size: 24px; cursor: pointer;">×</button>
+        <div class="relative max-h-[90vh] max-w-5xl">
+            <img src="${src}" alt="리뷰 이미지 확대보기" class="max-h-[90vh] w-full max-w-full rounded-3xl object-contain shadow-2xl shadow-black/30">
+            <button type="button" data-lightbox-close class="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-2xl leading-none text-slate-900 shadow-lg shadow-black/20 transition hover:bg-white" aria-label="닫기">×</button>
+        </div>
     `;
-    lightbox.addEventListener('click', () => lightbox.remove());
     document.body.appendChild(lightbox);
+
+    activeOverlay = lightbox;
+    document.body.classList.add('overflow-hidden');
+
+    const closeLightbox = () => {
+        document.removeEventListener('keydown', handleKeydown);
+        if (activeOverlay === lightbox) {
+            activeOverlay = null;
+        }
+        lightbox.remove();
+        document.body.classList.remove('overflow-hidden');
+    };
+
+    const handleKeydown = (event) => {
+        if (event.key === 'Escape') {
+            closeLightbox();
+        }
+    };
+
+    lightbox.addEventListener('click', (event) => {
+        if (event.target === lightbox || event.target.closest('[data-lightbox-close]')) {
+            closeLightbox();
+        }
+    });
+    document.addEventListener('keydown', handleKeydown);
+    lightbox.focus?.();
 }
 
 async function handleReviewSubmit(e) {
@@ -389,8 +493,8 @@ async function handleReviewSubmit(e) {
 
 function addNewReviewToList(newReview) {
     if (!reviewList) return;
-    const noReviewsMsg = reviewList.querySelector('.text-muted');
-    if (noReviewsMsg && noReviewsMsg.textContent.includes('아직 리뷰가 없습니다')) {
+    const noReviewsMsg = reviewList.querySelector('[data-empty-state="reviews"]');
+    if (noReviewsMsg) {
         reviewList.innerHTML = '';
     }
     const newReviewHTML = createReviewHTML({ ...newReview, expand: { user: pb.authStore.model } });
@@ -403,6 +507,14 @@ function addNewReviewToList(newReview) {
     reviewList.insertBefore(newElement, reviewList.firstChild);
     attachReviewEventListeners();
     requestAnimationFrame(() => { newElement.style.opacity = '1'; newElement.style.transform = 'translateY(0)'; });
+}
+
+function closeActiveOverlay() {
+    if (activeOverlay) {
+        activeOverlay.remove();
+        activeOverlay = null;
+        document.body.classList.remove('overflow-hidden');
+    }
 }
 
 // ============================================

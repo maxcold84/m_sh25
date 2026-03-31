@@ -17,6 +17,9 @@ window.AdminOrders = (function () {
         epost: { name: '우체국EMS', trackUrl: 'https://service.epost.go.kr/trace.RetrieveEmsRi498.postal?POST_CODE=' },
         kdexp: { name: '경동택배', trackUrl: 'https://kdexp.com/basicNew498.kd?barcode=' }
     };
+    const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/50?text=No+Img';
+    const IMAGE_ERROR_FALLBACK = 'https://via.placeholder.com/50?text=Error';
+    const INTERACTIVE_SELECTOR = 'button, a, input, select, textarea, label';
 
     function init() {
         console.log('AdminOrders initializing...');
@@ -62,13 +65,143 @@ window.AdminOrders = (function () {
         if (refreshBtn) {
             refreshBtn.addEventListener('click', loadOrders);
         }
+
+        // Bulk actions
+        const bulkArchiveBtn = document.getElementById('bulk-archive-btn');
+        if (bulkArchiveBtn) {
+            bulkArchiveBtn.addEventListener('click', bulkArchive);
+        }
+
+        const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.addEventListener('click', bulkDelete);
+        }
+
+        // Table interactions
+        const tableBody = document.getElementById('orders-table-body');
+        if (tableBody) {
+            tableBody.addEventListener('click', handleTableBodyClick);
+            tableBody.addEventListener('change', handleTableBodyChange);
+            tableBody.addEventListener('keydown', handleTableBodyKeydown);
+        }
+
+        const pagination = document.getElementById('pagination-controls');
+        if (pagination) {
+            pagination.addEventListener('click', handlePaginationClick);
+        }
+
+        const selectAllCheckbox = document.getElementById('select-all-orders');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', toggleSelectAll);
+        }
+
+        const saveTrackingBtn = document.getElementById('save-tracking-btn');
+        if (saveTrackingBtn) {
+            saveTrackingBtn.addEventListener('click', saveTrackingInfo);
+        }
+
+        const archiveOrderBtn = document.getElementById('archive-order-btn');
+        if (archiveOrderBtn) {
+            archiveOrderBtn.addEventListener('click', () => archiveOrder());
+        }
+
+        const deleteOrderBtn = document.getElementById('delete-order-btn');
+        if (deleteOrderBtn) {
+            deleteOrderBtn.addEventListener('click', () => confirmDelete());
+        }
+
+        const trackDeliveryBtn = document.getElementById('track-delivery-btn');
+        if (trackDeliveryBtn) {
+            trackDeliveryBtn.addEventListener('click', openTrackingUrl);
+        }
+
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', () => deleteOrder());
+        }
+    }
+
+    function handleTableBodyClick(event) {
+        const openButton = event.target.closest('[data-action="open-order"]');
+        if (openButton) {
+            const orderId = openButton.dataset.orderId;
+            if (orderId) {
+                openModal(orderId);
+            }
+            return;
+        }
+
+        if (event.target.closest('.order-checkbox')) {
+            return;
+        }
+
+        const row = event.target.closest('tr[data-order-id]');
+        if (!row) {
+            return;
+        }
+
+        if (event.target.closest(INTERACTIVE_SELECTOR)) {
+            return;
+        }
+
+        openModal(row.dataset.orderId);
+    }
+
+    function handleTableBodyChange(event) {
+        const checkbox = event.target.closest('.order-checkbox');
+        if (!checkbox) {
+            return;
+        }
+
+        toggleSelectOrder(checkbox.dataset.orderId, checkbox.checked);
+    }
+
+    function handleTableBodyKeydown(event) {
+        const row = event.target.closest('tr[data-order-id]');
+        if (!row || event.target.closest(INTERACTIVE_SELECTOR)) {
+            return;
+        }
+
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openModal(row.dataset.orderId);
+        }
+    }
+
+    function handlePaginationClick(event) {
+        const pageButton = event.target.closest('[data-page]');
+        if (!pageButton || pageButton.disabled) {
+            return;
+        }
+
+        const nextPage = Number(pageButton.dataset.page);
+        if (!Number.isNaN(nextPage)) {
+            setPage(nextPage);
+        }
+    }
+
+    function wireImageFallbacks(container) {
+        if (!container) {
+            return;
+        }
+
+        container.querySelectorAll('img[data-fallback-src]').forEach(img => {
+            img.addEventListener('error', () => {
+                const fallbackSrc = img.dataset.fallbackSrc;
+                if (fallbackSrc && img.src !== fallbackSrc) {
+                    img.src = fallbackSrc;
+                }
+            }, { once: true });
+        });
     }
 
     async function loadOrders() {
         const tableBody = document.getElementById('orders-table-body');
         const countSpan = document.getElementById('total-orders-count');
 
-        tableBody.innerHTML = '<tr><td colspan="8" class="px-6 py-10 text-center text-gray-500">불러오는 중...</td></tr>';
+        if (tableBody) {
+            tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted">불러오는 중...</td></tr>';
+        }
 
         try {
             // Fetch all orders sorted by latest
@@ -80,7 +213,9 @@ window.AdminOrders = (function () {
             });
 
             allOrders = records;
-            countSpan.textContent = allOrders.length;
+            if (countSpan) {
+                countSpan.textContent = allOrders.length;
+            }
             renderOrders();
 
         } catch (err) {
@@ -90,14 +225,21 @@ window.AdminOrders = (function () {
                 alert('권한이 없습니다. 다시 로그인해주세요.');
                 window.location.href = '/ko/admin/login';
             } else {
-                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-danger">오류가 발생했습니다: ${err.message}</td></tr>`;
+                if (tableBody) {
+                    tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-danger">오류가 발생했습니다: ${err.message}</td></tr>`;
+                }
             }
         }
     }
 
     function renderOrders() {
         const tableBody = document.getElementById('orders-table-body');
-        const statusFilter = document.getElementById('status-filter').value;
+        const statusFilterEl = document.getElementById('status-filter');
+        const statusFilter = statusFilterEl ? statusFilterEl.value : '';
+
+        if (!tableBody) {
+            return;
+        }
 
         // Filter
         let filtered = allOrders;
@@ -107,7 +249,10 @@ window.AdminOrders = (function () {
 
         // Pagination Logic
         const totalItems = filtered.length;
-        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+        const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
         const start = (currentPage - 1) * ITEMS_PER_PAGE;
         const end = start + ITEMS_PER_PAGE;
         const pageItems = filtered.slice(start, end);
@@ -115,6 +260,8 @@ window.AdminOrders = (function () {
         if (pageItems.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted">주문 내역이 없습니다.</td></tr>';
             renderPagination(0, 0);
+            updateBulkActionsUI();
+            updateSelectAllCheckbox();
             return;
         }
 
@@ -182,36 +329,36 @@ window.AdminOrders = (function () {
 
             const isSelected = selectedOrders.has(order.id);
             html += `
-                <tr class="cursor-pointer ${isSelected ? 'table-active' : ''}">
-                    <td onclick="event.stopPropagation();">
+                <tr class="cursor-pointer ${isSelected ? 'table-active' : ''}" data-order-id="${order.id}" tabindex="0" role="button" aria-label="주문 상세 보기">
+                    <td>
                         <input type="checkbox" class="order-checkbox" data-order-id="${order.id}" 
                                ${isSelected ? 'checked' : ''} 
-                               onchange="AdminOrders.toggleSelectOrder('${order.id}')">
+                               aria-label="주문 선택">
                     </td>
-                    <td onclick="AdminOrders.openModal('${order.id}')">
+                    <td>
                         <div class="font-weight-bold text-dark">${order.payment_id || order.id.substring(0, 8)}</div>
                         <div class="small text-muted">${date}</div>
                     </td>
-                    <td onclick="AdminOrders.openModal('${order.id}')">
+                    <td>
                         <div class="text-dark">${buyerName}</div>
                         <div class="small text-muted">${buyerEmail}</div>
                     </td>
-                    <td onclick="AdminOrders.openModal('${order.id}')">
+                    <td>
                         <div class="text-dark">${itemsSummary}</div>
                     </td>
-                    <td onclick="AdminOrders.openModal('${order.id}')">
+                    <td>
                         <div class="font-weight-bold text-dark">${(order.total_amount || 0).toLocaleString()}원</div>
                     </td>
-                    <td onclick="AdminOrders.openModal('${order.id}')">
+                    <td>
                         ${trackingHtml}
                     </td>
-                    <td class="text-center" onclick="AdminOrders.openModal('${order.id}')">
+                    <td class="text-center">
                         <span class="${statusClass}">
                             ${statusText}
                         </span>
                     </td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); AdminOrders.openModal('${order.id}')">상세보기</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-action="open-order" data-order-id="${order.id}">상세보기</button>
                     </td>
                 </tr>
             `;
@@ -220,10 +367,15 @@ window.AdminOrders = (function () {
         tableBody.innerHTML = html;
         renderPagination(totalPages, currentPage);
         updateBulkActionsUI();
+        updateSelectAllCheckbox();
     }
 
     function renderPagination(totalPages, current) {
         const container = document.getElementById('pagination-controls');
+        if (!container) {
+            return;
+        }
+
         if (totalPages <= 1) {
             container.innerHTML = '';
             return;
@@ -232,30 +384,30 @@ window.AdminOrders = (function () {
         let html = '';
         // Prev
         html += `<li class="page-item ${current === 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="event.preventDefault(); AdminOrders.setPage(${current - 1})" aria-label="Previous">
+            <button type="button" class="page-link" data-page="${current - 1}" aria-label="Previous" ${current === 1 ? 'disabled' : ''}>
                 <span aria-hidden="true">&laquo;</span>
-            </a>
+            </button>
         </li>`;
 
         // Pages
         for (let i = 1; i <= totalPages; i++) {
             html += `<li class="page-item ${i === current ? 'active' : ''}">
-                <a class="page-link" href="#" onclick="event.preventDefault(); AdminOrders.setPage(${i})">${i}</a>
+                <button type="button" class="page-link" data-page="${i}" ${i === current ? 'aria-current="page"' : ''}>${i}</button>
             </li>`;
         }
 
         // Next
         html += `<li class="page-item ${current === totalPages ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="event.preventDefault(); AdminOrders.setPage(${current + 1})" aria-label="Next">
+            <button type="button" class="page-link" data-page="${current + 1}" aria-label="Next" ${current === totalPages ? 'disabled' : ''}>
                 <span aria-hidden="true">&raquo;</span>
-            </a>
+            </button>
         </li>`;
 
         container.innerHTML = html;
     }
 
     function setPage(page) {
-        currentPage = page;
+        currentPage = Math.max(1, page);
         renderOrders();
     }
 
@@ -390,24 +542,25 @@ window.AdminOrders = (function () {
 
                 // Fallback Image
                 if (!imgUrl || (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:'))) {
-                    imgUrl = 'https://via.placeholder.com/50?text=No+Img';
+                    imgUrl = PLACEHOLDER_IMAGE;
                 }
 
                 itemsHtml += `
-                    <div class="d-flex align-items-center p-2 border-bottom">
-                        <div class="mr-3" style="width: 50px; height: 50px;">
+                    <div class="d-flex flex-column flex-sm-row align-items-sm-center p-2 border-bottom">
+                        <div class="mb-2 mb-sm-0 mr-sm-3" style="width: 50px; height: 50px;">
                              <img src="${imgUrl}" 
                                   class="img-fluid rounded" 
                                   alt="${name}"
+                                  loading="lazy"
                                   style="width: 100%; height: 100%; object-fit: cover;"
-                                  onerror="this.onerror=null; this.src='https://via.placeholder.com/50?text=Error';">
+                                  data-fallback-src="${IMAGE_ERROR_FALLBACK}">
                         </div>
                         <div class="flex-grow-1">
-                            <h6 class="mb-0 text-truncate" style="max-width: 300px;">${name}</h6>
+                            <h6 class="mb-1 mb-sm-0 text-break">${name}</h6>
                             <small class="text-muted text-break">ID: ${productId || '-'}</small>
                             <div class="small text-muted">${price.toLocaleString()}원 × ${qty}개</div>
                         </div>
-                        <div class="font-weight-bold text-nowrap">
+                        <div class="font-weight-bold text-nowrap mt-2 mt-sm-0">
                             ${(price * qty).toLocaleString()}원
                         </div>
                     </div>
@@ -437,8 +590,10 @@ window.AdminOrders = (function () {
         } else {
             trackBtn.classList.add('d-none');
             statusMsg.textContent = '';
+            statusMsg.className = 'small mt-1';
         }
 
+        wireImageFallbacks(itemsContainer);
         $('#order-detail-modal').modal('show');
     }
 
@@ -460,13 +615,13 @@ window.AdminOrders = (function () {
 
         if (!carrier || !number) {
             statusMsg.textContent = '택배사와 운송장번호를 모두 입력해주세요.';
-            statusMsg.className = 'text-xs text-danger mt-2';
+            statusMsg.className = 'small text-danger mt-2';
             return;
         }
 
         try {
             statusMsg.textContent = '저장 중...';
-            statusMsg.className = 'text-xs text-muted mt-2';
+            statusMsg.className = 'small text-muted mt-2';
 
             // Update order with tracking info and set status to shipping
             const order = allOrders.find(o => o.id === currentOrderId);
@@ -487,7 +642,7 @@ window.AdminOrders = (function () {
             }
 
             statusMsg.textContent = '운송장이 저장되었습니다!';
-            statusMsg.className = 'text-xs text-success mt-2';
+            statusMsg.className = 'small text-success mt-2';
             trackBtn.classList.remove('d-none');
 
             // Update modal status badge
@@ -503,7 +658,7 @@ window.AdminOrders = (function () {
         } catch (err) {
             console.error('Failed to save tracking info:', err);
             statusMsg.textContent = '저장 실패: ' + err.message;
-            statusMsg.className = 'text-xs text-danger mt-2';
+            statusMsg.className = 'small text-danger mt-2';
         }
     }
 
@@ -521,11 +676,19 @@ window.AdminOrders = (function () {
     }
 
     // ============ Selection Functions ============
-    function toggleSelectOrder(orderId) {
-        if (selectedOrders.has(orderId)) {
-            selectedOrders.delete(orderId);
+    function toggleSelectOrder(orderId, checked = null) {
+        if (checked === null) {
+            if (selectedOrders.has(orderId)) {
+                selectedOrders.delete(orderId);
+            } else {
+                selectedOrders.add(orderId);
+            }
         } else {
-            selectedOrders.add(orderId);
+            if (checked) {
+                selectedOrders.add(orderId);
+            } else {
+                selectedOrders.delete(orderId);
+            }
         }
         updateBulkActionsUI();
         updateSelectAllCheckbox();
@@ -533,7 +696,12 @@ window.AdminOrders = (function () {
 
     function toggleSelectAll() {
         const selectAllCheckbox = document.getElementById('select-all-orders');
-        const statusFilter = document.getElementById('status-filter').value;
+        const statusFilterEl = document.getElementById('status-filter');
+        const statusFilter = statusFilterEl ? statusFilterEl.value : '';
+
+        if (!selectAllCheckbox) {
+            return;
+        }
 
         let filtered = allOrders;
         if (statusFilter) {
@@ -559,7 +727,9 @@ window.AdminOrders = (function () {
 
         const checkboxes = document.querySelectorAll('.order-checkbox');
         const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+        const someChecked = checkboxes.length > 0 && Array.from(checkboxes).some(cb => cb.checked);
         selectAllCheckbox.checked = allChecked;
+        selectAllCheckbox.indeterminate = someChecked && !allChecked;
     }
 
     function updateBulkActionsUI() {

@@ -184,7 +184,7 @@
 `layouts/admin/*.html`
 
 - PocketBase 데이터 직접 조작용 관리 화면
-- 특히 상품 페이지는 `npm run sync`를 별도로 안내하고 있어,
+- 특히 상품 페이지는 `pnpm sync`를 별도로 안내하고 있어,
   관리자 수정 후 정적 콘텐츠 재생성이 수동 단계로 남아 있다.
 
 ## 8. PocketBase 데이터 모델
@@ -235,11 +235,12 @@
 
 `package.json` 기준:
 
-- `npm run sync`
+- 패키지 매니저는 `pnpm`을 우선 사용한다.
+- `pnpm sync`
   - 상품 + 블로그 동기화
-- `npm run lint`
+- `pnpm lint`
   - `assets/js` ESLint 검사
-- `npm run lint:fix`
+- `pnpm lint:fix`
   - 자동 수정
 
 주의:
@@ -252,8 +253,8 @@
 가장 자연스러운 운영 흐름은 아래와 같다.
 
 1. 관리자 화면 또는 PocketBase에서 상품/게시글 데이터 수정
-2. `npm run sync` 실행
-3. `npm run build` 실행
+2. `pnpm sync` 실행
+3. `pnpm build` 실행
 4. Hugo가 `content/`와 `assets/images/`를 사용해 `server/`에 정적 페이지 생성
 5. 생성물 포함 시 Git에 커밋 후 배포
 
@@ -330,13 +331,15 @@
 향후 유지보수를 위해 우선 추천하는 정리 순서는 아래와 같다.
 
 1. `content/`가 콘텐츠 원본이고 `server/`가 배포 산출물이라는 기준 유지
-2. 관리자 수정 후 `npm run sync`가 꼭 필요한 이유를 문서화
+2. 관리자 수정 후 `pnpm sync`가 꼭 필요한 이유를 문서화
 3. 영어 콘텐츠 동기화 범위를 명확히 정의
 4. 주문 스키마와 프런트 사용 필드 일치 여부 점검
 5. 전역 스크립트 의존성과 ES 모듈 구조를 단계적으로 통합
-6. 배포 절차를 `sync -> build -> server/ 커밋` 기준으로 명문화
+6. 배포 절차를 `pnpm sync -> pnpm build -> server/ 커밋` 기준으로 명문화
 
 ## 14. 한 줄 결론
 
 이 프로젝트는 **Hugo 정적 쇼핑몰을 기반으로 PocketBase를 CMS/회원/주문/리뷰 백엔드로 활용하는 하이브리드 커머스 프로젝트**이며,
 운영의 핵심은 **PocketBase 데이터와 Hugo 콘텐츠/산출물을 어떻게 동기화하고 배포하느냐**에 있다.
+
+

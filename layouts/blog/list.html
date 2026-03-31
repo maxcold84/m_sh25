@@ -1,68 +1,87 @@
 {{ define "main" }}
 
 <section class="feature-list section">
-    <div class="container">
-        <div class="row">
-            <div class="col-12 text-center mb-5">
-                <h1>{{.Title}}</h1>
-            </div>
-        </div>
-        {{ range $index, $element := .Pages }}
-
-        {{/* 대표 이미지 결정: .Params.image가 없으면 본문에서 첫 번째 이미지 추출 */}}
-        {{ $featuredImage := .Params.image }}
-        {{ if not $featuredImage }}
-        {{/* 본문에서 첫 번째 이미지 URL 추출 */}}
-        {{ $matches := findRE `<img[^>]+src="([^"]+)"` .Content 1 }}
-            {{ if $matches }}
-            {{ $featuredImage = replaceRE `.*src="([^"]+)".*` "$1" (index $matches 0) }}
-            {{ else }}
-            {{/* Markdown 이미지 문법에서 추출 시도 */}}
-            {{ $mdMatches := findRE `!\[.*?\]\(([^)]+)\)` .RawContent 1 }}
-            {{ if $mdMatches }}
-            {{ $featuredImage = replaceRE `!\[.*?\]\(([^)]+)\)` "$1" (index $mdMatches 0) }}
-            {{ end }}
-            {{ end }}
-            {{ end }}
-
-            {{/* Summary에서 이미지 태그 제거 */}}
-            {{ $cleanSummary := .Summary | replaceRE `<img[^>]*>` "" | safeHTML }}
-
-                {{- if ne (mod $index 2) 1 }}
-                <div class="row mb-40">
-                    <div class="col-md-6 text-center mb-5 mb-lg-0">
-                        {{ if $featuredImage }}
-                        {{ partial "image.html" (dict "Src" $featuredImage "Alt" .Title "Class" "img-fluid w-100" ) }}
-                        {{ end }}
-                    </div>
-                    <div class="col-md-6 align-self-center text-center text-md-left">
-                        <div class="content">
-                            <h4 class="subheading"><a class="link-title" href="{{.Permalink}}">{{ .Title | markdownify
-                                    }}</a></h4>
-                            <p>{{ $cleanSummary }}</p>
-                            <a href="{{ .Permalink }}" class="btn btn-main btn-main-sm">{{ i18n "read_more" }}</a>
-                        </div>
-                    </div>
-                </div>
-                {{- else }}
-                <div class="row mb-40">
-                    <div class="col-md-6 order-md-1 order-2 align-self-center text-center text-md-left">
-                        <div class="content">
-                            <h4 class="subheading"><a class="link-title" href="{{.Permalink}}">{{ .Title | markdownify
-                                    }}</a></h4>
-                            <p>{{ $cleanSummary }}</p>
-                            <a href="{{ .Permalink }}" class="btn btn-main btn-main-sm">{{ i18n "read_more" }}</a>
-                        </div>
-                    </div>
-                    <div class="col-md-6 order-md-2 order-1 text-center mb-5 mb-lg-0">
-                        {{ if $featuredImage }}
-                        {{ partial "image.html" (dict "Src" $featuredImage "Alt" .Title "Class" "img-fluid w-100") }}
-                        {{ end }}
-                    </div>
-                </div>
-                {{ end }}
-                {{ end }}
+  <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div class="mb-12 text-center">
+      <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{{ .Title }}</h1>
     </div>
+
+    <div class="space-y-12">
+      {{ range $index, $page := .Pages }}
+      {{/* 대표 이미지 결정: .Params.image가 없으면 본문에서 첫 번째 이미지 추출 */}}
+      {{ $featuredImage := $page.Params.image }}
+      {{ if not $featuredImage }}
+      {{/* 본문에서 첫 번째 이미지 URL 추출 */}}
+      {{ $matches := findRE `<img[^>]+src="([^"]+)"` $page.Content 1 }}
+      {{ if $matches }}
+      {{ $featuredImage = replaceRE `.*src="([^"]+)".*` "$1" (index $matches 0) }}
+      {{ else }}
+      {{/* Markdown 이미지 문법에서 추출 시도 */}}
+      {{ $mdMatches := findRE `!\[.*?\]\(([^)]+)\)` $page.RawContent 1 }}
+      {{ if $mdMatches }}
+      {{ $featuredImage = replaceRE `!\[.*?\]\(([^)]+)\)` "$1" (index $mdMatches 0) }}
+      {{ end }}
+      {{ end }}
+      {{ end }}
+
+      {{/* Summary에서 이미지 태그 제거 */}}
+      {{ $cleanSummary := $page.Summary | replaceRE `<img[^>]*>` "" | safeHTML }}
+      {{ $hasImage := $featuredImage }}
+      {{ $imageSrc := "" }}
+      {{ if $hasImage }}
+      {{ $isRemote := or (hasPrefix $featuredImage "http://") (hasPrefix $featuredImage "https://") (hasPrefix $featuredImage "//") }}
+      {{ if $isRemote }}
+      {{ $imageSrc = $featuredImage }}
+      {{ else }}
+      {{ $image := resources.Get $featuredImage }}
+      {{ if $image }}
+      {{ $imageSrc = $image.RelPermalink }}
+      {{ else }}
+      {{ $imageSrc = $featuredImage | absURL }}
+      {{ end }}
+      {{ end }}
+      {{ end }}
+
+      <article class="group grid gap-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70 lg:gap-10 lg:p-8 {{ if $hasImage }}lg:grid-cols-2{{ else }}grid-cols-1{{ end }}">
+        {{ if ne (mod $index 2) 1 }}
+        {{ if $hasImage }}
+        <div class="order-1 aspect-[4/3] overflow-hidden rounded-2xl bg-slate-100">
+          <img src="{{ $imageSrc }}" alt="{{ $page.Title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+        </div>
+        {{ end }}
+        <div class="order-2 flex flex-col justify-center text-center lg:text-left">
+          <h4 class="text-2xl font-semibold text-slate-900 sm:text-3xl">
+            <a class="text-slate-900 transition hover:text-amber-500" href="{{ $page.Permalink }}">{{ $page.Title | markdownify }}</a>
+          </h4>
+          <div class="mt-4 text-base leading-7 text-slate-600">{{ $cleanSummary }}</div>
+          <div class="mt-6">
+            <a href="{{ $page.Permalink }}" class="inline-flex items-center justify-center rounded-full bg-amber-400 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-200 transition hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
+              {{ i18n "read_more" }}
+            </a>
+          </div>
+        </div>
+        {{ else }}
+        <div class="order-2 flex flex-col justify-center text-center lg:order-1 lg:text-left">
+          <h4 class="text-2xl font-semibold text-slate-900 sm:text-3xl">
+            <a class="text-slate-900 transition hover:text-amber-500" href="{{ $page.Permalink }}">{{ $page.Title | markdownify }}</a>
+          </h4>
+          <div class="mt-4 text-base leading-7 text-slate-600">{{ $cleanSummary }}</div>
+          <div class="mt-6">
+            <a href="{{ $page.Permalink }}" class="inline-flex items-center justify-center rounded-full bg-amber-400 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-200 transition hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
+              {{ i18n "read_more" }}
+            </a>
+          </div>
+        </div>
+        {{ if $hasImage }}
+        <div class="order-1 aspect-[4/3] overflow-hidden rounded-2xl bg-slate-100 lg:order-2">
+          <img src="{{ $imageSrc }}" alt="{{ $page.Title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+        </div>
+        {{ end }}
+        {{ end }}
+      </article>
+      {{ end }}
+    </div>
+  </div>
 </section>
 
 {{ end }}

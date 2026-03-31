@@ -1,21 +1,114 @@
 {{ define "main" }}
 
+<style>
+    .admin-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .admin-toolbar__title {
+        margin: 0;
+    }
+
+    .admin-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    .admin-file-picker {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .admin-file-picker__hint {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .admin-image-preview {
+        display: none;
+        gap: 0.75rem;
+        background: #f8f9fa;
+    }
+
+    .admin-image-preview img {
+        max-height: 200px;
+        max-width: 100%;
+    }
+
+    .admin-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .admin-post-thumb {
+        width: 50px;
+        height: 50px;
+        overflow: hidden;
+        border-radius: 4px;
+        background: #f0f0f0;
+    }
+
+    .admin-post-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .admin-post-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        min-width: 220px;
+    }
+
+    .admin-post-actions .btn {
+        white-space: nowrap;
+    }
+
+    @media (max-width: 767.98px) {
+        .admin-toolbar {
+            align-items: stretch;
+        }
+
+        .admin-actions {
+            width: 100%;
+        }
+
+        .admin-actions .btn {
+            width: 100%;
+        }
+
+        .admin-post-actions {
+            min-width: 0;
+        }
+    }
+</style>
+
 <section class="section">
     <div class="container">
         <div class="row">
             <div class="col-12">
                 {{ partial "admin/nav" . }}
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2>블로그 관리</h2>
-                    <div>
-                        <button id="add-post-btn" class="btn btn-main" onclick="AdminPosts.openAddModal()">
+                <div class="admin-toolbar">
+                    <h2 class="admin-toolbar__title">블로그 관리</h2>
+                    <div class="admin-actions">
+                        <button id="add-post-btn" class="btn btn-main" type="button">
                             <i class="tf-ion-edit"></i> 글 쓰기
                         </button>
                     </div>
                 </div>
 
                 <div class="alert alert-info mb-4">
-                    <strong>💡 안내:</strong> 글 작성/수정 후 터미널에서 <code>npm run sync</code>를 실행하여 블로그에 반영하세요.
+                    <strong>💡 안내:</strong> 글 작성/수정 후 터미널에서 <code>pnpm sync</code>를 실행하여 블로그에 반영하세요.
                 </div>
 
                 <!-- Auth Check -->
@@ -24,7 +117,7 @@
                 </div>
 
                 <!-- Post List -->
-                <div id="admin-post-list" class="table-responsive">
+                <div id="admin-post-list" class="admin-table-wrap">
                     <table class="table table-hover">
                         <thead>
                             <tr>
@@ -96,23 +189,22 @@
 
                     <div class="form-group">
                         <label for="post-content">내용 (Markdown)</label>
-                        <textarea class="form-control font-monospace" id="post-content" rows="15"
-                            style="font-family: 'Consolas', 'Monaco', monospace; font-size: 14px; line-height: 1.6;"
+                        <textarea class="form-control font-monospace" id="post-content" rows="12"
+                            style="font-family: 'Consolas', 'Monaco', monospace; font-size: 14px; line-height: 1.6; min-height: 240px;"
                             placeholder="# 여기에 마크다운 내용을 작성하세요..."></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="post-image">대표 이미지</label>
-                        <div class="custom-file">
-                            <input type="file" class="custom-file-input" id="post-image" accept="image/*"
-                                onchange="AdminPosts.handleImageSelect(this)">
-                            <label class="custom-file-label" for="post-image">이미지 선택...</label>
+                        <div class="admin-file-picker">
+                            <input type="file" class="form-control-file" id="post-image" accept="image/*">
+                            <div class="admin-file-picker__hint">선택한 이미지는 글 썸네일로 사용됩니다.</div>
                         </div>
-                        <div id="post-image-preview" class="mt-2 p-2 border rounded bg-light text-center"
-                            style="display: none;">
-                            <img src="" alt="Preview" style="max-height: 200px; max-width: 100%;">
-                            <button type="button" class="btn btn-sm btn-danger mt-2 d-block mx-auto"
-                                onclick="AdminPosts.clearImage()">이미지 삭제</button>
+                        <div id="post-image-preview" class="admin-image-preview mt-2 p-2 border rounded text-center">
+                            <img src="" alt="Preview">
+                            <button type="button" id="clear-post-image-btn" class="btn btn-sm btn-danger d-block mx-auto">
+                                이미지 삭제
+                            </button>
                         </div>
                     </div>
 
@@ -124,7 +216,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
-                <button type="button" class="btn btn-main" onclick="AdminPosts.savePost()">저장</button>
+                <button type="submit" form="post-form" class="btn btn-main">저장</button>
             </div>
         </div>
     </div>

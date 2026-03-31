@@ -1,124 +1,154 @@
 {{ define "main" }}
-<section class="section">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
-                <div class="p-5 shadow-sm border rounded-lg">
-                    <h2 class="text-center mb-4">{{ .Title }}</h2>
+<section class="bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 py-10 sm:px-6 lg:px-8">
+    <div class="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-md items-center">
+        <div class="w-full rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 sm:p-8">
+            <div class="text-center">
+                <h1 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{{ .Title }}</h1>
+            </div>
 
-                    <!-- Tabs -->
-                    {{ $authType := .Params.authType | default "login" }}
-                    {{ $loginStr := "login" }}
-                    {{ $signupStr := "signup" }}
-                    <ul class="nav nav-tabs nav-fill mb-4" id="authTab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link {{ if eq $authType $loginStr }}active{{ end }}" id="login-tab"
-                                data-toggle="tab" href="#login" role="tab" aria-controls="login"
-                                aria-selected="{{ if eq $authType $loginStr }}true{{ else }}false{{ end }}">{{ T "login"
-                                }}</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ if eq $authType $signupStr }}active{{ end }}" id="signup-tab"
-                                data-toggle="tab" href="#signup" role="tab" aria-controls="signup"
-                                aria-selected="{{ if eq $authType $signupStr }}true{{ else }}false{{ end }}">{{ T
-                                "signup" }}</a>
-                        </li>
-                    </ul>
+            {{ $authType := .Params.authType | default "login" }}
+            {{ $loginActive := eq $authType "login" }}
+            {{ $signupActive := eq $authType "signup" }}
 
-                    <div class="tab-content" id="authTabContent">
-                        <!-- Login Form -->
-                        <div class="tab-pane fade {{ if eq $authType $loginStr }}show active{{ end }}" id="login"
-                            role="tabpanel" aria-labelledby="login-tab">
-                            <form id="login-form">
-                                <div class="form-group">
-                                    <label for="login-email">{{ T "email" }}</label>
-                                    <input type="email" class="form-control" id="login-email" name="email"
-                                        list="emailDomains" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="login-password">{{ T "password" }}</label>
-                                    <input type="password" class="form-control" id="login-password" name="password"
-                                        required>
-                                </div>
-                                <div class="form-group form-check">
-                                    <input type="checkbox" class="form-check-input" id="remember-email">
-                                    <label class="form-check-label" for="remember-email">{{ T "remember_email"
-                                        }}</label>
-                                </div>
-                                <button type="submit" class="btn btn-primary btn-block mt-4">{{ T "login" }}</button>
-                            </form>
+            <div class="mt-6 grid grid-cols-2 rounded-2xl bg-slate-100 p-1 text-sm font-semibold text-slate-500"
+                role="tablist" aria-label="{{ .Title }}">
+                <button type="button" id="login-tab" data-auth-tab="login" role="tab" aria-controls="login"
+                    aria-selected="{{ if $loginActive }}true{{ else }}false{{ end }}"
+                    class="rounded-xl px-3 py-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 {{ if $loginActive }}bg-white text-slate-900 shadow-sm ring-1 ring-slate-200{{ else }}text-slate-500 hover:text-slate-900{{ end }}">
+                    {{ T "login" }}
+                </button>
+                <button type="button" id="signup-tab" data-auth-tab="signup" role="tab" aria-controls="signup"
+                    aria-selected="{{ if $signupActive }}true{{ else }}false{{ end }}"
+                    class="rounded-xl px-3 py-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 {{ if $signupActive }}bg-white text-slate-900 shadow-sm ring-1 ring-slate-200{{ else }}text-slate-500 hover:text-slate-900{{ end }}">
+                    {{ T "signup" }}
+                </button>
+            </div>
+
+            <div class="mt-6">
+                <div id="login" data-auth-panel="login" role="tabpanel" aria-labelledby="login-tab"
+                    {{ if not $loginActive }}hidden{{ end }}>
+                    <form id="login-form" class="space-y-4">
+                        <div class="space-y-1.5">
+                            <label for="login-email" class="block text-sm font-medium text-slate-700">{{ T "email" }}</label>
+                            <input type="email" id="login-email" name="email" list="emailDomains" required
+                                autocomplete="email"
+                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100">
                         </div>
 
-                        <!-- Signup Form -->
-                        <div class="tab-pane fade {{ if eq $authType $signupStr }}show active{{ end }}" id="signup"
-                            role="tabpanel" aria-labelledby="signup-tab">
-                            <form id="signup-form">
-                                <div class="form-group">
-                                    <label for="signup-name">{{ T "name" }}</label>
-                                    <input type="text" class="form-control" id="signup-name" name="name" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="signup-nickname">닉네임</label>
-                                    <input type="text" class="form-control" id="signup-nickname" name="nickname"
-                                        required>
-                                    <small id="nickname-status" class="form-text" style="display: none;"></small>
-                                </div>
-                                <div class="form-group">
-                                    <label for="signup-email">{{ T "email" }}</label>
-                                    <input type="email" class="form-control" id="signup-email" name="email"
-                                        list="emailDomains" required>
-                                    <div id="email-suggestion" class="mt-2" style="display: none;">
-                                        <small class="text-muted">{{ T "email_suggestion_prefix" }}<a href="#"
-                                                id="email-suggestion-link" class="text-primary"></a>{{ T
-                                            "email_suggestion_suffix" }}</small>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="signup-password">{{ T "password" }}</label>
-                                    <input type="password" class="form-control" id="signup-password" name="password"
-                                        required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="signup-passwordConfirm">{{ T "confirm_password" }}</label>
-                                    <input type="password" class="form-control" id="signup-passwordConfirm"
-                                        name="passwordConfirm" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary btn-block mt-4">{{ T "signup" }}</button>
-                            </form>
+                        <div class="space-y-1.5">
+                            <label for="login-password" class="block text-sm font-medium text-slate-700">{{ T "password" }}</label>
+                            <input type="password" id="login-password" name="password" required
+                                autocomplete="current-password"
+                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100">
                         </div>
-                    </div>
 
-                    <!-- OAuth Buttons (Common) -->
-                    {{ with .Site.Params.pocketbase.oauth }}
-                    <div class="text-center mt-4">
-                        <p class="text-muted mb-3">{{ T "or_continue_with" }}</p>
-                        <div class="d-flex justify-content-center" style="gap: 10px;">
-                            {{ if .google.enable }}
-                            <button type="button" class="btn btn-outline-danger oauth-login-btn" data-provider="google">
-                                Google
-                            </button>
-                            {{ end }}
-                            {{ if .kakao.enable }}
-                            <button type="button" class="btn btn-warning oauth-login-btn" data-provider="kakao"
-                                style="background-color: #FEE500; border-color: #FEE500; color: #3c1e1e;">
-                                Kakao
-                            </button>
-                            {{ end }}
-                            {{ if .naver.enable }}
-                            <button type="button" class="btn btn-success oauth-login-btn" data-provider="naver"
-                                style="background-color: #03C75A; border-color: #03C75A; color: #fff;">
-                                Naver
-                            </button>
-                            {{ end }}
+                        <label for="remember-email" class="flex items-center gap-3 text-sm text-slate-600">
+                            <input type="checkbox" id="remember-email"
+                                class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                            <span>{{ T "remember_email" }}</span>
+                        </label>
+
+                        <button type="submit"
+                            class="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-200">
+                            {{ T "login" }}
+                        </button>
+
+                        <div id="login-message" class="hidden rounded-xl border px-4 py-3 text-center text-sm"
+                            role="status" aria-live="polite"></div>
+                    </form>
+                </div>
+
+                <div id="signup" data-auth-panel="signup" role="tabpanel" aria-labelledby="signup-tab"
+                    {{ if not $signupActive }}hidden{{ end }}>
+                    <form id="signup-form" class="space-y-4">
+                        <div class="space-y-1.5">
+                            <label for="signup-name" class="block text-sm font-medium text-slate-700">{{ T "name" }}</label>
+                            <input type="text" id="signup-name" name="name" required autocomplete="name"
+                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100">
                         </div>
-                    </div>
-                    {{ end }}
 
-                    <div id="login-message" class="mt-3 text-center" style="display: none;"></div>
-                    <div id="signup-message" class="mt-3 text-center" style="display: none;"></div>
-                    <div id="auth-message" class="mt-3 text-center" style="display: none;"></div>
+                        <div class="space-y-1.5">
+                            <label for="signup-nickname" class="block text-sm font-medium text-slate-700">닉네임</label>
+                            <input type="text" id="signup-nickname" name="nickname" required autocomplete="username"
+                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100">
+                            <p id="nickname-status" class="hidden text-sm font-medium" aria-live="polite"></p>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="signup-email" class="block text-sm font-medium text-slate-700">{{ T "email" }}</label>
+                            <input type="email" id="signup-email" name="email" list="emailDomains" required
+                                autocomplete="email"
+                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100">
+                            <div id="email-suggestion" class="hidden">
+                                <p class="text-sm text-slate-500">
+                                    {{ T "email_suggestion_prefix" }}<a href="#" id="email-suggestion-link"
+                                        class="font-semibold text-slate-900 underline decoration-slate-300 underline-offset-2 transition hover:decoration-slate-500"></a>{{ T
+                                    "email_suggestion_suffix" }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="signup-password" class="block text-sm font-medium text-slate-700">{{ T "password" }}</label>
+                            <input type="password" id="signup-password" name="password" required
+                                autocomplete="new-password"
+                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100">
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="signup-passwordConfirm" class="block text-sm font-medium text-slate-700">{{ T "confirm_password" }}</label>
+                            <input type="password" id="signup-passwordConfirm" name="passwordConfirm" required
+                                autocomplete="new-password"
+                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100">
+                        </div>
+
+                        <button type="submit"
+                            class="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-200">
+                            {{ T "signup" }}
+                        </button>
+
+                        <div id="signup-message" class="hidden rounded-xl border px-4 py-3 text-center text-sm"
+                            role="status" aria-live="polite"></div>
+                    </form>
                 </div>
             </div>
+
+            {{ with .Site.Params.pocketbase.oauth }}
+            <div class="mt-8">
+                <div class="flex items-center gap-3">
+                    <div class="h-px flex-1 bg-slate-200"></div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{{ T "or_continue_with" }}</p>
+                    <div class="h-px flex-1 bg-slate-200"></div>
+                </div>
+
+                <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                    {{ if .google.enable }}
+                    <button type="button"
+                        class="oauth-login-btn inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                        data-provider="google">
+                        Google
+                    </button>
+                    {{ end }}
+                    {{ if .kakao.enable }}
+                    <button type="button"
+                        class="oauth-login-btn inline-flex w-full items-center justify-center rounded-xl border px-4 py-3 text-sm font-semibold text-[#3c1e1e] shadow-sm transition hover:brightness-95 focus:outline-none focus:ring-4 focus:ring-[#FEE500]/30"
+                        data-provider="kakao" style="background-color: #FEE500; border-color: #FEE500;">
+                        Kakao
+                    </button>
+                    {{ end }}
+                    {{ if .naver.enable }}
+                    <button type="button"
+                        class="oauth-login-btn inline-flex w-full items-center justify-center rounded-xl border px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 focus:outline-none focus:ring-4 focus:ring-[#03C75A]/30"
+                        data-provider="naver" style="background-color: #03C75A; border-color: #03C75A;">
+                        Naver
+                    </button>
+                    {{ end }}
+                </div>
+            </div>
+            {{ end }}
+
+            <div id="auth-message" class="mt-4 hidden rounded-xl border px-4 py-3 text-center text-sm"
+                role="status" aria-live="polite"></div>
         </div>
     </div>
 </section>

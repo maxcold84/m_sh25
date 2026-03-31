@@ -1,48 +1,56 @@
 {{ define "main" }}
 
-<section class="section">
-  <div class="container">
-    <div class="row justify-content-center">
+<section class="py-16 sm:py-20">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="grid gap-10 lg:grid-cols-2 lg:gap-12">
       {{ with .Params.office }}
-      <div class="col-lg-5 col-sm-6 mb-5">
-        <h2 class="font-weight-bold mb-4">{{ .title | markdownify }}</h2>
-        <p>{{ .content | markdownify }}</p>
-        <ul class="list-unstyled contact-list">
-          {{with .mobile}} <li class="mb-3"><a href="tel:{{ . }}"><i class="tf-ion-ios-telephone mr-2"></i>
-              {{ . }}</a></li>{{ end }}
-          {{with .email}} <li class="mb-3"><a href="mailto:{{ . }}"><i class="tf-ion-email mr-2"></i>{{ . }}</a></li>
-          {{end }}
-          {{with .location }} <li class="mb-3"><i class="tf-ion-ios-location mr-2"></i>{{ . }}
+      <div class="space-y-5">
+        <h2 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{{ .title | markdownify }}</h2>
+        <p class="text-sm leading-7 text-slate-600 sm:text-base">{{ .content | markdownify }}</p>
+        <ul class="space-y-3 text-sm leading-6 text-slate-700">
+          {{with .mobile}} <li class="flex items-start gap-3"><i class="tf-ion-ios-telephone mt-0.5 text-slate-500"></i>
+              <a class="break-words transition-colors hover:text-slate-900" href="tel:{{ . }}">{{ . }}</a></li>{{ end }}
+          {{with .email}} <li class="flex items-start gap-3"><i class="tf-ion-email mt-0.5 text-slate-500"></i><a
+              class="break-words transition-colors hover:text-slate-900" href="mailto:{{ . }}">{{ . }}</a></li>{{ end }}
+          {{with .location }} <li class="flex items-start gap-3"><i class="tf-ion-ios-location mt-0.5 text-slate-500"></i><span
+              class="break-words">{{ . }}</span>
           </li>{{ end }}
         </ul>
       </div>
       {{ end }}
-      <div class="col-lg-3 col-sm-6 mb-5">
+      <div class="space-y-5">
         {{ with .Params.opennig_hour }}
-        <h2 class="font-weight-bold mb-4">{{ .title | markdownify }}</h2>
-        <ul class="list-unstyled">
+        <h2 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{{ .title | markdownify }}</h2>
+        <ul class="space-y-2 text-sm leading-6 text-slate-600">
           {{ range .day_time }}
-          <li class="mb-2">{{ . | markdownify }}</li>
+          <li>{{ . | markdownify }}</li>
           {{ end }}
         </ul>
         {{ end }}
       </div>
     </div>
-    <div class="row justify-content-center">
-      <div class="col-lg-8">
-        <h2 class="font-weight-bold mb-4">{{ .Title | markdownify }}</h2>
-        <form action="{{ site.Params.contact_form_action }}" method="POST" class="row">
-          <div class="col-lg-6 mb-3">
-            <input type="text" class="form-control mb-2" id="name" name="name" placeholder="Your Name">
+    <div class="mt-12 grid justify-center">
+      <div class="w-full max-w-3xl">
+        <h2 class="mb-5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{{ .Title | markdownify }}</h2>
+        <form action="{{ site.Params.contact_form_action }}" method="POST" class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <input type="text" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+              id="name" name="name" placeholder="Your Name">
           </div>
-          <div class="col-lg-6 mb-3">
-            <input type="email" class="form-control mb-2" id="email" name="email" placeholder="Your Email">
+          <div>
+            <input type="email" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+              id="email" name="email" placeholder="Your Email">
           </div>
-          <div class="col-12 mb-3">
-            <textarea name="message" id="message" class="form-control mb-2" placeholder="Your Message"></textarea>
+          <div class="sm:col-span-2">
+            <textarea name="message" id="message"
+              class="min-h-40 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+              placeholder="Your Message"></textarea>
           </div>
-          <div class="col-12 text-right">
-            <button type="submit" value="send" class="btn btn-main btn-main-sm">{{ i18n "send" }}</button>
+          <div class="sm:col-span-2 sm:flex sm:justify-end">
+            <button type="submit" value="send"
+              class="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-700 active:bg-slate-950">
+              {{ i18n "send" }}
+            </button>
           </div>
         </form>
       </div>

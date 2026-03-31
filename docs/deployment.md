@@ -10,10 +10,11 @@ Hugo 설정은 `config/_default/hugo.toml`의 `publishDir = "server"`를 기준�
 
 ## 작업 순서
 
-1. PocketBase 데이터를 반영해야 하면 `npm run sync`
-2. 정적 사이트 생성은 `npm run build`
-3. 미리보기 서버는 `npm run dev`
-4. 배포 전 생성물 정리는 `npm run clean:server`
+- 패키지 매니저는 `pnpm`을 우선 사용한다.
+- PocketBase 데이터를 반영해야 하면 `pnpm sync`
+- 정적 사이트 생성은 `pnpm build`
+- 미리보기 서버는 `pnpm dev`
+- 배포 전 생성물 정리는 `pnpm clean:server`
 
 ## 규칙
 

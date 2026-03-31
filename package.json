@@ -2,6 +2,7 @@
     "name": "hugo-shop-sync",
     "version": "1.0.0",
     "description": "Scripts to sync PocketBase data to Hugo content",
+    "packageManager": "pnpm@10.30.3",
     "type": "module",
     "main": "scripts/sync-products.js",
     "scripts": {
