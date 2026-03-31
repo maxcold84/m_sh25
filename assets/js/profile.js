@@ -6,6 +6,10 @@
 import { pb } from './core/pb-client.js';
 import { showToast } from './core/utils.js';
 
+let postcodeLayer = null;
+let postcodeContainer = null;
+let profileActionListenerBound = false;
+
 function init() {
     // Page check: Only run on profile page
     const saveBtn = document.getElementById('save-button');
@@ -25,8 +29,12 @@ function init() {
         return;
     }
 
+    postcodeLayer = document.getElementById('daum-layer');
+    postcodeContainer = document.getElementById('daum-postcode-container');
+
     loadUserProfile();
     loadOrderHistory(); // Load orders
+    bindProfileActionListeners();
 
     if (saveBtn) {
         saveBtn.addEventListener('click', handleSave);
@@ -36,6 +44,155 @@ function init() {
     if (changePasswordBtn) {
         changePasswordBtn.addEventListener('click', handlePasswordChange);
     }
+}
+
+function bindProfileActionListeners() {
+    if (profileActionListenerBound) {
+        return;
+    }
+
+    profileActionListenerBound = true;
+    document.addEventListener('click', handleProfileActionClick);
+}
+
+function handleProfileActionClick(event) {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) {
+        return;
+    }
+
+    const actionTarget = target.closest('[data-profile-action]');
+    if (!actionTarget) {
+        return;
+    }
+
+    const action = actionTarget.dataset.profileAction;
+
+    switch (action) {
+        case 'open-postcode':
+            event.preventDefault();
+            openPostcode();
+            break;
+        case 'close-postcode':
+            event.preventDefault();
+            closePostcode();
+            break;
+        case 'history-back':
+            event.preventDefault();
+            window.history.back();
+            break;
+        case 'close-tracking-modal':
+            event.preventDefault();
+            closeTrackingModal();
+            break;
+        case 'track-delivery':
+            event.preventDefault();
+            trackDelivery();
+            break;
+        case 'cancel-order':
+            event.preventDefault();
+            cancelOrder(actionTarget.dataset.orderId);
+            break;
+        case 'open-tracking-modal':
+            event.preventDefault();
+            openTrackingModal(actionTarget.dataset.carrier, actionTarget.dataset.trackingNumber);
+            break;
+        default:
+            break;
+    }
+}
+
+function escapeHtmlAttr(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function closePostcode() {
+    if (postcodeLayer) {
+        postcodeLayer.classList.add('hidden');
+    }
+}
+
+function openPostcode() {
+    if (!postcodeLayer || !postcodeContainer) {
+        return;
+    }
+
+    if (typeof window.daum === 'undefined' || !window.daum.Postcode) {
+        showToast('주소 검색 서비스를 불러오지 못했습니다.', { isError: true });
+        return;
+    }
+
+    new window.daum.Postcode({
+        oncomplete: function (data) {
+            const roadAddr = data.roadAddress;
+            let extraRoadAddr = '';
+
+            if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+                extraRoadAddr += data.bname;
+            }
+            if (data.buildingName !== '' && data.apartment === 'Y') {
+                extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+            }
+            if (extraRoadAddr !== '') {
+                extraRoadAddr = ' (' + extraRoadAddr + ')';
+            }
+
+            const postcodeInput = document.getElementById('postcode');
+            const addressInput = document.getElementById('address');
+            const extraAddressInput = document.getElementById('extraAddress');
+            const guideTextBox = document.getElementById('guide');
+
+            if (postcodeInput) postcodeInput.value = data.zonecode;
+
+            if (addressInput) {
+                if (data.userSelectedType === 'R') {
+                    addressInput.value = roadAddr;
+                } else {
+                    addressInput.value = data.jibunAddress;
+                }
+            }
+
+            if (extraAddressInput) {
+                if (roadAddr !== '') {
+                    extraAddressInput.value = extraRoadAddr;
+                } else {
+                    extraAddressInput.value = '';
+                }
+            }
+
+            if (guideTextBox) {
+                if (data.autoRoadAddress) {
+                    const expRoadAddr = data.autoRoadAddress + extraRoadAddr;
+                    guideTextBox.innerHTML = '(예상 도로명 주소 : ' + expRoadAddr + ')';
+                    guideTextBox.style.display = 'block';
+                } else if (data.autoJibunAddress) {
+                    const expJibunAddr = data.autoJibunAddress;
+                    guideTextBox.innerHTML = '(예상 지번 주소 : ' + expJibunAddr + ')';
+                    guideTextBox.style.display = 'block';
+                } else {
+                    guideTextBox.innerHTML = '';
+                    guideTextBox.style.display = 'none';
+                }
+            }
+
+            const detailAddressInput = document.getElementById('detailAddress');
+            if (detailAddressInput) {
+                detailAddressInput.focus();
+            }
+
+            closePostcode();
+        },
+        width: '100%',
+        height: '100%',
+        maxSuggestItems: 5
+    }).embed(postcodeContainer);
+
+    postcodeLayer.classList.remove('hidden');
 }
 
 async function loadUserProfile() {
@@ -203,7 +360,7 @@ async function loadOrderHistory() {
             // 취소 가능 여부 (pending 또는 paid 상태만 취소 가능)
             const canCancel = order.status === 'pending' || order.status === 'paid';
             const cancelBtnHtml = canCancel ? `
-                <button onclick="Profile.cancelOrder('${order.id}')" class="mt-2 w-full py-2 px-4 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors">
+                <button type="button" data-profile-action="cancel-order" data-order-id="${escapeHtmlAttr(order.id)}" class="mt-2 w-full py-2 px-4 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors">
                     주문 취소
                 </button>
             ` : '';
@@ -216,7 +373,7 @@ async function loadOrderHistory() {
             let trackingBtnHtml = '';
             if (canTrack && trackingNumber) {
                 trackingBtnHtml = `
-                    <button onclick="Profile.openTrackingModal('${carrier}', '${trackingNumber}')" class="mt-2 w-full py-2 px-4 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <button type="button" data-profile-action="open-tracking-modal" data-carrier="${escapeHtmlAttr(carrier)}" data-tracking-number="${escapeHtmlAttr(trackingNumber)}" class="mt-2 w-full py-2 px-4 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                         </svg>

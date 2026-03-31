@@ -631,7 +631,7 @@ export const Cart = {
                     <div class="cart-error" style="padding: 20px; text-align: center; color: #e53e3e;">
                         <p style="margin-bottom: 10px;">장바구니를 불러오는 중 오류가 발생했습니다.</p>
                         <p class="error-detail" style="font-size: 0.8em; color: #718096; margin-bottom: 15px;">${error.message}</p>
-                        <button onclick="Cart.renderCart()" class="retry-btn" style="padding: 8px 16px; background: #4a5568; color: white; border: none; border-radius: 4px; cursor: pointer;">다시 시도</button>
+                        <button type="button" data-cart-action="retry" class="retry-btn" style="padding: 8px 16px; background: #4a5568; color: white; border: none; border-radius: 4px; cursor: pointer;">다시 시도</button>
                     </div>
                 `;
             }
@@ -667,7 +667,71 @@ if (typeof window !== 'undefined') {
     window.Cart = Cart;
 }
 
+let cartEventsBound = false;
+
 function setupCartEvents() {
+    if (cartEventsBound) {
+        return;
+    }
+
+    cartEventsBound = true;
+
+    document.addEventListener('click', function (event) {
+        const actionEl = event.target.closest('[data-cart-action]');
+        if (!actionEl) {
+            return;
+        }
+
+        const action = actionEl.dataset.cartAction;
+
+        switch (action) {
+            case 'toggle':
+                event.preventDefault();
+                Cart.toggleDrawer();
+                break;
+            case 'checkout':
+                event.preventDefault();
+                Cart.checkout();
+                break;
+            case 'change-quantity': {
+                event.preventDefault();
+                const itemId = actionEl.dataset.cartItemId;
+                const delta = Number(actionEl.dataset.cartDelta);
+
+                if (itemId && Number.isFinite(delta)) {
+                    Cart.changeQuantity(itemId, delta);
+                }
+                break;
+            }
+            case 'remove-item':
+                event.preventDefault();
+                if (actionEl.dataset.cartItemId) {
+                    Cart.removeItem(actionEl.dataset.cartItemId);
+                }
+                break;
+            case 'retry':
+                event.preventDefault();
+                Cart.renderCart();
+                break;
+            default:
+                break;
+        }
+    });
+
+    document.addEventListener('change', function (event) {
+        const actionEl = event.target.closest('[data-nav-action]');
+        if (!actionEl) {
+            return;
+        }
+
+        if (actionEl.dataset.navAction === 'language-select') {
+            const nextUrl = actionEl.value;
+            if (nextUrl) {
+                window.location.href = nextUrl;
+            }
+        }
+    });
+
     document.body.addEventListener('cart-updated', function () {
         Cart.renderCart();
     });

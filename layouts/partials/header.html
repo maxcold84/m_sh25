@@ -12,7 +12,7 @@
       </a>
 
       <!-- Mobile Cart Trigger (Visible on all sizes, positioned via CSS) -->
-      <button class="cart" id="cart-trigger" onclick="Cart.toggleDrawer()">
+      <button class="cart" id="cart-trigger" type="button" data-cart-action="toggle">
         <i class="tf-ion-android-cart"></i>
       </button>
 
@@ -34,7 +34,7 @@
         </ul>
         <!-- Language List -->
         {{ if .IsTranslated }}
-        <select class="lang-list" id="select-language" onchange="location = this.value;">
+        <select class="lang-list" id="select-language" data-nav-action="language-select">
           {{ $siteLanguages := .Site.Languages}}
           {{ $pageLang := .Page.Lang}}
           {{ range .Page.AllTranslations }}

@@ -30,10 +30,29 @@ function init(productId) {
         qnaForm.addEventListener('submit', handleInquirySubmit);
     }
 
+    bindStaticActions();
+
     // Listen for auth changes
     pb.authStore.onChange(() => {
         updateUI();
         loadInquiries();
+    });
+}
+
+function bindStaticActions() {
+    const scrollButtons = document.querySelectorAll('[data-qna-action="scroll-form"]');
+    scrollButtons.forEach((button) => {
+        if (button.dataset.qnaBound === 'true') {
+            return;
+        }
+
+        button.dataset.qnaBound = 'true';
+        button.addEventListener('click', () => {
+            const formContainer = document.getElementById('qna-form-container');
+            if (formContainer) {
+                formContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
     });
 }
 

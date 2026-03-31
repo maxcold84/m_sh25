@@ -52,19 +52,19 @@
       
       <div class="item-actions">
         <div class="quantity-controls">
-          <button onclick="Cart.changeQuantity('[[id]]', -1)" 
+          <button type="button" data-cart-action="change-quantity" data-cart-item-id="[[id]]" data-cart-delta="-1"
                   [[#isMinQuantity]]disabled[[/isMinQuantity]]
                   aria-label="Decrease quantity">
             -
           </button>
           <span class="quantity-value">[[quantity]]</span>
-          <button onclick="Cart.changeQuantity('[[id]]', 1)" 
+          <button type="button" data-cart-action="change-quantity" data-cart-item-id="[[id]]" data-cart-delta="1"
                   aria-label="Increase quantity">
             +
           </button>
         </div>
         
-        <button onclick="Cart.removeItem('[[id]]')" 
+        <button type="button" data-cart-action="remove-item" data-cart-item-id="[[id]]"
                 class="remove-btn" 
                 aria-label="Remove item">
           🗑️
