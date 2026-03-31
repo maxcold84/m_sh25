@@ -160,8 +160,4 @@ const Utils = {
     throttle
 };
 
-if (typeof window !== 'undefined') {
-    window.Utils = Utils;
-}
-
 export default Utils;

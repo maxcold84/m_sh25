@@ -21,16 +21,17 @@
           .Params.discount_price}}{{site.Params.currency}}{{.Params.discount_price}}{{else}}{{site.Params.currency}}{{.Params.price}}{{end}}
           {{if .Params.discount_price}}<s class="price">{{site.Params.currency}}{{ .Params.price }}</s>{{end}}
         </p>
-        <button class="btn btn-main mb-5" onclick="Cart.addItem({
-            id: '{{.Title | urlize}}__{{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}}',
-            name: '{{.Title}}',
-            price: {{if .Params.discount_price}}{{.Params.discount_price}}{{else}}{{.Params.price}}{{end}},
-            image: '{{with .Params.Images}} {{range first 1 . }}{{. | absURL}}{{end}}{{end}}',
-            options: {
-              {{ if .Params.colors }}color: '{{ index .Params.colors 0 }}',{{ end }}
-              {{ if .Params.sizes }}size: '{{ index .Params.sizes 0 }}'{{ end }}
-            }
-          })">
+        {{ $cartOptions := dict }}
+        {{ with .Params.colors }}{{ $cartOptions = merge $cartOptions (dict "color" (index . 0)) }}{{ end }}
+        {{ with .Params.sizes }}{{ $cartOptions = merge $cartOptions (dict "size" (index . 0)) }}{{ end }}
+        <button class="btn btn-main mb-5"
+          type="button"
+          data-cart-action="add-item"
+          data-cart-id="{{ .Title | urlize }}__{{ if .Params.discount_price }}{{ .Params.discount_price }}{{ else }}{{ .Params.price }}{{ end }}"
+          data-cart-name="{{ .Title }}"
+          data-cart-price="{{ if .Params.discount_price }}{{ .Params.discount_price }}{{ else }}{{ .Params.price }}{{ end }}"
+          data-cart-image="{{ with .Params.Images }}{{ range first 1 . }}{{ . | absURL }}{{ end }}{{ end }}"
+          data-cart-options='{{ $cartOptions | jsonify }}'>
           🛒 장바구니에 추가
         </button>
 

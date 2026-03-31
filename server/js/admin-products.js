@@ -3,6 +3,24 @@
  * Handles product CRUD operations for the admin interface
  */
 
+function showAdminProductsToast(message, type = 'info', duration) {
+    if (window.AdminFeedback?.toast) {
+        window.AdminFeedback.toast(message, { type, duration });
+        return;
+    }
+
+    console.warn('[AdminProducts]', message);
+}
+
+function confirmAdminProductsAction(options) {
+    if (window.AdminFeedback?.confirm) {
+        return window.AdminFeedback.confirm(options);
+    }
+
+    console.warn('[AdminProducts] confirm unavailable:', options?.message || options?.title || '');
+    return Promise.resolve(false);
+}
+
 const AdminCategories = {
     pb: null,
     categories: [],
@@ -138,18 +156,24 @@ const AdminCategories = {
             await this.loadCategories();
         } catch (error) {
             console.error('Error creating category:', error);
-            alert('카테고리 추가 실패: ' + error.message);
+            showAdminProductsToast('카테고리 추가 실패: ' + error.message, 'error');
         }
     },
 
     deleteCategory: async function (id) {
-        if (!confirm('정말 삭제하시겠습니까?')) return;
+        const confirmed = await confirmAdminProductsAction({
+            title: '카테고리 삭제',
+            message: '정말 삭제하시겠습니까?',
+            confirmLabel: '삭제',
+            danger: true
+        });
+        if (!confirmed) return;
         try {
             await this.pb.collection('categories').delete(id);
             await this.loadCategories();
         } catch (error) {
             console.error('Error deleting category:', error);
-            alert('카테고리 삭제 실패');
+            showAdminProductsToast('카테고리 삭제 실패', 'error');
         }
     },
 
@@ -446,7 +470,7 @@ const AdminProducts = {
         } catch (error) {
             console.error('Error loading products:', error);
             spinner.style.display = 'none';
-            alert('상품 목록을 불러오는 중 오류가 발생했습니다');
+            showAdminProductsToast('상품 목록을 불러오는 중 오류가 발생했습니다', 'error');
         }
     },
 
@@ -511,7 +535,7 @@ const AdminProducts = {
             this.openModal();
         } catch (error) {
             console.error('Error fetching product details:', error);
-            alert('상품 정보를 불러오는 중 오류가 발생했습니다');
+            showAdminProductsToast('상품 정보를 불러오는 중 오류가 발생했습니다', 'error');
         }
     },
 
@@ -681,19 +705,25 @@ const AdminProducts = {
             this.loadProducts();
         } catch (error) {
             console.error('Error saving product:', error);
-            alert('상품 저장 실패: ' + error.message);
+            showAdminProductsToast('상품 저장 실패: ' + error.message, 'error', 4200);
         }
     },
 
     deleteProduct: async function (id) {
-        if (!confirm('이 상품을 삭제하시겠습니까?')) return;
+        const confirmed = await confirmAdminProductsAction({
+            title: '상품 삭제',
+            message: '이 상품을 삭제하시겠습니까?',
+            confirmLabel: '삭제',
+            danger: true
+        });
+        if (!confirmed) return;
 
         try {
             await this.pb.collection('products').delete(id);
             this.loadProducts();
         } catch (error) {
             console.error('Error deleting product:', error);
-            alert('상품 삭제에 실패했습니다');
+            showAdminProductsToast('상품 삭제에 실패했습니다', 'error');
         }
     },
 
@@ -711,7 +741,7 @@ const AdminProducts = {
             console.log('Category updated');
         } catch (error) {
             console.error('Error updating category:', error);
-            alert('카테고리 수정 실패: ' + error.message);
+            showAdminProductsToast('카테고리 수정 실패: ' + error.message, 'error');
             // Revert change in UI if needed, but simplified for now
             this.loadProducts(); // Reload to reset UI state on error
         }

@@ -3,6 +3,33 @@
  * Handles blog post CRUD operations for the admin interface
  */
 
+function showAdminPostsToast(message, type = 'info', duration) {
+    if (window.AdminFeedback?.toast) {
+        window.AdminFeedback.toast(message, { type, duration });
+        return;
+    }
+
+    console.warn('[AdminPosts]', message);
+}
+
+function confirmAdminPostsAction(options) {
+    if (window.AdminFeedback?.confirm) {
+        return window.AdminFeedback.confirm(options);
+    }
+
+    console.warn('[AdminPosts] confirm unavailable:', options?.message || options?.title || '');
+    return Promise.resolve(false);
+}
+
+function promptAdminPostsAction(options) {
+    if (window.AdminFeedback?.prompt) {
+        return window.AdminFeedback.prompt(options);
+    }
+
+    console.warn('[AdminPosts] prompt unavailable:', options?.message || options?.title || '');
+    return Promise.resolve(null);
+}
+
 const AdminPosts = {
     pb: null,
     currentPost: null,
@@ -239,7 +266,7 @@ const AdminPosts = {
             if (error.status === 404) {
                 tableBody.innerHTML = '<tr><td colspan="5" class="admin-empty-state" style="color: #b91c1c;">PocketBase에 "posts" 컬렉션이 없습니다.</td></tr>';
             } else {
-                alert('글 목록을 불러오는 중 오류가 발생했습니다');
+                showAdminPostsToast('글 목록을 불러오는 중 오류가 발생했습니다', 'error');
             }
         }
     },
@@ -308,7 +335,7 @@ const AdminPosts = {
 
         } catch (error) {
             console.error('Error fetching post details:', error);
-            alert('글 정보를 불러오는 중 오류가 발생했습니다');
+            showAdminPostsToast('글 정보를 불러오는 중 오류가 발생했습니다', 'error');
         }
     },
 
@@ -326,11 +353,11 @@ const AdminPosts = {
         const categories = categoriesStr ? categoriesStr.split(',').map(s => s.trim()).filter(s => s) : [];
 
         if (!title.trim()) {
-            alert('제목을 입력해주세요.');
+            showAdminPostsToast('제목을 입력해주세요.', 'error');
             return;
         }
         if (!slug.trim()) {
-            alert('슬러그(URL)를 입력해주세요.');
+            showAdminPostsToast('슬러그(URL)를 입력해주세요.', 'error');
             return;
         }
 
@@ -377,20 +404,26 @@ const AdminPosts = {
             } else {
                 errorMsg += error.message;
             }
-            alert(errorMsg);
+            showAdminPostsToast(errorMsg, 'error', 5200);
         }
     },
 
     deletePost: async function (id) {
-        if (!confirm('정말 이 글을 삭제하시겠습니까?')) return;
+        const confirmed = await confirmAdminPostsAction({
+            title: '글 삭제',
+            message: '정말 이 글을 삭제하시겠습니까?',
+            confirmLabel: '삭제',
+            danger: true
+        });
+        if (!confirmed) return;
 
         try {
             await this.pb.collection('posts').delete(id);
             this.loadPosts();
-            alert('글이 삭제되었습니다. 블로그에 반영하려면 터미널에서 pnpm sync를 실행하세요.');
+            showAdminPostsToast('글이 삭제되었습니다. 블로그에 반영하려면 터미널에서 pnpm sync를 실행하세요.', 'success', 4200);
         } catch (error) {
             console.error('Error deleting post:', error);
-            alert('글 삭제 실패');
+            showAdminPostsToast('글 삭제 실패', 'error');
         }
     },
 
@@ -468,16 +501,24 @@ const AdminPosts = {
         return null; // Unknown format
     },
 
-    drawVideoButton: function (editor) {
+    drawVideoButton: async function (editor) {
         const cm = editor.codemirror;
-        const input = prompt('동영상 URL 또는 Embed 코드를 입력하세요 (YouTube, Vimeo, .mp4):');
+        const input = await promptAdminPostsAction({
+            title: '동영상 삽입',
+            message: '동영상 URL 또는 Embed 코드를 입력하세요.\n지원: YouTube, Vimeo, .mp4',
+            placeholder: 'https://www.youtube.com/watch?v=...',
+            confirmLabel: '삽입',
+            validate(value) {
+                return value ? '' : '동영상 링크를 입력해주세요.';
+            }
+        });
 
         if (!input) return;
 
         const info = AdminPosts._extractVideoInfo(input);
 
         if (!info) {
-            alert('유효한 동영상 링크나 코드가 아닙니다.\n지원: YouTube, Vimeo, .mp4 파일 링크');
+            showAdminPostsToast('유효한 동영상 링크나 코드가 아닙니다.\n지원: YouTube, Vimeo, .mp4 파일 링크', 'error', 4200);
             return;
         }
 

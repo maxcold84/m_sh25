@@ -1,4 +1,4 @@
-window.AdminOrders = (function () {
+const AdminOrders = (function () {
     let pb;
     let allOrders = [];
     const ITEMS_PER_PAGE = 20;
@@ -22,6 +22,24 @@ window.AdminOrders = (function () {
     const INTERACTIVE_SELECTOR = 'button, a, input, select, textarea, label';
     const STATUS_BADGE_BASE = 'inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset';
     const MODAL_IDS = ['order-detail-modal', 'delete-confirm-modal'];
+
+    function showToast(message, type = 'info', duration) {
+        if (window.AdminFeedback?.toast) {
+            window.AdminFeedback.toast(message, { type, duration });
+            return;
+        }
+
+        console.warn('[AdminOrders]', message);
+    }
+
+    function confirmAction(options) {
+        if (window.AdminFeedback?.confirm) {
+            return window.AdminFeedback.confirm(options);
+        }
+
+        console.warn('[AdminOrders] confirm unavailable:', options?.message || options?.title || '');
+        return Promise.resolve(false);
+    }
 
     function getStatusMeta(status) {
         switch (status) {
@@ -305,8 +323,10 @@ window.AdminOrders = (function () {
             console.error('Failed to load orders:', err);
             // If error is 403, it means not admin logic or rule issue
             if (err.status === 403) {
-                alert('권한이 없습니다. 다시 로그인해주세요.');
-                window.location.href = '/ko/admin/login';
+                showToast('권한이 없습니다. 다시 로그인해주세요.', 'error', 1600);
+                window.setTimeout(() => {
+                    window.location.href = '/ko/admin/login';
+                }, 700);
             } else {
                 if (tableBody) {
                     tableBody.innerHTML = `<tr><td colspan="8" class="px-4 py-10 text-center text-rose-600">오류가 발생했습니다: ${err.message}</td></tr>`;
@@ -662,7 +682,7 @@ window.AdminOrders = (function () {
 
     async function saveTrackingInfo() {
         if (!currentOrderId) {
-            alert('주문 정보가 없습니다.');
+            showToast('주문 정보가 없습니다.', 'error');
             return;
         }
 
@@ -724,7 +744,7 @@ window.AdminOrders = (function () {
         const number = document.getElementById('tracking-number').value.trim();
 
         if (!carrier || !number || !CARRIERS[carrier]) {
-            alert('택배사 또는 운송장번호가 없습니다.');
+            showToast('택배사 또는 운송장번호가 없습니다.', 'error');
             return;
         }
 
@@ -807,7 +827,7 @@ window.AdminOrders = (function () {
     async function archiveOrder(orderId = null) {
         const targetId = orderId || currentOrderId;
         if (!targetId) {
-            alert('주문 정보가 없습니다.');
+            showToast('주문 정보가 없습니다.', 'error');
             return;
         }
 
@@ -820,22 +840,28 @@ window.AdminOrders = (function () {
                 allOrders[orderIndex].status = 'archived';
             }
 
-            alert('주문이 보관되었습니다.');
+            showToast('주문이 보관되었습니다.', 'success');
             closeModal();
             renderOrders();
         } catch (err) {
             console.error('Failed to archive order:', err);
-            alert('보관 실패: ' + err.message);
+            showToast('보관 실패: ' + err.message, 'error');
         }
     }
 
     async function bulkArchive() {
         if (selectedOrders.size === 0) {
-            alert('선택된 주문이 없습니다.');
+            showToast('선택된 주문이 없습니다.', 'error');
             return;
         }
 
-        if (!confirm(`${selectedOrders.size}개의 주문을 보관하시겠습니까?`)) {
+        const confirmed = await confirmAction({
+            title: '주문 일괄 보관',
+            message: `${selectedOrders.size}개의 주문을 보관하시겠습니까?`,
+            confirmLabel: '보관'
+        });
+
+        if (!confirmed) {
             return;
         }
 
@@ -853,12 +879,12 @@ window.AdminOrders = (function () {
                 }
             });
 
-            alert(`${selectedOrders.size}개의 주문이 보관되었습니다.`);
+            showToast(`${selectedOrders.size}개의 주문이 보관되었습니다.`, 'success');
             selectedOrders.clear();
             renderOrders();
         } catch (err) {
             console.error('Failed to bulk archive:', err);
-            alert('일괄 보관 실패: ' + err.message);
+            showToast('일괄 보관 실패: ' + err.message, 'error');
         }
     }
 
@@ -866,7 +892,7 @@ window.AdminOrders = (function () {
     function confirmDelete(orderId = null) {
         deleteTargetId = orderId || currentOrderId;
         if (!deleteTargetId) {
-            alert('주문 정보가 없습니다.');
+            showToast('주문 정보가 없습니다.', 'error');
             return;
         }
 
@@ -881,7 +907,7 @@ window.AdminOrders = (function () {
 
     async function deleteOrder() {
         if (!deleteTargetId) {
-            alert('삭제할 주문이 없습니다.');
+            showToast('삭제할 주문이 없습니다.', 'error');
             return;
         }
 
@@ -895,12 +921,12 @@ window.AdminOrders = (function () {
             hideModal('delete-confirm-modal');
             closeModal();
 
-            alert('주문이 삭제되었습니다.');
+            showToast('주문이 삭제되었습니다.', 'success');
             document.getElementById('total-orders-count').textContent = allOrders.length;
             renderOrders();
         } catch (err) {
             console.error('Failed to delete order:', err);
-            alert('삭제 실패: ' + err.message);
+            showToast('삭제 실패: ' + err.message, 'error');
         } finally {
             deleteTargetId = null;
         }
@@ -908,7 +934,7 @@ window.AdminOrders = (function () {
 
     async function bulkDelete() {
         if (selectedOrders.size === 0) {
-            alert('선택된 주문이 없습니다.');
+            showToast('선택된 주문이 없습니다.', 'error');
             return;
         }
 
@@ -936,19 +962,19 @@ window.AdminOrders = (function () {
 
                 hideModal('delete-confirm-modal');
 
-                alert(`${deletedCount}개의 주문이 삭제되었습니다.`);
+                showToast(`${deletedCount}개의 주문이 삭제되었습니다.`, 'success');
                 document.getElementById('total-orders-count').textContent = allOrders.length;
                 renderOrders();
             } catch (err) {
                 console.error('Failed to bulk delete:', err);
-                alert('일괄 삭제 실패: ' + err.message);
+                showToast('일괄 삭제 실패: ' + err.message, 'error');
             } finally {
                 deleteTargetId = null;
             }
         } else {
             // Single delete
             if (!deleteTargetId) {
-                alert('삭제할 주문이 없습니다.');
+                showToast('삭제할 주문이 없습니다.', 'error');
                 return;
             }
 
@@ -961,12 +987,12 @@ window.AdminOrders = (function () {
                 hideModal('delete-confirm-modal');
                 closeModal();
 
-                alert('주문이 삭제되었습니다.');
+                showToast('주문이 삭제되었습니다.', 'success');
                 document.getElementById('total-orders-count').textContent = allOrders.length;
                 renderOrders();
             } catch (err) {
                 console.error('Failed to delete order:', err);
-                alert('삭제 실패: ' + err.message);
+                showToast('삭제 실패: ' + err.message, 'error');
             } finally {
                 deleteTargetId = null;
             }
@@ -991,10 +1017,6 @@ window.AdminOrders = (function () {
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.AdminOrders) {
-        window.AdminOrders.init();
-    } else {
-        console.error('AdminOrders not loaded');
-    }
+    AdminOrders.init();
 });
 

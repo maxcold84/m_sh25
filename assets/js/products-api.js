@@ -88,15 +88,7 @@ export class ProductsApi {
     }
 }
 
-// ============================================
-// 하위 호환성: 전역 노출
-// ============================================
 const productsApi = new ProductsApi();
-
-if (typeof window !== 'undefined') {
-    window.productsApi = productsApi;
-    window.ProductsApi = ProductsApi;
-}
 
 export { productsApi };
 export default ProductsApi;

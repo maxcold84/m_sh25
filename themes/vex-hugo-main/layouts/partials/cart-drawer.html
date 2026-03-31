@@ -1,5 +1,5 @@
 <!-- Cart Overlay -->
-<div id="cart-overlay" onclick="Cart.toggleDrawer()"></div>
+<div id="cart-overlay" data-cart-action="toggle"></div>
 
 <!-- Cart Drawer -->
 <div id="cart-drawer">
@@ -9,7 +9,7 @@
       <h3>🛒 장바구니</h3>
       <span class="cart-count" id="cart-item-count">0</span>
     </div>
-    <button onclick="Cart.toggleDrawer()" class="close-btn" aria-label="Close cart">
+    <button type="button" data-cart-action="toggle" class="close-btn" aria-label="Close cart">
       ×
     </button>
   </div>
@@ -37,17 +37,8 @@
       </div>
     </div>
 
-    <button onclick="Cart.checkout()" class="checkout-btn" id="checkout-btn">
+    <button type="button" data-cart-action="checkout" class="checkout-btn" id="checkout-btn">
       💳 결제하기
     </button>
   </div>
 </div>
-
-<script>
-  // Initialize cart on page load
-  document.addEventListener('DOMContentLoaded', function () {
-    if (window.ShopConfig && window.Cart) {
-      Cart.init(window.ShopConfig);
-    }
-  });
-</script>

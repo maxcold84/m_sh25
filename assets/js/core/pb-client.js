@@ -65,10 +65,5 @@ const PBClient = {
     isAuthenticated
 };
 
-// window 객체에 노출
-if (typeof window !== 'undefined') {
-    window.PBClient = PBClient;
-}
-
 // default export
 export default PBClient;

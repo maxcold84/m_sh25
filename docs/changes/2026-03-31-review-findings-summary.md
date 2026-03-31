@@ -101,3 +101,48 @@
 - PocketBase public URL 정책 정리
 - checkout / admin 영역의 남은 inline handler 및 Bootstrap 의존 제거
 - CSP 현실화
+
+## Current Status (2026-03-31)
+
+### Finding Status Snapshot
+
+1. `[P3] Login redirect trusts localStorage`
+- 현재 상태: 대응 완료
+- 반영 내용:
+  - redirect 저장 위치를 `sessionStorage` 로 전환
+  - same-origin 상대경로만 허용하도록 검증 추가
+  - auth redirect 처리 공통화
+
+2. `[P0] Backup includes live DB`
+- 현재 상태: 대응 완료
+- 반영 내용:
+  - backup 대상에서 DB 파일 제거
+  - 커밋된 DB 스냅샷 삭제
+  - release preflight 에 DB 스냅샷 검사 추가
+
+3. `[P1] server output points at localhost`
+- 현재 상태: clean build / preflight 기준으로는 대응 완료
+- 반영 내용:
+  - build 전에 `server/` clean 수행
+  - dev/build 출력 분리
+  - `localhost:1313`, `livereload.js` 검출 가드 추가
+- 메모:
+  - PocketBase public URL 정책 자체는 별도 운영 정책 정리 여지 있음
+
+4. `[P1] QnA module loaded as classic script`
+- 현재 상태: 대응 완료
+- 반영 내용:
+  - raw script 삽입 제거
+  - bundle 기반 bootstrap 으로 전환
+
+5. `[P1] Reviews init runs before module exists`
+- 현재 상태: 대응 완료
+- 반영 내용:
+  - raw script 삽입 제거
+  - bundle 기반 bootstrap 으로 전환
+
+### Residual Follow-up
+
+- [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html) 의 큰 inline script 분리
+- admin JS 의 `alert/confirm/prompt` 흐름 치환
+- `window.*` 전역 노출 추가 축소

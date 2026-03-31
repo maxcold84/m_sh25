@@ -620,9 +620,4 @@ export const Reviews = {
     init
 };
 
-// 하위 호환성: 전역 노출
-if (typeof window !== 'undefined') {
-    window.Reviews = Reviews;
-}
-
 export default Reviews;

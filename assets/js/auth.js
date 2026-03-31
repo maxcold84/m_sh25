@@ -538,13 +538,6 @@ const Auth = (function () {
     };
 })();
 
-// ============================================
-// 하위 호환성: 전역 노출
-// ============================================
-if (typeof window !== 'undefined') {
-    window.Auth = Auth;
-}
-
 // Auto-init
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => Auth.init());

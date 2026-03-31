@@ -331,9 +331,4 @@ export const QnA = {
     init
 };
 
-// 하위 호환성: 전역 노출
-if (typeof window !== 'undefined') {
-    window.QnA = QnA;
-}
-
 export default QnA;

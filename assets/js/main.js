@@ -25,31 +25,6 @@ import { initProductListPage } from './product-list-page.js';
 import { initReadingProgress } from './blog-reading-progress.js';
 
 // ============================================
-// 하위 호환성: 전역 노출
-// window 객체에 노출하여 인라인 스크립트 및 기존 코드 지원
-// ============================================
-if (typeof window !== 'undefined') {
-    // Core
-    window.PBClient = {
-        getInstance,
-        isAdmin,
-        getUser,
-        isAuthenticated
-    };
-    window.Utils = Utils;
-    window.pb = pb; // 직접 접근용
-
-    // Features
-    window.Cart = Cart;
-    window.Auth = Auth;
-    window.ProductsApi = ProductsApi;
-    window.productsApi = productsApi;
-    window.Reviews = Reviews;
-    window.QnA = QnA;
-    window.Profile = Profile;
-}
-
-// ============================================
 // Auto Initialization
 // ============================================
 function initializeApp() {

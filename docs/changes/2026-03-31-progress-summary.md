@@ -475,3 +475,57 @@
 1. [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html) 의 큰 inline script를 module/bootstrap 으로 분리
 2. [assets/js/admin-orders.js](/C:/hugo/ex/shop/assets/js/admin-orders.js), [assets/js/admin-posts.js](/C:/hugo/ex/shop/assets/js/admin-posts.js), [assets/js/admin-products.js](/C:/hugo/ex/shop/assets/js/admin-products.js) 의 `alert/confirm/prompt` 흐름을 custom dialog 또는 toast 로 치환
 3. [assets/js/cart.js](/C:/hugo/ex/shop/assets/js/cart.js) 와 admin JS 안의 `window.*` 노출 축소
+
+## 최신 스냅샷 (2026-03-31 마감 기준)
+
+### 현재 상태 요약
+
+- auth redirect open redirect 대응은 반영 완료
+  - `localStorage` 대신 `sessionStorage`
+  - same-origin 상대경로만 허용
+- live DB 백업/커밋 문제는 차단 완료
+  - backup 대상에서 DB 제거
+  - 커밋돼 있던 DB 스냅샷 삭제
+  - release preflight 추가
+- public/admin Bootstrap runtime 제거와 clean build 정합성은 확보
+- public 쪽은 homepage/list/blog/related-products/cart 기준으로 bundle-first 구조가 더 정리됨
+- 남은 큰 작업은 `product single inline script`, `admin alert/confirm/prompt`, `window.*` 노출 축소
+
+### 최신 검증 묶음
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
+- `rg "localhost:1313|livereload.js" server` 결과 없음
+- `rg "bootstrap.min.css|bootstrap.bundle.min.js|jquery-3.6.0.min.js" server` 결과 없음
+
+### 현재 추천 다음 순서
+
+1. [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html)의 큰 inline script를 module/bootstrap 으로 분리
+2. [assets/js/admin-orders.js](/C:/hugo/ex/shop/assets/js/admin-orders.js), [assets/js/admin-posts.js](/C:/hugo/ex/shop/assets/js/admin-posts.js), [assets/js/admin-products.js](/C:/hugo/ex/shop/assets/js/admin-products.js)의 `alert/confirm/prompt` 를 custom dialog 또는 toast 로 치환
+3. [assets/js/cart.js](/C:/hugo/ex/shop/assets/js/cart.js) 와 admin JS 안의 `window.*` 노출 축소
+
+## 추가 진행 (2026-03-31 심야 admin feedback)
+
+### 24. Admin 기본 다이얼로그 치환
+
+- 파일:
+  - [assets/js/admin-feedback.js](/C:/hugo/ex/shop/assets/js/admin-feedback.js)
+  - [layouts/admin/baseof.html](/C:/hugo/ex/shop/layouts/admin/baseof.html)
+  - [assets/js/admin-orders.js](/C:/hugo/ex/shop/assets/js/admin-orders.js)
+  - [assets/js/admin-posts.js](/C:/hugo/ex/shop/assets/js/admin-posts.js)
+  - [assets/js/admin-products.js](/C:/hugo/ex/shop/assets/js/admin-products.js)
+- 반영 사항:
+  - admin 공용 toast / confirm / prompt UI 레이어 추가
+  - 주문 관리의 archive/delete 경고를 browser dialog 대신 custom feedback 으로 전환
+  - 게시글 관리의 저장/삭제 오류와 동영상 삽입 `prompt` 를 custom feedback 으로 전환
+  - 상품/카테고리 관리의 confirm / error feedback 도 browser dialog 대신 custom feedback 으로 전환
+- 효과:
+  - admin UX가 browser 기본 다이얼로그에서 벗어나 일관된 UI로 정리됨
+  - 남은 큰 작업에서 `window.*` 축소와 product single module 분리에 집중하기 쉬워짐
+
+### 25. 최신 검증
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과

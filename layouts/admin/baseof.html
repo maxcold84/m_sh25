@@ -53,6 +53,8 @@
     };
   </script>
 
+  {{ $adminFeedbackScript := resources.Get "js/admin-feedback.js" }}
+  <script src="{{ $adminFeedbackScript.Permalink }}"></script>
   {{ $adminAuthScript := resources.Get "js/admin-auth.js" }}
   <script src="{{ $adminAuthScript.Permalink }}"></script>
 </head>

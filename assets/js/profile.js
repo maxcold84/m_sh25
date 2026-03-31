@@ -559,9 +559,4 @@ export const Profile = {
     trackDelivery
 };
 
-// 하위 호환성: 전역 노출
-if (typeof window !== 'undefined') {
-    window.Profile = Profile;
-}
-
 export default Profile;
