@@ -785,7 +785,17 @@
     }
 </style>
 
-{{ $adminPostScript := resources.Get "js/admin-posts.js" }}
-<script type="module" src="{{ $adminPostScript.Permalink }}"></script>
+{{ $adminPostsOpts := dict
+"targetPath" "js/admin-posts.bundle.js"
+"minify" hugo.IsProduction
+"target" "es2020"
+"format" "iife"
+"globalName" "AdminPostsPage"
+}}
+{{ $adminPostScript := resources.Get "js/admin-posts.js" | js.Build $adminPostsOpts }}
+{{ if hugo.IsProduction }}
+{{ $adminPostScript = $adminPostScript | fingerprint }}
+{{ end }}
+<script src="{{ $adminPostScript.RelPermalink }}"></script>
 
 {{ end }}

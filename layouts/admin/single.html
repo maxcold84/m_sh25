@@ -924,8 +924,18 @@
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
-{{ $adminScript := resources.Get "js/admin-products.js" }}
-<script type="module" src="{{ $adminScript.Permalink }}"></script>
+{{ $adminProductsOpts := dict
+"targetPath" "js/admin-products.bundle.js"
+"minify" hugo.IsProduction
+"target" "es2020"
+"format" "iife"
+"globalName" "AdminProductsPage"
+}}
+{{ $adminScript := resources.Get "js/admin-products.js" | js.Build $adminProductsOpts }}
+{{ if hugo.IsProduction }}
+{{ $adminScript = $adminScript | fingerprint }}
+{{ end }}
+<script src="{{ $adminScript.RelPermalink }}"></script>
 
 {{ end }}
 

@@ -55,6 +55,16 @@
     </div>
 </div>
 
-{{ $adminOrdersScript := resources.Get "js/admin-orders.js" }}
-<script type="module" src="{{ $adminOrdersScript.Permalink }}"></script>
+{{ $adminOrdersOpts := dict
+"targetPath" "js/admin-orders.bundle.js"
+"minify" hugo.IsProduction
+"target" "es2020"
+"format" "iife"
+"globalName" "AdminOrdersPage"
+}}
+{{ $adminOrdersScript := resources.Get "js/admin-orders.js" | js.Build $adminOrdersOpts }}
+{{ if hugo.IsProduction }}
+{{ $adminOrdersScript = $adminOrdersScript | fingerprint }}
+{{ end }}
+<script src="{{ $adminOrdersScript.RelPermalink }}"></script>
 {{ end }}

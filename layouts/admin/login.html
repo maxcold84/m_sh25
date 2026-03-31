@@ -180,6 +180,16 @@
         </form>
     </div>
 </div>
-{{ $adminLoginScript := resources.Get "js/admin-login.js" }}
-<script type="module" src="{{ $adminLoginScript.Permalink }}"></script>
+{{ $adminLoginOpts := dict
+"targetPath" "js/admin-login.bundle.js"
+"minify" hugo.IsProduction
+"target" "es2020"
+"format" "iife"
+"globalName" "AdminLoginPage"
+}}
+{{ $adminLoginScript := resources.Get "js/admin-login.js" | js.Build $adminLoginOpts }}
+{{ if hugo.IsProduction }}
+{{ $adminLoginScript = $adminLoginScript | fingerprint }}
+{{ end }}
+<script src="{{ $adminLoginScript.RelPermalink }}"></script>
 {{ end }}
