@@ -1,86 +1,92 @@
 {{ define "main" }}
 
-<!-- Reading Progress Bar -->
-<div class="reading-progress" id="reading-progress"></div>
+<div class="reading-progress pointer-events-none" id="reading-progress"></div>
 
-<section class="section">
-    <div class="container">
-        <div class="row">
-            <!-- Sidebar for TOC -->
-            <div class="col-lg-3 d-none d-lg-block">
-                <div class="blog-toc">
-                    <header>{{ i18n "table_of_contents" | default "목차" }}</header>
-                    {{ .TableOfContents }}
-                </div>
-            </div>
+<section class="section py-10 sm:py-14 lg:py-16">
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+            <article class="order-1 rounded-[28px] border border-slate-200 bg-white/95 p-5 shadow-sm shadow-slate-200/60 backdrop-blur sm:p-6 lg:p-8">
+                <header class="space-y-5">
+                    <div class="space-y-3">
+                        <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">{{ .Title | markdownify }}</h1>
 
-            <!-- Main Content -->
-            <div class="col-lg-9">
-                <div class="blog-post-header mb-5">
-                    <h1 class="mb-3">{{ .Title | markdownify }}</h1>
+                        <div class="blog-meta flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                            <span class="inline-flex items-center gap-2">
+                                <i class="tf-ion-calendar"></i> {{ .PublishDate.Format "2006-01-02" }}
+                            </span>
+                            <span class="inline-flex items-center gap-2">
+                                <i class="tf-ion-ios-timer-outline"></i> {{ .ReadingTime }} {{ i18n "min_read" | default "분" }}
+                            </span>
 
-                    <div class="blog-meta mb-3">
-                        <span><i class="tf-ion-calendar"></i> {{ .PublishDate.Format "2006-01-02" }}</span>
-                        <span><i class="tf-ion-ios-timer-outline"></i> {{ .ReadingTime }} {{ i18n "min_read" | default
-                            "분" }}</span>
-
-                        <a href="/ko/admin/posts/" class="text-muted small ml-auto" target="_blank">
-                            <i class="tf-ion-settings"></i> 관리자 모드
-                        </a>
+                            <a href="/ko/admin/posts/" class="ml-auto inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900" target="_blank" rel="noopener">
+                                <i class="tf-ion-settings"></i> 관리자 모드
+                            </a>
+                        </div>
                     </div>
 
                     {{ if .Params.image }}
-                    <div class="featured-image mb-5">
-                        {{ $isRemote := or (hasPrefix .Params.image "http://") (hasPrefix .Params.image "https://") (hasPrefix .Params.image "//") }}
-                        {{ $image := "" }}
-                        {{ if not $isRemote }}
-                            {{ $image = .Resources.GetMatch .Params.image }}
-                            {{ if not $image }}
-                                {{ $image = resources.Get .Params.image }}
-                            {{ end }}
+                    {{ $isRemote := or (hasPrefix .Params.image "http://") (hasPrefix .Params.image "https://") (hasPrefix .Params.image "//") }}
+                    {{ $image := "" }}
+                    {{ $imagePath := replaceRE "^/" "" .Params.image }}
+                    {{ if not $isRemote }}
+                        {{ $image = .Resources.GetMatch $imagePath }}
+                        {{ if not $image }}
+                            {{ $image = resources.Get $imagePath }}
                         {{ end }}
-                        {{ if $image }}
-                        <img src="{{ $image.RelPermalink }}" alt="{{ .Title }}" class="img-fluid w-100 rounded">
-                        {{ else if $isRemote }}
-                        <img src="{{ .Params.image }}" alt="{{ .Title }}" class="img-fluid w-100 rounded">
-                        {{ else }}
-                        {{ partial "image.html" (dict "Src" .Params.image "Alt" .Title "Class" "img-fluid w-100 rounded" ) }}
-                        {{ end }}
-                    </div>
                     {{ end }}
-                </div>
+                    <figure class="overflow-hidden rounded-[24px] bg-slate-100">
+                        {{ if $image }}
+                        <img src="{{ $image.RelPermalink }}" alt="{{ .Title }}" class="block aspect-[16/9] h-full w-full object-cover">
+                        {{ else if $isRemote }}
+                        <img src="{{ .Params.image }}" alt="{{ .Title }}" class="block aspect-[16/9] h-full w-full object-cover">
+                        {{ else }}
+                        <img src="{{ .Params.image | absURL }}" alt="{{ .Title }}" class="block aspect-[16/9] h-full w-full object-cover">
+                        {{ end }}
+                    </figure>
+                    {{ end }}
+                </header>
 
-                <div class="content post-content">
+                <div class="content post-content mt-8 max-w-none text-[16px] leading-7 text-slate-700 sm:mt-10">
                     {{ .Content }}
                 </div>
 
                 {{ if .Params.tags }}
-                <div class="mt-5 pt-4 border-top">
-                    <div class="tags">
+                <div class="mt-8 border-t border-slate-200 pt-6">
+                    <div class="tags flex flex-wrap gap-2">
                         {{ range .Params.tags }}
-                        <a href="{{ " /tags/" | relLangURL }}{{ . | urlize }}"
-                            class="badge badge-primary mr-2 px-3 py-2">#{{ . }}</a>
+                        <a href="{{ "/tags/" | relLangURL }}{{ . | urlize }}" class="inline-flex items-center rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200">#{{ . }}</a>
                         {{ end }}
                     </div>
                 </div>
                 {{ end }}
 
-                <!-- Post Navigation -->
-                <div class="post-navigation">
+                <nav class="post-navigation mt-10 grid gap-4 border-t border-slate-200 pt-6 sm:grid-cols-2">
                     <div class="nav-item prev">
                         {{ with .PrevInSection }}
-                        <span class="nav-label">{{ i18n "previous_post" | default "이전 글" }}</span>
-                        <a href="{{ .Permalink }}" class="nav-title">{{ .Title }}</a>
+                        <div class="flex h-full flex-col rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 hover:bg-white">
+                            <span class="nav-label text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">{{ i18n "previous_post" | default "이전 글" }}</span>
+                            <a href="{{ .Permalink }}" class="nav-title mt-2 block text-base font-semibold leading-6 text-slate-900 transition hover:text-slate-600">{{ .Title }}</a>
+                        </div>
                         {{ end }}
                     </div>
-                    <div class="nav-item next">
+
+                    <div class="nav-item next sm:text-right">
                         {{ with .NextInSection }}
-                        <span class="nav-label">{{ i18n "next_post" | default "다음 글" }}</span>
-                        <a href="{{ .Permalink }}" class="nav-title">{{ .Title }}</a>
+                        <div class="flex h-full flex-col rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 hover:bg-white sm:items-end">
+                            <span class="nav-label text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">{{ i18n "next_post" | default "다음 글" }}</span>
+                            <a href="{{ .Permalink }}" class="nav-title mt-2 block text-base font-semibold leading-6 text-slate-900 transition hover:text-slate-600 sm:text-right">{{ .Title }}</a>
+                        </div>
                         {{ end }}
                     </div>
+                </nav>
+            </article>
+
+            <aside class="order-2 lg:sticky lg:top-28">
+                <div class="blog-toc rounded-[24px] border border-slate-200 bg-white/95 p-4 shadow-sm shadow-slate-200/50 backdrop-blur sm:p-5 lg:max-h-[calc(100vh-8rem)] lg:overflow-auto">
+                    <header class="mb-4 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">{{ i18n "table_of_contents" | default "목차" }}</header>
+                    {{ .TableOfContents }}
                 </div>
-            </div>
+            </aside>
         </div>
     </div>
 </section>

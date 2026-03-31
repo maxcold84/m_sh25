@@ -134,8 +134,6 @@ link = "plugins/slick/slick.min.css"
 [[params.plugins.js]]
 link = "plugins/jquery/jquery.js"
 [[params.plugins.js]]
-link = "plugins/bootstrap/bootstrap.min.js"
-[[params.plugins.js]]
 link = "plugins/slick/slick.min.js"
 
 

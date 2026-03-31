@@ -1,14 +1,17 @@
 {{ if .Src }}
-<div class="{{ .Class }}">
+{{ $imgClass := .Class | default "" }}
+{{ $imgClass = replace $imgClass "img-fluid" "h-auto max-w-full" }}
+{{ $imgClass = replace $imgClass "w-100" "w-full" }}
+<div>
     {{ $isRemote := or (hasPrefix .Src "http://") (hasPrefix .Src "https://") (hasPrefix .Src "//") }}
     {{ if $isRemote }}
-        <img src="{{ .Src }}" alt="{{ .Alt }}" class="img-fluid">
+        <img src="{{ .Src }}" alt="{{ .Alt }}" class="{{ $imgClass }}">
     {{ else }}
         {{ $image := resources.Get .Src }}
         {{ if $image }}
-        <img src="{{ $image.RelPermalink }}" alt="{{ .Alt }}" class="img-fluid">
+        <img src="{{ $image.RelPermalink }}" alt="{{ .Alt }}" class="{{ $imgClass }}">
         {{ else }}
-        <img src="{{ .Src | absURL }}" alt="{{ .Alt }}" class="img-fluid">
+        <img src="{{ .Src | absURL }}" alt="{{ .Alt }}" class="{{ $imgClass }}">
         {{ end }}
     {{ end }}
 </div>

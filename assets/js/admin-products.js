@@ -6,9 +6,14 @@
 const AdminCategories = {
     pb: null,
     categories: [],
+    modal: null,
+    _currentTrigger: null,
+    _previousBodyOverflow: '',
+    _escapeHandlerBound: false,
 
     init: async function (pb) {
         this.pb = pb;
+        this.modal = document.getElementById('categoryModal');
         const form = document.getElementById('category-form');
         if (form) {
             form.addEventListener('submit', (e) => {
@@ -25,7 +30,35 @@ const AdminCategories = {
                 this.deleteCategory(button.dataset.categoryId);
             });
         }
+        this.bindModalEvents();
         await this.loadCategories();
+    },
+
+    bindModalEvents: function () {
+        const modal = this.modal || document.getElementById('categoryModal');
+        if (!modal || modal.dataset.bound) return;
+
+        this.modal = modal;
+        modal.dataset.bound = 'true';
+
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal || event.target.closest('[data-category-modal-close]')) {
+                this.closeModal();
+            }
+        });
+
+        if (!this._escapeHandlerBound) {
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && this.isOpen()) {
+                    this.closeModal();
+                }
+            });
+            this._escapeHandlerBound = true;
+        }
+    },
+
+    isOpen: function () {
+        return !!(this.modal && !this.modal.hidden);
     },
 
     loadCategories: async function () {
@@ -39,7 +72,7 @@ const AdminCategories = {
             console.error('Error loading categories:', error);
             if (error.status === 404) {
                 const list = document.getElementById('category-list');
-                if (list) list.innerHTML = '<div class="text-center text-danger">카테고리 컬렉션이 없습니다.</div>';
+                if (list) list.innerHTML = '<div class="admin-category-state admin-category-state--error">카테고리 컬렉션이 없습니다.</div>';
             }
         }
     },
@@ -49,17 +82,17 @@ const AdminCategories = {
         if (!list) return;
 
         if (this.categories.length === 0) {
-            list.innerHTML = '<div class="text-center py-3 text-muted">카테고리가 없습니다.</div>';
+            list.innerHTML = '<div class="admin-category-state">카테고리가 없습니다.</div>';
             return;
         }
 
         list.innerHTML = '';
         this.categories.forEach(cat => {
             const item = document.createElement('div');
-            item.className = 'list-group-item admin-category-item';
+            item.className = 'admin-category-item';
             item.innerHTML = `
-                <span>${cat.name}</span>
-                <button class="btn btn-sm btn-outline-danger" type="button" data-action="delete-category" data-category-id="${cat.id}">
+                <span class="admin-category-item__name">${cat.name}</span>
+                <button class="admin-category-item__delete" type="button" data-action="delete-category" data-category-id="${cat.id}">
                     &times;
                 </button>
             `;
@@ -120,8 +153,40 @@ const AdminCategories = {
         }
     },
 
-    openModal: function () {
-        $('#categoryModal').modal('show');
+    openModal: function (trigger) {
+        const modal = this.modal || document.getElementById('categoryModal');
+        if (!modal) return;
+
+        this.modal = modal;
+        this._previousBodyOverflow = document.body.style.overflow;
+        this._currentTrigger = trigger && typeof trigger.focus === 'function'
+            ? trigger
+            : (document.activeElement && typeof document.activeElement.focus === 'function'
+                ? document.activeElement
+                : null);
+
+        modal.hidden = false;
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        const input = document.getElementById('new-category-name');
+        if (input) {
+            window.setTimeout(() => input.focus(), 0);
+        }
+    },
+
+    closeModal: function () {
+        const modal = this.modal || document.getElementById('categoryModal');
+        if (!modal) return;
+
+        modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = this._previousBodyOverflow || '';
+
+        if (this._currentTrigger) {
+            this._currentTrigger.focus();
+        }
+        this._currentTrigger = null;
     }
 };
 
@@ -165,7 +230,7 @@ const AdminProducts = {
         const manageCategoriesBtn = document.getElementById('manage-categories-btn');
         if (manageCategoriesBtn && !manageCategoriesBtn.dataset.bound) {
             manageCategoriesBtn.dataset.bound = 'true';
-            manageCategoriesBtn.addEventListener('click', () => AdminCategories.openModal());
+            manageCategoriesBtn.addEventListener('click', (event) => AdminCategories.openModal(event.currentTarget));
         }
 
         const filterCategory = document.getElementById('filter-category');

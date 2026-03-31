@@ -21,6 +21,105 @@ const MAX_REVIEW_IMAGES = 5;
 const MAX_REVIEW_IMAGE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_REVIEW_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
+function showToast(message, tone = 'success') {
+    if (!message) return;
+
+    const existingToast = document.querySelector('[data-review-toast]');
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `review-toast review-toast--${tone}`;
+    toast.dataset.reviewToast = tone;
+    toast.setAttribute('role', tone === 'error' ? 'alert' : 'status');
+    toast.setAttribute('aria-live', tone === 'error' ? 'assertive' : 'polite');
+    toast.textContent = message;
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px)';
+
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    });
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function showSuccessMessage(message) {
+    showToast(message, 'success');
+}
+
+function showErrorMessage(message) {
+    showToast(message, 'error');
+}
+
+function showConfirmationDialog({ title, message, confirmText = '삭제', cancelText = '취소' }) {
+    return new Promise((resolve) => {
+        closeActiveOverlay();
+
+        const modal = document.createElement('div');
+        modal.className = 'review-modal';
+        modal.dataset.reviewOverlay = 'confirm';
+        modal.innerHTML = `
+            <div class="review-modal__panel">
+                <div class="review-modal__header">
+                    <div>
+                        <p class="review-modal__eyebrow">Confirm action</p>
+                        <h4 class="review-modal__title">${escapeHtml(title)}</h4>
+                    </div>
+                    <button type="button" class="review-btn review-btn--ghost review-btn--icon review-modal__close" data-confirm-cancel aria-label="닫기">×</button>
+                </div>
+                <p class="review-modal__body">${escapeHtml(message)}</p>
+                <div class="review-modal__actions">
+                    <button type="button" class="review-btn review-btn--ghost" data-confirm-cancel>${escapeHtml(cancelText)}</button>
+                    <button type="button" class="review-btn review-btn--danger" data-confirm-accept>${escapeHtml(confirmText)}</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        activeOverlay = modal;
+        document.body.classList.add('overflow-hidden');
+
+        const finish = (result) => {
+            document.removeEventListener('keydown', handleKeydown);
+            if (activeOverlay === modal) {
+                activeOverlay = null;
+            }
+            modal.remove();
+            document.body.classList.remove('overflow-hidden');
+            resolve(result);
+        };
+
+        const handleKeydown = (event) => {
+            if (event.key === 'Escape') {
+                finish(false);
+            }
+        };
+
+        modal.querySelectorAll('[data-confirm-cancel]').forEach((button) => {
+            button.addEventListener('click', () => finish(false));
+        });
+
+        modal.querySelector('[data-confirm-accept]').addEventListener('click', () => finish(true));
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                finish(false);
+            }
+        });
+
+        document.addEventListener('keydown', handleKeydown);
+        modal.querySelector('[data-confirm-accept]').focus();
+    });
+}
+
 /**
  * 리뷰 모듈 초기화
  * @param {string} productId - 제품 ID
@@ -70,13 +169,14 @@ function handleImageSelect(e) {
 
     // Validation
     const validFiles = [];
+    const validationMessages = [];
     for (const file of files) {
         if (!ALLOWED_REVIEW_IMAGE_TYPES.includes(file.type)) {
-            alert(`지원되지 않는 파일 형식입니다: ${file.name}\n(jpg, png, gif, webp만 가능)`);
+            validationMessages.push(`지원되지 않는 파일 형식입니다: ${file.name}\n(jpg, png, gif, webp만 가능)`);
             continue;
         }
         if (file.size > MAX_REVIEW_IMAGE_SIZE) {
-            alert(`파일 크기가 너무 큽니다: ${file.name}\n(최대 10MB)`);
+            validationMessages.push(`파일 크기가 너무 큽니다: ${file.name}\n(최대 10MB)`);
             continue;
         }
         validFiles.push(file);
@@ -84,7 +184,15 @@ function handleImageSelect(e) {
 
     // Limit to 5 images total
     if (selectedFiles.length + validFiles.length > MAX_REVIEW_IMAGES) {
-        alert('최대 5장까지 업로드할 수 있습니다.');
+        validationMessages.push('최대 5장까지 업로드할 수 있습니다.');
+    }
+
+    if (validationMessages.length > 0) {
+        showErrorMessage(validationMessages.join('\n'));
+    }
+
+    if (selectedFiles.length + validFiles.length > MAX_REVIEW_IMAGES) {
+        e.target.value = '';
         return;
     }
 
@@ -104,15 +212,15 @@ function updateImagePreview() {
         const reader = new FileReader();
         reader.onload = (e) => {
             const wrapper = document.createElement('div');
-            wrapper.className = 'group relative h-20 w-20 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm';
+            wrapper.className = 'review-image-preview__item';
             wrapper.innerHTML = `
                 <img src="${e.target.result}" alt="Preview ${index + 1}" class="h-full w-full object-cover">
-                <button type="button" class="remove-image-btn absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900/80 text-xs font-bold text-white opacity-100 transition group-hover:bg-rose-600" data-index="${index}" aria-label="Remove selected image">×</button>
+                <button type="button" class="review-image-remove" data-index="${index}" aria-label="Remove selected image">×</button>
             `;
             imagePreview.appendChild(wrapper);
 
             // Add remove handler
-            wrapper.querySelector('.remove-image-btn').addEventListener('click', () => {
+            wrapper.querySelector('.review-image-remove').addEventListener('click', () => {
                 selectedFiles.splice(index, 1);
                 updateImagePreview();
             });
@@ -129,10 +237,10 @@ async function loadReviews() {
     if (!currentProductId || !reviewList) return;
 
     reviewList.innerHTML = `
-        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-sm">
-            리뷰를 불러오는 중...
-        </div>
-    `;
+            <div class="review-empty">
+                리뷰를 불러오는 중...
+            </div>
+        `;
 
     try {
         const resultList = await pb.collection('reviews').getList(1, 50, {
@@ -145,7 +253,7 @@ async function loadReviews() {
     } catch (error) {
         console.error('Error loading reviews:', error);
         reviewList.innerHTML = `
-            <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-sm text-rose-700 shadow-sm">
+            <div class="review-empty review-empty--error">
                 리뷰를 불러오는데 실패했습니다.
             </div>
         `;
@@ -155,7 +263,7 @@ async function loadReviews() {
 function renderReviews(reviews) {
     if (reviews.length === 0) {
         reviewList.innerHTML = `
-            <div data-empty-state="reviews" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+            <div data-empty-state="reviews" class="review-empty">
                 아직 리뷰가 없습니다. 첫 번째 리뷰를 작성해보세요!
             </div>
         `;
@@ -178,7 +286,7 @@ function attachReviewEventListeners() {
         img.addEventListener('click', () => openLightbox(img.dataset.full || img.src));
     });
 
-    reviewList.querySelectorAll('.review-avatar-img').forEach((img) => {
+    reviewList.querySelectorAll('.review-avatar--img').forEach((img) => {
         if (img.dataset.avatarBound === 'true') {
             return;
         }
@@ -193,17 +301,17 @@ function attachReviewEventListeners() {
     });
 
     // Edit buttons
-    reviewList.querySelectorAll('.btn-edit-review').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const reviewId = e.target.closest('.review-item').dataset.reviewId;
+    reviewList.querySelectorAll('[data-review-action="edit"]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            const reviewId = event.currentTarget.closest('.review-item').dataset.reviewId;
             openEditModal(reviewId);
         });
     });
 
     // Delete buttons
-    reviewList.querySelectorAll('.btn-delete-review').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const reviewId = e.target.closest('.review-item').dataset.reviewId;
+    reviewList.querySelectorAll('[data-review-action="delete"]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            const reviewId = event.currentTarget.closest('.review-item').dataset.reviewId;
             confirmDeleteReview(reviewId);
         });
     });
@@ -223,9 +331,9 @@ function createReviewHTML(review) {
     const isOwner = pb.authStore.isValid && pb.authStore.model?.id === review.user;
 
     const actionsHTML = isOwner ? `
-        <div class="review-actions mt-4 flex flex-wrap gap-2">
-            <button type="button" class="btn-edit-review inline-flex items-center justify-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900">수정</button>
-            <button type="button" class="btn-delete-review inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100">삭제</button>
+        <div class="review-actions">
+            <button type="button" data-review-action="edit" class="review-btn review-btn--ghost">수정</button>
+            <button type="button" data-review-action="delete" class="review-btn review-btn--danger">삭제</button>
         </div>
     ` : '';
 
@@ -234,28 +342,28 @@ function createReviewHTML(review) {
         const imageItems = review.images.map(img => {
             const thumbUrl = pb.files.getUrl(review, img, { thumb: '200x200' });
             const imgUrl = pb.files.getUrl(review, img);
-            return `<img src="${thumbUrl}" data-full="${imgUrl}" alt="리뷰 이미지" class="review-image h-20 w-20 cursor-zoom-in rounded-2xl object-cover ring-1 ring-slate-200 transition hover:scale-[1.02]">`;
+            return `<img src="${thumbUrl}" data-full="${imgUrl}" alt="리뷰 이미지" class="review-image">`;
         }).join('');
-        imagesHTML = `<div class="review-images mt-4 flex flex-wrap gap-2">${imageItems}</div>`;
+        imagesHTML = `<div class="review-image-grid">${imageItems}</div>`;
     }
 
     const avatarHTML = userAvatar
-        ? `<img src="${userAvatar}" class="review-avatar-img mr-3 h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-slate-200" alt="${escapeHtml(userName)}" data-avatar-fallback="${escapeHtml('<div class="mr-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 ring-1 ring-slate-200"><i class="tf-ion-android-person text-xl"></i></div>')}">`
-        : `<div class="mr-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 ring-1 ring-slate-200"><i class="tf-ion-android-person text-xl"></i></div>`;
+        ? `<img src="${userAvatar}" class="review-avatar review-avatar--img" alt="${escapeHtml(userName)}" data-avatar-fallback="${escapeHtml('<div class="review-avatar review-avatar--fallback"><i class="tf-ion-android-person review-avatar__icon"></i></div>')}">`
+        : `<div class="review-avatar review-avatar--fallback"><i class="tf-ion-android-person review-avatar__icon"></i></div>`;
 
     return `
-        <article class="review-item rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 transition hover:-translate-y-0.5 hover:shadow-md sm:p-5" data-review-id="${review.id}" data-rating="${ratingValue}" data-content="${escapeHtml(review.content)}">
+        <article class="review-card review-item" data-review-id="${review.id}" data-rating="${ratingValue}" data-content="${escapeHtml(review.content)}">
             <div class="flex gap-4">
             ${avatarHTML}
             <div class="min-w-0 flex-1">
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                        <h6 class="text-sm font-semibold text-slate-900">${escapeHtml(userName)}</h6>
-                        <p class="mt-1 text-xs text-slate-500">${createdDate}</p>
+                    <div class="review-card__meta">
+                        <h6 class="review-card__name">${escapeHtml(userName)}</h6>
+                        <p class="review-card__date">${createdDate}</p>
                     </div>
-                    <div class="text-sm font-semibold tracking-[0.2em] text-amber-500">${stars}</div>
+                    <div class="review-card__stars">${stars}</div>
                 </div>
-                <p class="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">${escapeHtml(review.content)}</p>
+                <p class="review-card__content">${escapeHtml(review.content)}</p>
                 ${imagesHTML}
                 ${actionsHTML}
             </div>
@@ -275,21 +383,21 @@ function openEditModal(reviewId) {
 
     const modal = document.createElement('div');
     modal.id = 'edit-review-modal';
-    modal.className = 'fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm';
+    modal.className = 'review-modal';
     modal.dataset.reviewOverlay = 'edit';
     modal.innerHTML = `
-        <div class="w-full max-w-lg rounded-3xl bg-white p-5 shadow-2xl shadow-slate-900/20 sm:p-6">
-            <div class="flex items-start justify-between gap-4">
+        <div class="review-modal__panel review-modal__panel--large">
+            <div class="review-modal__header">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Edit review</p>
-                    <h4 class="mt-1 text-xl font-bold text-slate-900">리뷰 수정</h4>
+                    <p class="review-modal__eyebrow">Edit review</p>
+                    <h4 class="review-modal__title">리뷰 수정</h4>
                 </div>
-                <button type="button" class="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" data-edit-close aria-label="닫기">×</button>
+                <button type="button" class="review-btn review-btn--ghost review-btn--icon review-modal__close" data-edit-close aria-label="닫기">×</button>
             </div>
             <form id="edit-review-form" class="mt-5 space-y-5">
                 <div>
-                    <label for="edit-rating" class="text-sm font-semibold text-slate-700">평점</label>
-                    <select id="edit-rating" required class="mt-2 block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10">
+                    <label for="edit-rating" class="review-field-label">평점</label>
+                    <select id="edit-rating" required class="review-field-control">
                         <option value="5" ${Number(currentRating) === 5 ? 'selected' : ''}>⭐⭐⭐⭐⭐ (5점)</option>
                         <option value="4" ${Number(currentRating) === 4 ? 'selected' : ''}>⭐⭐⭐⭐ (4점)</option>
                         <option value="3" ${Number(currentRating) === 3 ? 'selected' : ''}>⭐⭐⭐ (3점)</option>
@@ -298,12 +406,12 @@ function openEditModal(reviewId) {
                     </select>
                 </div>
                 <div>
-                    <label for="edit-content" class="text-sm font-semibold text-slate-700">내용</label>
-                    <textarea id="edit-content" rows="4" required class="mt-2 block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-900 shadow-sm outline-none transition focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10">${escapeHtml(currentContent)}</textarea>
+                    <label for="edit-content" class="review-field-label">내용</label>
+                    <textarea id="edit-content" rows="4" required class="review-field-control review-field-control--textarea">${escapeHtml(currentContent)}</textarea>
                 </div>
                 <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                    <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900" id="cancel-edit">취소</button>
-                    <button type="submit" class="inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700" id="save-edit">저장</button>
+                    <button type="button" class="review-btn review-btn--ghost" id="cancel-edit">취소</button>
+                    <button type="submit" class="review-btn review-btn--primary" id="save-edit">저장</button>
                 </div>
             </form>
         </div>
@@ -339,7 +447,7 @@ function openEditModal(reviewId) {
         const newContent = modal.querySelector('#edit-content').value.trim();
         const saveBtn = modal.querySelector('#save-edit');
 
-        if (!newContent) { alert('리뷰 내용을 입력해주세요.'); return; }
+        if (!newContent) { showErrorMessage('리뷰 내용을 입력해주세요.'); return; }
 
         try {
             saveBtn.disabled = true;
@@ -350,7 +458,7 @@ function openEditModal(reviewId) {
             loadReviews();
         } catch (error) {
             console.error('Error updating review:', error);
-            alert('리뷰 수정에 실패했습니다: ' + error.message);
+            showErrorMessage('리뷰 수정에 실패했습니다: ' + error.message);
             saveBtn.disabled = false;
             saveBtn.textContent = '저장';
         }
@@ -358,7 +466,15 @@ function openEditModal(reviewId) {
 }
 
 async function confirmDeleteReview(reviewId) {
-    if (!confirm('정말로 이 리뷰를 삭제하시겠습니까?')) return;
+    const confirmed = await showConfirmationDialog({
+        title: '리뷰 삭제',
+        message: '정말로 이 리뷰를 삭제하시겠습니까?\n삭제된 리뷰는 되돌릴 수 없습니다.',
+        confirmText: '삭제',
+        cancelText: '취소',
+    });
+
+    if (!confirmed) return;
+
     try {
         await pb.collection('reviews').delete(reviewId);
         const reviewElement = document.querySelector(`[data-review-id="${reviewId}"]`);
@@ -380,28 +496,8 @@ async function confirmDeleteReview(reviewId) {
         showSuccessMessage('리뷰가 삭제되었습니다.');
     } catch (error) {
         console.error('Error deleting review:', error);
-        alert('리뷰 삭제에 실패했습니다: ' + error.message);
+        showErrorMessage('리뷰 삭제에 실패했습니다: ' + error.message);
     }
-}
-
-function showSuccessMessage(message) {
-    const toast = document.createElement('div');
-    toast.className = 'pointer-events-none fixed right-4 top-4 z-[9999] max-w-sm translate-y-0 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 shadow-lg shadow-emerald-950/10 transition-all duration-300 ease-out';
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(-10px)';
-    toast.setAttribute('role', 'status');
-    toast.setAttribute('aria-live', 'polite');
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    requestAnimationFrame(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateY(0)';
-    });
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(-10px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
 }
 
 function openLightbox(src) {
@@ -409,12 +505,12 @@ function openLightbox(src) {
 
     const lightbox = document.createElement('div');
     lightbox.id = 'review-lightbox';
-    lightbox.className = 'fixed inset-0 z-[10000] flex cursor-zoom-out items-center justify-center bg-slate-950/90 px-4 py-6 backdrop-blur-sm';
+    lightbox.className = 'review-lightbox';
     lightbox.dataset.reviewOverlay = 'lightbox';
     lightbox.innerHTML = `
-        <div class="relative max-h-[90vh] max-w-5xl">
-            <img src="${src}" alt="리뷰 이미지 확대보기" class="max-h-[90vh] w-full max-w-full rounded-3xl object-contain shadow-2xl shadow-black/30">
-            <button type="button" data-lightbox-close class="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-2xl leading-none text-slate-900 shadow-lg shadow-black/20 transition hover:bg-white" aria-label="닫기">×</button>
+        <div class="review-lightbox__panel">
+            <img src="${src}" alt="리뷰 이미지 확대보기" class="review-lightbox__image">
+            <button type="button" data-lightbox-close class="review-btn review-btn--ghost review-btn--icon review-lightbox__close" aria-label="닫기">×</button>
         </div>
     `;
     document.body.appendChild(lightbox);
@@ -448,7 +544,7 @@ function openLightbox(src) {
 
 async function handleReviewSubmit(e) {
     e.preventDefault();
-    if (!pb.authStore.isValid) { alert('리뷰를 작성하려면 로그인이 필요합니다.'); return; }
+    if (!pb.authStore.isValid) { showErrorMessage('리뷰를 작성하려면 로그인이 필요합니다.'); return; }
 
     const ratingSelect = document.getElementById('review-rating');
     const ratingRadio = document.querySelector('input[name="rating"]:checked');
@@ -457,8 +553,8 @@ async function handleReviewSubmit(e) {
     const content = contentInput?.value?.trim();
     const submitBtn = reviewForm.querySelector('button[type="submit"]');
 
-    if (!rating) { alert('평점을 선택해주세요.'); return; }
-    if (!content) { alert('리뷰 내용을 입력해주세요.'); return; }
+    if (!rating) { showErrorMessage('평점을 선택해주세요.'); return; }
+    if (!content) { showErrorMessage('리뷰 내용을 입력해주세요.'); return; }
 
     try {
         submitBtn.disabled = true; submitBtn.innerText = '제출 중...';
@@ -485,7 +581,7 @@ async function handleReviewSubmit(e) {
         } else if (error.message) {
             errorMsg += '\n(' + error.message + ')';
         }
-        alert(errorMsg);
+        showErrorMessage(errorMsg);
     } finally {
         submitBtn.disabled = false; submitBtn.innerText = '리뷰 제출';
     }

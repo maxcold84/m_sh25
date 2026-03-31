@@ -1,6 +1,7 @@
 {
   "name": "vex-hugo",
   "version": "2.0.0",
+  "packageManager": "pnpm@10.30.3",
   "license": "MIT",
   "author": "gethugothemes",
   "scripts": {

@@ -1,15 +1,13 @@
 {{ define "main" }}
 
-<section class="section">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-10 text-center mb-5">
-        <h1 class="font-weight-bold">{{.Title}}</h1>
-      </div>
-      <div class="col-lg-10 mb-5">
-        <div class="content">
-          {{.Content}}
-        </div>
+<section class="bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
+  <div class="mx-auto w-full max-w-4xl">
+    <header class="mb-8 text-center sm:mb-10">
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">{{.Title}}</h1>
+    </header>
+    <div class="rounded-2xl bg-white px-5 py-6 shadow-sm ring-1 ring-slate-200 sm:px-8 sm:py-10 lg:px-12">
+      <div class="content text-base leading-7 text-slate-700 sm:text-lg">
+        {{.Content}}
       </div>
     </div>
   </div>

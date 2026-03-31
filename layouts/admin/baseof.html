@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="{{ with site.LanguageCode }}{{ . }}{{ else }}en-US{{ end }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ .Title }}</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' * 'unsafe-inline' 'unsafe-eval' data: blob:;">
+
+  {{ "<!-- mobile responsive meta -->" | safeHTML }}
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description"
+    content="{{ with .Description }}{{ . }}{{ else }}{{ with site.Params.description }}{{ . }}{{ end }}{{ end }}">
+  {{ with site.Params.author }}
+  <meta name="author" content="{{ . }}">{{ end }}
+  {{ hugo.Generator }}
+
+  {{ "<!-- admin plugins -->" | safeHTML }}
+  {{ range site.Params.plugins.css }}
+  <link rel="stylesheet" href="{{ .link | absURL }}">
+  {{ end }}
+
+  {{ "<!-- admin styles -->" | safeHTML }}
+  {{ $styles := resources.Get "scss/style.scss" | toCSS | minify }}
+  <link rel="stylesheet" href="{{ $styles.Permalink }}" media="screen">
+
+  {{ "<!-- Site Configuration -->" | safeHTML }}
+  <script src="{{ (resources.Get "js/pocketbase.umd.js").Permalink }}"></script>
+  <script>
+    window.SiteConfig = {
+      pocketbaseUrl: "{{ site.Params.pocketbase.url }}"
+    };
+
+    window.PBClient = {
+      _instance: null,
+      getInstance() {
+        if (!this._instance) {
+          this._instance = new PocketBase(window.SiteConfig?.pocketbaseUrl || 'http://127.0.0.1:8090');
+        }
+        return this._instance;
+      },
+      isAdmin() {
+        const pb = this.getInstance();
+        return pb.authStore.isValid && pb.authStore.isAdmin;
+      },
+      getUser() {
+        const pb = this.getInstance();
+        return pb.authStore.isValid ? pb.authStore.model : null;
+      },
+      isAuthenticated() {
+        return this.getInstance().authStore.isValid;
+      }
+    };
+  </script>
+
+  {{ "<!-- admin runtime -->" | safeHTML }}
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
+
+  {{ $adminAuthScript := resources.Get "js/admin-auth.js" }}
+  <script src="{{ $adminAuthScript.Permalink }}"></script>
+</head>
+
+<body id="body" class="admin-shell">
+  <main class="admin-shell__main">
+    {{ block "main" . }}{{ end }}
+  </main>
+</body>
+
+</html>

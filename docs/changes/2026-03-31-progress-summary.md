@@ -153,7 +153,7 @@
 
 ### 정적 검증
 
-- `npm run lint` 통과
+- `pnpm lint` 통과
 - `node --check assets/js/auth.js` 통과
 - `node --check assets/js/main.js` 통과
 - `node --check assets/js/profile.js` 통과
@@ -165,8 +165,8 @@
 
 ### 빌드 검증
 
-- `npm run build` 성공
-- `npm run preflight:release` 성공
+- `pnpm build` 성공
+- `pnpm preflight:release` 성공
 
 ### 산출물 확인
 
@@ -208,3 +208,117 @@
 
 - `server/` 는 clean build 검증 때문에 재생성되며, 현재 작업트리에 생성물 변경이 함께 보일 수 있다.
 - `docs/changes/2026-03-31-review-findings-summary.md` 에 리뷰 finding 원본 요약을 별도로 정리했다.
+
+
+## 추가 진행 (2026-03-31 오후)
+
+### 8. Admin Base 분리
+
+- 파일:
+  - [layouts/admin/baseof.html](/C:/hugo/ex/shop/layouts/admin/baseof.html)
+  - [layouts/admin/orders.html](/C:/hugo/ex/shop/layouts/admin/orders.html)
+  - [layouts/admin/posts.html](/C:/hugo/ex/shop/layouts/admin/posts.html)
+  - [layouts/admin/single.html](/C:/hugo/ex/shop/layouts/admin/single.html)
+- 반영 사항:
+  - admin 전용 base shell 추가
+  - admin 페이지가 public `header/footer/cart-drawer` 에 의존하지 않도록 분리
+  - admin 쪽은 자체적으로 `pocketbase.umd.js`, `admin-auth.js`, jQuery, Bootstrap bundle 을 받도록 구성
+- 효과:
+  - public shell 과 admin shell 책임이 분리됨
+  - public 쪽 Bootstrap JS 제거를 진행해도 admin modal 동작은 유지 가능해짐
+
+### 9. Product Single / Cart Drawer 정리
+
+- 파일:
+  - [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html)
+  - [layouts/partials/cart-drawer.html](/C:/hugo/ex/shop/layouts/partials/cart-drawer.html)
+  - [assets/scss/cart-styles.scss](/C:/hugo/ex/shop/assets/scss/cart-styles.scss)
+  - [assets/js/cart.js](/C:/hugo/ex/shop/assets/js/cart.js)
+- 반영 사항:
+  - product single 레이아웃을 Tailwind-first responsive card/grid 쪽으로 추가 정리
+  - cart drawer 쉘과 시각 스타일을 모바일 친화적으로 조정
+  - cart open 시 body scroll lock 추가
+- 효과:
+  - 상품 상세와 장바구니의 모바일 사용성이 더 개선됨
+
+### 10. pnpm 기준선 강화
+
+- 파일:
+  - [package.json](/C:/hugo/ex/shop/package.json)
+  - [pnpm-lock.yaml](/C:/hugo/ex/shop/pnpm-lock.yaml)
+  - [.gitignore](/C:/hugo/ex/shop/.gitignore)
+  - [themes/vex-hugo-main/package.json](/C:/hugo/ex/shop/themes/vex-hugo-main/package.json)
+  - [themes/vex-hugo-main/vercel-build.sh](/C:/hugo/ex/shop/themes/vex-hugo-main/vercel-build.sh)
+  - [themes/vex-hugo-main/README.md](/C:/hugo/ex/shop/themes/vex-hugo-main/README.md)
+- 반영 사항:
+  - root 및 theme package metadata 에 `pnpm` 기준 추가
+  - `pnpm-lock.yaml` 생성
+  - `package-lock.json` 제거
+  - build/deploy/theme docs 를 `pnpm` 기준으로 조정
+- 효과:
+  - 저장소 기준 package manager 가 명확해짐
+  - 로컬과 배포 스크립트가 같은 기준을 따르기 쉬워짐
+
+### 추가 검증
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
+
+### 최신 남은 작업
+
+1. public/global Bootstrap CSS 로드 제거 여부 판단 및 분리
+2. [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html) 의 남은 legacy style/class 정리
+3. [layouts/partials/cart-drawer.html](/C:/hugo/ex/shop/layouts/partials/cart-drawer.html) 와 관련 SCSS 의 추가 축소
+4. [layouts/admin/login.html](/C:/hugo/ex/shop/layouts/admin/login.html), [layouts/partials/admin/category-modal.html](/C:/hugo/ex/shop/layouts/partials/admin/category-modal.html) 의 Bootstrap-free 전환
+
+## 추가 진행 (2026-03-31 저녁)
+
+### 11. Public Bootstrap CSS 제거 및 Admin 분리 강화
+
+- 파일:
+  - [layouts/partials/head.html](/C:/hugo/ex/shop/layouts/partials/head.html)
+  - [layouts/admin/baseof.html](/C:/hugo/ex/shop/layouts/admin/baseof.html)
+  - [layouts/admin/orders.html](/C:/hugo/ex/shop/layouts/admin/orders.html)
+  - [layouts/admin/posts.html](/C:/hugo/ex/shop/layouts/admin/posts.html)
+  - [layouts/admin/single.html](/C:/hugo/ex/shop/layouts/admin/single.html)
+  - [config/_default/hugo.toml](/C:/hugo/ex/shop/config/_default/hugo.toml)
+- 반영 사항:
+  - public `head` 에서 Bootstrap CSS를 제외
+  - public `footer` 에서 Bootstrap JS를 제외
+  - admin 전용 base를 통해 admin은 자체 Bootstrap/runtime 로드를 갖도록 분리
+  - config 에서 공용 Bootstrap JS 플러그인 정의 제거
+- 효과:
+  - public 은 Tailwind + theme CSS 중심으로 동작
+  - admin 은 독립적으로 Bootstrap modal/table 흐름 유지
+  - public/admin 자산 경계가 이전보다 훨씬 명확해짐
+
+### 12. Public Single / Policy / Detail 추가 정리
+
+- 파일:
+  - [layouts/blog/single.html](/C:/hugo/ex/shop/layouts/blog/single.html)
+  - [layouts/_default/single.html](/C:/hugo/ex/shop/layouts/_default/single.html)
+  - [layouts/privacy-policy/list.html](/C:/hugo/ex/shop/layouts/privacy-policy/list.html)
+  - [layouts/terms-conditions/list.html](/C:/hugo/ex/shop/layouts/terms-conditions/list.html)
+  - [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html)
+  - [assets/js/reviews.js](/C:/hugo/ex/shop/assets/js/reviews.js)
+  - [layouts/partials/image.html](/C:/hugo/ex/shop/layouts/partials/image.html)
+- 반영 사항:
+  - blog/default single 및 policy pages 를 Tailwind 기반으로 전환
+  - product single/detail/reviews 를 Tailwind-first 레이아웃으로 추가 정리
+  - `img-fluid` 를 Tailwind-friendly 이미지 출력으로 교체
+- 효과:
+  - 퍼블릭 상세 페이지군의 Bootstrap 의존이 더 줄어듦
+  - 모바일 읽기/상세/리뷰 경험이 더 일관됨
+
+### 최신 검증
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
+
+### 현재 가장 큰 남은 작업
+
+1. [layouts/partials/cart-drawer.html](/C:/hugo/ex/shop/layouts/partials/cart-drawer.html) 와 [assets/scss/cart-styles.scss](/C:/hugo/ex/shop/assets/scss/cart-styles.scss) 의 추가 슬림화
+2. [layouts/partials/products.html](/C:/hugo/ex/shop/layouts/partials/products.html) 의 slider/legacy theme 패턴 정리
+3. [layouts/admin/login.html](/C:/hugo/ex/shop/layouts/admin/login.html), [layouts/partials/admin/category-modal.html](/C:/hugo/ex/shop/layouts/partials/admin/category-modal.html) 를 포함한 admin Bootstrap-free 전환 마감

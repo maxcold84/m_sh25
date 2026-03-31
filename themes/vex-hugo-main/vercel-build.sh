@@ -13,6 +13,8 @@ HUGO_VERSION='0.148.2';
 # rm -rf node-v${NODE_VERSION}.tar.gz
 
 echo "USING NODE VERSION: $(node -v)"
+corepack enable
+echo "USING PNPM VERSION: $(pnpm -v)"
 
 # install Go
 echo "Installing Go $GO_VERSION..."
@@ -32,12 +34,12 @@ hugo version
 
 # project setup
 echo "Project setting up..."
-npm run project-setup
+pnpm run project-setup
 
 # install dependencies
 echo "Installing project dependencies..."
-npm install
+pnpm install --frozen-lockfile
 
 # run the build command
 echo "Running the build command..."
-npm run build
+pnpm run build

@@ -1,34 +1,241 @@
-<!-- Category Management Modal -->
-<div class="modal fade" id="categoryModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">카테고리 관리</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="닫기">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!-- Add Category Form -->
-                <form id="category-form" class="mb-4">
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="new-category-name" placeholder="새 카테고리 이름" required>
-                        <div class="input-group-append">
-                            <button class="btn btn-primary" type="submit">추가</button>
-                        </div>
-                    </div>
-                </form>
+<style>
+    .admin-category-modal[hidden] {
+        display: none !important;
+    }
 
-                <!-- Category List -->
-                <h6 class="font-weight-bold mb-3">등록된 카테고리</h6>
-                <div id="category-list" class="list-group" style="max-height: 300px; overflow-y: auto;">
-                    <!-- Categories will be injected here -->
-                    <div class="text-center py-3 text-muted">로딩 중...</div>
-                </div>
+    .admin-category-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+    }
+
+    .admin-category-modal__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.58);
+        backdrop-filter: blur(2px);
+    }
+
+    .admin-category-modal__panel {
+        position: relative;
+        z-index: 1;
+        width: min(560px, 100%);
+        max-height: min(760px, calc(100vh - 2rem));
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        border-radius: 20px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+    }
+
+    .admin-category-modal__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.25rem 1.25rem 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .admin-category-modal__eyebrow {
+        margin: 0 0 0.35rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+    }
+
+    .admin-category-modal__title {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .admin-category-modal__subtitle {
+        margin: 0.35rem 0 0;
+        font-size: 0.9rem;
+        color: #64748b;
+    }
+
+    .admin-category-modal__close {
+        border: 0;
+        background: #e2e8f0;
+        color: #0f172a;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 999px;
+        font-size: 1.25rem;
+        line-height: 1;
+        cursor: pointer;
+        flex: 0 0 auto;
+    }
+
+    .admin-category-modal__close:hover {
+        background: #cbd5e1;
+    }
+
+    .admin-category-modal__body {
+        padding: 1.25rem;
+        overflow: auto;
+    }
+
+    .admin-category-form {
+        margin-bottom: 1.25rem;
+    }
+
+    .admin-category-form__row {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .admin-category-form__input {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 0.75rem 0.9rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        background: #fff;
+        color: #0f172a;
+    }
+
+    .admin-category-form__input:focus {
+        outline: none;
+        border-color: #0f172a;
+        box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+    }
+
+    .admin-category-form__button {
+        flex: 0 0 auto;
+        border: 0;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        background: #0f172a;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .admin-category-form__button:hover {
+        background: #1e293b;
+    }
+
+    .admin-category-list__heading {
+        margin: 0 0 0.75rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    #category-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .admin-category-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.85rem 0.95rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        background: #fff;
+        color: #0f172a;
+    }
+
+    .admin-category-item__name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.94rem;
+        font-weight: 500;
+    }
+
+    .admin-category-item__delete {
+        border: 0;
+        border-radius: 10px;
+        padding: 0.45rem 0.7rem;
+        background: #fee2e2;
+        color: #b91c1c;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        flex: 0 0 auto;
+    }
+
+    .admin-category-item__delete:hover {
+        background: #fecaca;
+    }
+
+    .admin-category-state {
+        padding: 0.85rem 1rem;
+        border-radius: 14px;
+        background: #f8fafc;
+        color: #64748b;
+        text-align: center;
+    }
+
+    .admin-category-state--error {
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+
+    @media (max-width: 640px) {
+        .admin-category-modal {
+            padding: 0.5rem;
+        }
+
+        .admin-category-modal__header,
+        .admin-category-modal__body {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .admin-category-form__row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+
+<!-- Category Management Modal -->
+<div id="categoryModal" class="admin-category-modal" hidden aria-hidden="true">
+    <div class="admin-category-modal__backdrop" data-category-modal-close></div>
+    <section class="admin-category-modal__panel" role="dialog" aria-modal="true" aria-labelledby="category-modal-title">
+        <header class="admin-category-modal__header">
+            <div>
+                <p class="admin-category-modal__eyebrow">Admin tools</p>
+                <h5 id="category-modal-title" class="admin-category-modal__title">카테고리 관리</h5>
+                <p class="admin-category-modal__subtitle">새 카테고리를 추가하고 기존 항목을 정리할 수 있습니다.</p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+            <button type="button" class="admin-category-modal__close" data-category-modal-close aria-label="닫기">
+                &times;
+            </button>
+        </header>
+        <div class="admin-category-modal__body">
+            <form id="category-form" class="admin-category-form">
+                <div class="admin-category-form__row">
+                    <input type="text" id="new-category-name" class="admin-category-form__input" placeholder="새 카테고리 이름" required>
+                    <button class="admin-category-form__button" type="submit">추가</button>
+                </div>
+            </form>
+
+            <h6 class="admin-category-list__heading">등록된 카테고리</h6>
+            <div id="category-list">
+                <div class="admin-category-state">로딩 중...</div>
             </div>
         </div>
-    </div>
+    </section>
 </div>

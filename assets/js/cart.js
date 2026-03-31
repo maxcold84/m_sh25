@@ -520,7 +520,7 @@ export const Cart = {
         if (countElement) {
             const count = items.reduce((sum, item) => sum + item.quantity, 0);
             countElement.textContent = count;
-            countElement.style.display = count > 0 ? 'flex' : 'none';
+            countElement.style.display = count > 0 ? 'inline-flex' : 'none';
         }
 
         const subtotalEl = document.getElementById('cart-subtotal');
@@ -623,7 +623,7 @@ export const Cart = {
         if (countElement) {
             const count = items.reduce((sum, item) => sum + item.quantity, 0);
             countElement.textContent = count;
-            countElement.style.display = count > 0 ? 'flex' : 'none';
+            countElement.style.display = count > 0 ? 'inline-flex' : 'none';
         }
 
         const subtotalEl = document.getElementById('cart-subtotal');
@@ -681,6 +681,10 @@ export const Cart = {
             return;
         }
 
+        const isOpen = typeof forceOpen === 'boolean'
+            ? forceOpen
+            : !drawer.classList.contains('open');
+
         if (typeof forceOpen === 'boolean') {
             drawer.classList.toggle('open', forceOpen);
             overlay.classList.toggle('open', forceOpen);
@@ -688,6 +692,8 @@ export const Cart = {
             drawer.classList.toggle('open');
             overlay.classList.toggle('open');
         }
+
+        document.body.classList.toggle('cart-drawer-open', isOpen);
 
         if (drawer.classList.contains('open')) {
             this.renderCart();

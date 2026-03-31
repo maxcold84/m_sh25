@@ -1,10 +1,12 @@
-<section class="bg-white rounded-lg shadow-sm border p-4">
-    <h2 class="font-bold mb-4 text-gray-800">주문 상품</h2>
-    <div id="cart-items" class="space-y-4 divide-y">
-        <!-- Cart items will be injected here -->
-        <div class="text-center py-8 text-gray-500">
-            <div class="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-gray-400 rounded-full"
-                role="status" aria-label="loading"></div>
+<section class="checkout-section checkout-section--summary">
+    <div class="checkout-section__header">
+        <p class="checkout-section__eyebrow">STEP 1</p>
+        <h2 class="checkout-section__title">주문 상품</h2>
+    </div>
+    <div id="cart-items" class="checkout-summary-list" aria-live="polite">
+        <div class="checkout-empty-state">
+            <div class="checkout-loading" role="status" aria-label="loading"></div>
+            <p>장바구니를 불러오는 중입니다.</p>
         </div>
     </div>
 </section>

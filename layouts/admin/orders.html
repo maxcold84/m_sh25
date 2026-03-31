@@ -44,13 +44,6 @@
     </div>
 </div>
 
-{{ $adminAuthScript := resources.Get "js/admin-auth.js" }}
-<script src="{{ $adminAuthScript.Permalink }}"></script>
-
-<!-- jQuery & Bootstrap JS (Required for Modals) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
-
 {{ $adminOrdersScript := resources.Get "js/admin-orders.js" }}
 <script src="{{ $adminOrdersScript.Permalink }}"></script>
 {{ end }}

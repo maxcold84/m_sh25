@@ -37,7 +37,7 @@
 - 📊 Google Analytics support
 - 🎨 CSS and JS bundle with Hugo Pipe
 - ⚙️ Netlify settings predefine
-- 🅱️ Bootstrap Based
+- 🅿️ pnpm-friendly workflow
 - ✉️ Contact form support
 - 📧 Mailchimp integration
 - 🚀 Google Page Speed optimized
@@ -65,13 +65,13 @@
 git clone git@github.com:themefisher/vex-hugo.git
 
 # setup project
-$ npm run project-setup
+$ pnpm run project-setup
 
 # install dependency
-npm install
+pnpm install
 
 # Start local dev server
-$ npm run dev
+$ pnpm run dev
 ```
 
 Or Check out [Full Documentation](https://docs.gethugothemes.com/vex/?ref=github).

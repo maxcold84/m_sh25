@@ -371,9 +371,6 @@
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
-{{ $adminAuthScript := resources.Get "js/admin-auth.js" }}
-<script src="{{ $adminAuthScript.Permalink }}"></script>
-
 {{ $adminScript := resources.Get "js/admin-products.js" }}
 <script src="{{ $adminScript.Permalink }}"></script>
 

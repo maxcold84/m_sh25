@@ -25,7 +25,9 @@
 
 <!-- JS Plugins -->
 {{ range site.Params.plugins.js}}
+{{ if not (in .link "bootstrap.min.js") }}
 <script src="{{ .link | absURL }}"></script>
+{{ end }}
 {{ end }}
 
 <!-- Main Script -->
