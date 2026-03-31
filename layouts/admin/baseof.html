@@ -15,7 +15,9 @@
 
   {{ "<!-- admin plugins -->" | safeHTML }}
   {{ range site.Params.plugins.css }}
+  {{ if not (in .link "bootstrap.min.css") }}
   <link rel="stylesheet" href="{{ .link | absURL }}">
+  {{ end }}
   {{ end }}
 
   {{ "<!-- admin styles -->" | safeHTML }}
@@ -50,10 +52,6 @@
       }
     };
   </script>
-
-  {{ "<!-- admin runtime -->" | safeHTML }}
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
 
   {{ $adminAuthScript := resources.Get "js/admin-auth.js" }}
   <script src="{{ $adminAuthScript.Permalink }}"></script>

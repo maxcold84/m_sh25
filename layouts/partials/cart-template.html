@@ -19,7 +19,7 @@
         [[/image]]
         [[^image]]
         <a href="[[productLink]]" class="item-image-link">
-          <div class="item-image item-image-clickable" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 24px;">
+          <div class="item-image item-image-clickable item-image-fallback" aria-hidden="true">
             🛍️
           </div>
         </a>
@@ -30,7 +30,7 @@
         <img src="[[image]]" alt="[[name]]" class="item-image" loading="lazy">
         [[/image]]
         [[^image]]
-        <div class="item-image" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 24px;">
+        <div class="item-image item-image-fallback" aria-hidden="true">
           🛍️
         </div>
         [[/image]]
@@ -74,8 +74,8 @@
     [[/items]]
 
     [[#hasItems]]
-    <div class="cart-extras" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-        <p style="text-align: center; color: #666; font-size: 0.9em; margin-bottom: 15px;">
+    <div class="cart-extras">
+        <p class="cart-extras__note">
             주문하기 버튼을 누르면 주문/결제 페이지로 이동합니다.
         </p>
     </div>

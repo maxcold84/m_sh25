@@ -63,50 +63,5 @@
         </div>
     </div>
 </section>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof $ !== 'undefined' && $.fn.slick) {
-            $('#related-products-slider').slick({
-                infinite: true,
-                speed: 500,
-                slidesToShow: 4,
-                slidesToScroll: 1,
-                arrows: false,
-                dots: false,
-                autoplay: true,
-                autoplaySpeed: 3000,
-                pauseOnHover: true,
-                swipe: true,
-                touchMove: true,
-                swipeToSlide: true,
-                responsive: [
-                    {
-                        breakpoint: 1200,
-                        settings: {
-                            slidesToShow: 3
-                        }
-                    },
-                    {
-                        breakpoint: 992,
-                        settings: {
-                            slidesToShow: 2
-                        }
-                    },
-                    {
-                        breakpoint: 576,
-                        settings: {
-                            slidesToShow: 1,
-                            arrows: false,
-                            dots: false,
-                            swipe: true,
-                            touchMove: true
-                        }
-                    }
-                ]
-            });
-        }
-    });
-</script>
 {{ end }}
 {{ end }}

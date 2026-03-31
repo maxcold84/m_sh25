@@ -196,6 +196,10 @@ const AdminProducts = {
     visualItems: [], // Array of { type: 'existing'|'new', value: filename|File, id: uniqueId }
     sortable: null,
     _slugGenerator: null,
+    modal: null,
+    _currentTrigger: null,
+    _previousBodyOverflow: '',
+    _escapeHandlerBound: false,
 
     init: async function () {
         // Use shared PocketBase instance
@@ -209,6 +213,7 @@ const AdminProducts = {
         // Load categories FIRST so dropdowns can be populated
         await AdminCategories.init(this.pb);
         this.bindEvents();
+        this.bindModalEvents();
 
         // Initialize HTMX Auth
         document.body.addEventListener('htmx:configRequest', (event) => {
@@ -224,7 +229,7 @@ const AdminProducts = {
         const addProductBtn = document.getElementById('add-product-btn');
         if (addProductBtn && !addProductBtn.dataset.bound) {
             addProductBtn.dataset.bound = 'true';
-            addProductBtn.addEventListener('click', () => this.openAddModal());
+            addProductBtn.addEventListener('click', (event) => this.openAddModal(event.currentTarget));
         }
 
         const manageCategoriesBtn = document.getElementById('manage-categories-btn');
@@ -263,7 +268,7 @@ const AdminProducts = {
 
                 const { action, productId } = button.dataset;
                 if (action === 'edit-product') {
-                    this.openEditModal(productId);
+                    this.openEditModal(productId, button);
                 } else if (action === 'delete-product') {
                     this.deleteProduct(productId);
                 }
@@ -277,11 +282,70 @@ const AdminProducts = {
         }
     },
 
+    bindModalEvents: function () {
+        const modal = this.modal || document.getElementById('productModal');
+        if (!modal || modal.dataset.bound) return;
+
+        this.modal = modal;
+        modal.dataset.bound = 'true';
+
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal || event.target.closest('[data-product-modal-close]')) {
+                this.closeModal();
+            }
+        });
+
+        if (!this._escapeHandlerBound) {
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && this.isModalOpen()) {
+                    this.closeModal();
+                }
+            });
+            this._escapeHandlerBound = true;
+        }
+    },
+
+    isModalOpen: function () {
+        return !!(this.modal && !this.modal.hidden);
+    },
+
+    openModal: function () {
+        const modal = this.modal || document.getElementById('productModal');
+        if (!modal) return;
+
+        this.modal = modal;
+        this._previousBodyOverflow = document.body.style.overflow;
+        modal.hidden = false;
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        window.setTimeout(() => {
+            const focusTarget = document.getElementById('product-title') || modal.querySelector('input, textarea, select');
+            if (focusTarget && typeof focusTarget.focus === 'function') {
+                focusTarget.focus();
+            }
+        }, 0);
+    },
+
+    closeModal: function () {
+        const modal = this.modal || document.getElementById('productModal');
+        if (!modal) return;
+
+        modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = this._previousBodyOverflow || '';
+
+        if (this._currentTrigger && typeof this._currentTrigger.focus === 'function') {
+            this._currentTrigger.focus();
+        }
+        this._currentTrigger = null;
+    },
+
     loadProducts: async function () {
         const tableBody = document.getElementById('product-table-body');
         const spinner = document.getElementById('loading-spinner');
 
-        spinner.style.display = 'block';
+        spinner.style.display = 'flex';
         tableBody.innerHTML = '';
 
         try {
@@ -299,7 +363,7 @@ const AdminProducts = {
             }
 
             if (displayRecords.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="9" class="text-center">등록된 상품이 없습니다</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="9" class="admin-empty-state">등록된 상품이 없습니다</td></tr>';
                 return;
             }
 
@@ -320,10 +384,10 @@ const AdminProducts = {
                 const tr = document.createElement('tr');
                 const imageUrl = product.images && product.images.length > 0
                     ? this.pb.files.getUrl(product, product.images[0], { thumb: '100x100' })
-                    : 'https://via.placeholder.com/50';
+                    : '';
 
                 // Generate Category Dropdown HTML
-                let categorySelectHtml = `<select class="form-control form-control-sm admin-category-select" data-action="product-category-select" data-product-id="${product.id}">
+                let categorySelectHtml = `<select class="admin-select admin-category-select" data-action="product-category-select" data-product-id="${product.id}">
                     <option value="">(미지정)</option>`;
 
                 AdminCategories.categories.forEach(cat => {
@@ -336,36 +400,43 @@ const AdminProducts = {
                 const stats = inquiryMap[product.id] || { total: 0, waiting: 0 };
                 let inquiryBadge = '-';
                 if (stats.total > 0) {
-                    // Use simple icon class if available, assuming tf-ion-chatbubbles or similar from context
-                    const iconClass = stats.waiting > 0 ? 'text-danger' : 'text-secondary';
-                    inquiryBadge = `<span class="${iconClass}" style="font-size: 1.2em;" title="문의 ${stats.total}건 (답변대기 ${stats.waiting})">
-                        <i class="tf-ion-chatbubbles"></i> ${stats.waiting > 0 ? `<small class="font-weight-bold">${stats.waiting}</small>` : ''}
-                     </span>`;
+                    const badgeClass = stats.waiting > 0 ? 'admin-pill admin-pill--warning' : 'admin-pill admin-pill--muted';
+                    inquiryBadge = `<span class="${badgeClass}" title="문의 ${stats.total}건 (답변대기 ${stats.waiting})">
+                        <i class="tf-ion-chatbubbles"></i> ${stats.waiting > 0 ? stats.waiting : stats.total}
+                    </span>`;
                 }
 
+                const imageCellHtml = imageUrl
+                    ? `<div class="admin-table-thumb"><img src="${imageUrl}" alt="${product.title}"></div>`
+                    : '<div class="admin-table-thumb admin-table-thumb--empty">-</div>';
+
                 tr.innerHTML = `
-                    <td><img src="${imageUrl}" alt="${product.title}" style="width: 50px; height: 50px; object-fit: cover;"></td>
+                    <td>
+                        ${imageCellHtml}
+                    </td>
                     <td>${categorySelectHtml}</td>
                     <td class="admin-product-title">${product.title}</td>
-                    <td>${product.discount_price && product.discount_price > 0 ? `<del class="text-muted small">${product.price.toLocaleString()}</del> <br><span class="text-danger font-weight-bold">${product.discount_price.toLocaleString()}</span>` : product.price.toLocaleString()}</td>
+                    <td>${product.discount_price && product.discount_price > 0 ? `<del style="color: #64748b; font-size: 0.85rem;">${product.price.toLocaleString()}</del> <br><span style="color: #b91c1c; font-weight: 700;">${product.discount_price.toLocaleString()}</span>` : product.price.toLocaleString()}</td>
                     <td>${product.stock || 0}</td>
-                    <td class="text-center">${inquiryBadge}</td>
+                    <td style="text-align: center;">${inquiryBadge}</td>
                     <td>
-                        <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input" id="status-${product.id}" 
+                        <div class="admin-switch">
+                            <input type="checkbox" class="admin-switch__input" id="status-${product.id}" 
                                 ${product.enabled ? 'checked' : ''}
                                 hx-patch="${window.SiteConfig?.pocketbaseUrl || ''}/api/collections/products/records/${product.id}"
                                 hx-trigger="change"
                                 hx-vals='js:{"enabled": event.target.checked}'
                                 hx-swap="none">
-                            <label class="custom-control-label" for="status-${product.id}"></label>
+                            <label class="admin-switch__track" for="status-${product.id}">
+                                <span class="admin-switch__thumb"></span>
+                            </label>
                         </div>
                     </td>
                     <td>
                         <div class="admin-table-actions">
-                            <button class="btn btn-sm btn-info" type="button" data-action="edit-product" data-product-id="${product.id}">수정</button>
-                            <button class="btn btn-sm btn-danger" type="button" data-action="delete-product" data-product-id="${product.id}">삭제</button>
-                            <a href="/${product.language || 'ko'}/products/${product.slug}/" target="_blank" rel="noreferrer" class="btn btn-sm btn-success">상세페이지</a>
+                            <button class="admin-btn admin-btn--outline admin-btn--sm" type="button" data-action="edit-product" data-product-id="${product.id}">수정</button>
+                            <button class="admin-btn admin-btn--danger admin-btn--sm" type="button" data-action="delete-product" data-product-id="${product.id}">삭제</button>
+                            <a href="/${product.language || 'ko'}/products/${product.slug}/" target="_blank" rel="noreferrer" class="admin-btn admin-btn--light admin-btn--sm">상세페이지</a>
                         </div>
                     </td>
                 `;
@@ -379,7 +450,7 @@ const AdminProducts = {
         }
     },
 
-    openAddModal: function () {
+    openAddModal: function (trigger) {
         this.currentProduct = null;
         document.getElementById('product-form').reset();
         document.getElementById('product-id').value = '';
@@ -387,18 +458,20 @@ const AdminProducts = {
         document.getElementById('productModalLabel').innerText = '상품 추가';
         document.getElementById('product-stock').value = '0';
         document.getElementById('product-admin-memo').value = '';
+        this._currentTrigger = trigger || document.getElementById('add-product-btn') || document.activeElement;
 
         this.visualItems = [];
         this.renderImages();
         this.bindSlugGenerator();
 
-        $('#productModal').modal('show');
+        this.openModal();
     },
 
-    openEditModal: async function (id) {
+    openEditModal: async function (id, trigger) {
         try {
             const product = await this.pb.collection('products').getOne(id);
             this.currentProduct = product;
+            this._currentTrigger = trigger || document.activeElement;
 
             document.getElementById('product-id').value = product.id;
             document.getElementById('product-title').value = product.title;
@@ -435,7 +508,7 @@ const AdminProducts = {
             this.renderImages();
 
             document.getElementById('productModalLabel').innerText = '상품 수정';
-            $('#productModal').modal('show');
+            this.openModal();
         } catch (error) {
             console.error('Error fetching product details:', error);
             alert('상품 정보를 불러오는 중 오류가 발생했습니다');
@@ -604,7 +677,7 @@ const AdminProducts = {
                 });
             }
 
-            $('#productModal').modal('hide');
+            this.closeModal();
             this.loadProducts();
         } catch (error) {
             console.error('Error saving product:', error);
@@ -667,7 +740,7 @@ const AdminProducts = {
         if (!container) return;
 
         if (this.visualItems.length === 0) {
-            container.innerHTML = '<div class="admin-product-image-empty text-center text-muted py-4">이미지가 없습니다</div>';
+            container.innerHTML = '<div class="admin-product-image-empty admin-empty-state">이미지가 없습니다</div>';
             return;
         }
 
@@ -704,7 +777,7 @@ const AdminProducts = {
             } else {
                 div.innerHTML = `
                     <div class="admin-sortable-thumb admin-sortable-thumb--loading">
-                         <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+                         <div class="admin-spinner" aria-hidden="true" style="width: 1rem; height: 1rem;"></div>
                     </div>
                 `;
                 const reader = new FileReader();
@@ -719,7 +792,7 @@ const AdminProducts = {
             // Delete button
             const delBtn = document.createElement('button');
             delBtn.type = 'button';
-            delBtn.className = 'btn btn-xs btn-danger admin-sortable-remove';
+            delBtn.className = 'admin-btn admin-btn--danger admin-btn--sm admin-sortable-remove';
             delBtn.innerHTML = '&times;';
             delBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); // prevent drag start
@@ -731,7 +804,7 @@ const AdminProducts = {
             // Badge for first item
             if (index === 0) {
                 const badge = document.createElement('span');
-                badge.className = 'badge badge-primary admin-sortable-badge';
+                badge.className = 'admin-pill admin-pill--success admin-sortable-badge';
                 badge.textContent = '대표';
                 div.appendChild(badge);
             }

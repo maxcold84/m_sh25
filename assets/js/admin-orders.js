@@ -20,16 +20,72 @@ window.AdminOrders = (function () {
     const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/50?text=No+Img';
     const IMAGE_ERROR_FALLBACK = 'https://via.placeholder.com/50?text=Error';
     const INTERACTIVE_SELECTOR = 'button, a, input, select, textarea, label';
+    const STATUS_BADGE_BASE = 'inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset';
+    const MODAL_IDS = ['order-detail-modal', 'delete-confirm-modal'];
+
+    function getStatusMeta(status) {
+        switch (status) {
+            case 'paid':
+                return { label: '결제완료', classes: `${STATUS_BADGE_BASE} bg-emerald-100 text-emerald-700 ring-emerald-200` };
+            case 'shipping':
+                return { label: '배송중', classes: `${STATUS_BADGE_BASE} bg-sky-100 text-sky-700 ring-sky-200` };
+            case 'delivered':
+                return { label: '배송완료', classes: `${STATUS_BADGE_BASE} bg-indigo-100 text-indigo-700 ring-indigo-200` };
+            case 'pending':
+                return { label: '결제대기', classes: `${STATUS_BADGE_BASE} bg-amber-100 text-amber-700 ring-amber-200` };
+            case 'cancelled':
+                return { label: '취소됨', classes: `${STATUS_BADGE_BASE} bg-rose-100 text-rose-700 ring-rose-200` };
+            case 'archived':
+                return { label: '보관됨', classes: `${STATUS_BADGE_BASE} bg-slate-200 text-slate-700 ring-slate-300` };
+            default:
+                return { label: status || '-', classes: `${STATUS_BADGE_BASE} bg-slate-100 text-slate-700 ring-slate-200` };
+        }
+    }
+
+    function syncModalScrollLock() {
+        const anyModalOpen = MODAL_IDS.some(modalId => {
+            const modal = document.getElementById(modalId);
+            return modal && !modal.classList.contains('hidden');
+        });
+
+        document.body.style.overflow = anyModalOpen ? 'hidden' : '';
+    }
+
+    function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        syncModalScrollLock();
+    }
+
+    function hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        syncModalScrollLock();
+    }
+
+    function getTopMostOpenModalId() {
+        for (let i = MODAL_IDS.length - 1; i >= 0; i -= 1) {
+            const modal = document.getElementById(MODAL_IDS[i]);
+            if (modal && !modal.classList.contains('hidden')) {
+                return MODAL_IDS[i];
+            }
+        }
+
+        return null;
+    }
 
     function init() {
         console.log('AdminOrders initializing...');
-
-        // jQuery Check
-        if (typeof $ === 'undefined') {
-            console.error('jQuery is not loaded! Bootstrap modals will not work.');
-            alert('필수 라이브러리(jQuery)가 로드되지 않았습니다. 관리자에게 문의하세요.');
-            return;
-        }
 
         // Use shared PocketBase instance from AdminAuth or PBClient
         pb = window.AdminAuth?.pb || window.PBClient.getInstance();
@@ -119,6 +175,33 @@ window.AdminOrders = (function () {
         if (confirmDeleteBtn) {
             confirmDeleteBtn.addEventListener('click', () => deleteOrder());
         }
+
+        document.querySelectorAll('[data-modal-close]').forEach(button => {
+            button.addEventListener('click', () => hideModal(button.dataset.modalClose));
+        });
+
+        document.querySelectorAll('[data-modal-backdrop]').forEach(backdrop => {
+            backdrop.addEventListener('click', () => hideModal(backdrop.dataset.modalBackdrop));
+        });
+
+        document.addEventListener('keydown', handleGlobalKeydown);
+    }
+
+    function handleGlobalKeydown(event) {
+        if (event.key !== 'Escape') {
+            return;
+        }
+
+        const openModalId = getTopMostOpenModalId();
+        if (!openModalId) {
+            return;
+        }
+
+        if (openModalId === 'order-detail-modal') {
+            closeModal();
+        } else {
+            hideModal(openModalId);
+        }
     }
 
     function handleTableBodyClick(event) {
@@ -200,7 +283,7 @@ window.AdminOrders = (function () {
         const countSpan = document.getElementById('total-orders-count');
 
         if (tableBody) {
-            tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted">불러오는 중...</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="8" class="px-4 py-10 text-center text-slate-500">불러오는 중...</td></tr>';
         }
 
         try {
@@ -226,7 +309,7 @@ window.AdminOrders = (function () {
                 window.location.href = '/ko/admin/login';
             } else {
                 if (tableBody) {
-                    tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-danger">오류가 발생했습니다: ${err.message}</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="8" class="px-4 py-10 text-center text-rose-600">오류가 발생했습니다: ${err.message}</td></tr>`;
                 }
             }
         }
@@ -258,7 +341,7 @@ window.AdminOrders = (function () {
         const pageItems = filtered.slice(start, end);
 
         if (pageItems.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted">주문 내역이 없습니다.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="8" class="px-4 py-10 text-center text-slate-500">주문 내역이 없습니다.</td></tr>';
             renderPagination(0, 0);
             updateBulkActionsUI();
             updateSelectAllCheckbox();
@@ -277,36 +360,9 @@ window.AdminOrders = (function () {
                 hour: '2-digit', minute: '2-digit'
             });
 
-            // Status Badge
-            let statusClass = 'badge badge-secondary';
-            let statusText = order.status || '-';
-
-            switch (order.status) {
-                case 'paid':
-                    statusClass = 'badge badge-success';
-                    statusText = '결제완료';
-                    break;
-                case 'shipping':
-                    statusClass = 'badge badge-info';
-                    statusText = '배송중';
-                    break;
-                case 'delivered':
-                    statusClass = 'badge badge-primary';
-                    statusText = '배송완료';
-                    break;
-                case 'pending':
-                    statusClass = 'badge badge-warning';
-                    statusText = '결제대기';
-                    break;
-                case 'cancelled':
-                    statusClass = 'badge badge-danger';
-                    statusText = '취소됨';
-                    break;
-                case 'archived':
-                    statusClass = 'badge badge-dark';
-                    statusText = '보관됨';
-                    break;
-            }
+            const statusMeta = getStatusMeta(order.status);
+            const statusClass = statusMeta.classes;
+            const statusText = statusMeta.label;
 
             // Items Summary
             const itemCount = order.items ? order.items.length : 0;
@@ -322,32 +378,32 @@ window.AdminOrders = (function () {
             const carrierCode = order.tracking_carrier || '';
             const trackingNumber = order.tracking_number || '';
             const carrierName = carrierCode && CARRIERS[carrierCode] ? CARRIERS[carrierCode].name : '';
-            let trackingHtml = '<span class="text-muted small">미등록</span>';
+            let trackingHtml = '<span class="text-xs text-slate-500">미등록</span>';
             if (carrierName && trackingNumber) {
-                trackingHtml = `<div class="small">${carrierName}</div><div class="small text-primary">${trackingNumber}</div>`;
+                trackingHtml = `<div class="text-xs font-medium text-slate-700">${carrierName}</div><div class="text-xs text-slate-500 break-all">${trackingNumber}</div>`;
             }
 
             const isSelected = selectedOrders.has(order.id);
             html += `
-                <tr class="cursor-pointer ${isSelected ? 'table-active' : ''}" data-order-id="${order.id}" tabindex="0" role="button" aria-label="주문 상세 보기">
+                <tr class="cursor-pointer transition hover:bg-slate-50 ${isSelected ? 'bg-slate-50 ring-1 ring-inset ring-slate-200' : ''}" data-order-id="${order.id}" tabindex="0" role="button" aria-label="주문 상세 보기">
                     <td>
-                        <input type="checkbox" class="order-checkbox" data-order-id="${order.id}" 
+                        <input type="checkbox" class="order-checkbox h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400" data-order-id="${order.id}" 
                                ${isSelected ? 'checked' : ''} 
                                aria-label="주문 선택">
                     </td>
                     <td>
-                        <div class="font-weight-bold text-dark">${order.payment_id || order.id.substring(0, 8)}</div>
-                        <div class="small text-muted">${date}</div>
+                        <div class="font-semibold text-slate-900">${order.payment_id || order.id.substring(0, 8)}</div>
+                        <div class="text-xs text-slate-500">${date}</div>
                     </td>
                     <td>
-                        <div class="text-dark">${buyerName}</div>
-                        <div class="small text-muted">${buyerEmail}</div>
+                        <div class="text-slate-900">${buyerName}</div>
+                        <div class="text-xs text-slate-500">${buyerEmail}</div>
                     </td>
                     <td>
-                        <div class="text-dark">${itemsSummary}</div>
+                        <div class="text-slate-900">${itemsSummary}</div>
                     </td>
                     <td>
-                        <div class="font-weight-bold text-dark">${(order.total_amount || 0).toLocaleString()}원</div>
+                        <div class="font-semibold text-slate-900">${(order.total_amount || 0).toLocaleString()}원</div>
                     </td>
                     <td>
                         ${trackingHtml}
@@ -358,7 +414,7 @@ window.AdminOrders = (function () {
                         </span>
                     </td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-primary" data-action="open-order" data-order-id="${order.id}">상세보기</button>
+                        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200" data-action="open-order" data-order-id="${order.id}">상세보기</button>
                     </td>
                 </tr>
             `;
@@ -382,23 +438,28 @@ window.AdminOrders = (function () {
         }
 
         let html = '';
+        const buttonBase = 'inline-flex h-9 min-w-9 items-center justify-center rounded-full border px-3 text-sm font-semibold transition focus:outline-none focus:ring-4 focus:ring-slate-200';
+        const enabledBase = 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50';
+        const activeBase = 'border-slate-900 bg-slate-900 text-white';
+        const disabledBase = 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400';
+
         // Prev
-        html += `<li class="page-item ${current === 1 ? 'disabled' : ''}">
-            <button type="button" class="page-link" data-page="${current - 1}" aria-label="Previous" ${current === 1 ? 'disabled' : ''}>
+        html += `<li>
+            <button type="button" class="${buttonBase} ${current === 1 ? disabledBase : enabledBase}" data-page="${current - 1}" aria-label="Previous" ${current === 1 ? 'disabled' : ''}>
                 <span aria-hidden="true">&laquo;</span>
             </button>
         </li>`;
 
         // Pages
         for (let i = 1; i <= totalPages; i++) {
-            html += `<li class="page-item ${i === current ? 'active' : ''}">
-                <button type="button" class="page-link" data-page="${i}" ${i === current ? 'aria-current="page"' : ''}>${i}</button>
+            html += `<li>
+                <button type="button" class="${buttonBase} ${i === current ? activeBase : enabledBase}" data-page="${i}" ${i === current ? 'aria-current="page"' : ''}>${i}</button>
             </li>`;
         }
 
         // Next
-        html += `<li class="page-item ${current === totalPages ? 'disabled' : ''}">
-            <button type="button" class="page-link" data-page="${current + 1}" aria-label="Next" ${current === totalPages ? 'disabled' : ''}>
+        html += `<li>
+            <button type="button" class="${buttonBase} ${current === totalPages ? disabledBase : enabledBase}" data-page="${current + 1}" aria-label="Next" ${current === totalPages ? 'disabled' : ''}>
                 <span aria-hidden="true">&raquo;</span>
             </button>
         </li>`;
@@ -424,11 +485,9 @@ window.AdminOrders = (function () {
         const statusBadge = document.getElementById('modal-order-status');
 
         // Status Class
-        statusBadge.textContent = order.status || '-';
-        statusBadge.className = 'badge ml-2 ';
-        if (order.status === 'paid') statusBadge.classList.add('badge-success');
-        else if (order.status === 'pending') statusBadge.classList.add('badge-warning');
-        else statusBadge.classList.add('badge-danger');
+        const statusMeta = getStatusMeta(order.status);
+        statusBadge.textContent = statusMeta.label;
+        statusBadge.className = `ml-2 ${statusMeta.classes}`;
 
         // Parse buyer_details (could be string or object)
         let buyerDetails = order.buyer_details;
@@ -546,28 +605,27 @@ window.AdminOrders = (function () {
                 }
 
                 itemsHtml += `
-                    <div class="d-flex flex-column flex-sm-row align-items-sm-center p-2 border-bottom">
-                        <div class="mb-2 mb-sm-0 mr-sm-3" style="width: 50px; height: 50px;">
+                    <div class="flex flex-col gap-3 border-b border-slate-200 px-4 py-4 last:border-b-0 sm:flex-row sm:items-center">
+                        <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white">
                              <img src="${imgUrl}" 
-                                  class="img-fluid rounded" 
+                                  class="h-full w-full object-cover" 
                                   alt="${name}"
                                   loading="lazy"
-                                  style="width: 100%; height: 100%; object-fit: cover;"
                                   data-fallback-src="${IMAGE_ERROR_FALLBACK}">
                         </div>
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1 mb-sm-0 text-break">${name}</h6>
-                            <small class="text-muted text-break">ID: ${productId || '-'}</small>
-                            <div class="small text-muted">${price.toLocaleString()}원 × ${qty}개</div>
+                        <div class="min-w-0 flex-1">
+                            <h6 class="mb-1 break-words text-sm font-semibold text-slate-900">${name}</h6>
+                            <div class="break-words text-xs text-slate-500">ID: ${productId || '-'}</div>
+                            <div class="mt-1 text-sm text-slate-600">${price.toLocaleString()}원 × ${qty}개</div>
                         </div>
-                        <div class="font-weight-bold text-nowrap mt-2 mt-sm-0">
+                        <div class="whitespace-nowrap text-sm font-semibold text-slate-900">
                             ${(price * qty).toLocaleString()}원
                         </div>
                     </div>
                 `;
             }
         } else {
-            itemsHtml = '<div class="p-3 text-center text-muted">상품 정보가 없습니다.</div>';
+            itemsHtml = '<div class="px-4 py-8 text-center text-sm text-slate-500">상품 정보가 없습니다.</div>';
         }
 
         itemsContainer.innerHTML = itemsHtml;
@@ -584,21 +642,21 @@ window.AdminOrders = (function () {
 
         // Show/hide track button based on existing tracking info
         if (order.tracking_carrier && order.tracking_number) {
-            trackBtn.classList.remove('d-none');
+            trackBtn.classList.remove('hidden');
             statusMsg.textContent = '운송장이 등록되어 있습니다.';
-            statusMsg.className = 'small text-success mt-2';
+            statusMsg.className = 'mt-2 text-sm text-emerald-600';
         } else {
-            trackBtn.classList.add('d-none');
+            trackBtn.classList.add('hidden');
             statusMsg.textContent = '';
-            statusMsg.className = 'small mt-1';
+            statusMsg.className = 'mt-2 text-sm text-slate-500';
         }
 
         wireImageFallbacks(itemsContainer);
-        $('#order-detail-modal').modal('show');
+        showModal('order-detail-modal');
     }
 
     function closeModal() {
-        $('#order-detail-modal').modal('hide');
+        hideModal('order-detail-modal');
         currentOrderId = null;
     }
 
@@ -615,13 +673,13 @@ window.AdminOrders = (function () {
 
         if (!carrier || !number) {
             statusMsg.textContent = '택배사와 운송장번호를 모두 입력해주세요.';
-            statusMsg.className = 'small text-danger mt-2';
+            statusMsg.className = 'mt-2 text-sm text-rose-600';
             return;
         }
 
         try {
             statusMsg.textContent = '저장 중...';
-            statusMsg.className = 'small text-muted mt-2';
+            statusMsg.className = 'mt-2 text-sm text-slate-500';
 
             // Update order with tracking info and set status to shipping
             const order = allOrders.find(o => o.id === currentOrderId);
@@ -642,15 +700,14 @@ window.AdminOrders = (function () {
             }
 
             statusMsg.textContent = '운송장이 저장되었습니다!';
-            statusMsg.className = 'small text-success mt-2';
-            trackBtn.classList.remove('d-none');
+            statusMsg.className = 'mt-2 text-sm text-emerald-600';
+            trackBtn.classList.remove('hidden');
 
             // Update modal status badge
             const statusBadge = document.getElementById('modal-order-status');
-            if (newStatus === 'shipping') {
-                statusBadge.textContent = '배송중';
-                statusBadge.className = 'badge ml-2 badge-info';
-            }
+            const statusMeta = getStatusMeta(newStatus);
+            statusBadge.textContent = statusMeta.label;
+            statusBadge.className = `ml-2 ${statusMeta.classes}`;
 
             // Refresh table
             renderOrders();
@@ -658,7 +715,7 @@ window.AdminOrders = (function () {
         } catch (err) {
             console.error('Failed to save tracking info:', err);
             statusMsg.textContent = '저장 실패: ' + err.message;
-            statusMsg.className = 'small text-danger mt-2';
+            statusMsg.className = 'mt-2 text-sm text-rose-600';
         }
     }
 
@@ -739,10 +796,10 @@ window.AdminOrders = (function () {
         if (!bulkActions || !selectedCount) return;
 
         if (selectedOrders.size > 0) {
-            bulkActions.classList.remove('d-none');
+            bulkActions.classList.remove('hidden');
             selectedCount.textContent = selectedOrders.size;
         } else {
-            bulkActions.classList.add('d-none');
+            bulkActions.classList.add('hidden');
         }
     }
 
@@ -819,7 +876,7 @@ window.AdminOrders = (function () {
             infoEl.textContent = `주문번호: ${order.payment_id || order.id.substring(0, 8)}`;
         }
 
-        $('#delete-confirm-modal').modal('show');
+        showModal('delete-confirm-modal');
     }
 
     async function deleteOrder() {
@@ -835,7 +892,7 @@ window.AdminOrders = (function () {
             allOrders = allOrders.filter(o => o.id !== deleteTargetId);
             selectedOrders.delete(deleteTargetId);
 
-            $('#delete-confirm-modal').modal('hide');
+            hideModal('delete-confirm-modal');
             closeModal();
 
             alert('주문이 삭제되었습니다.');
@@ -860,7 +917,7 @@ window.AdminOrders = (function () {
 
         // Use a special marker for bulk delete
         deleteTargetId = 'BULK_DELETE';
-        $('#delete-confirm-modal').modal('show');
+        showModal('delete-confirm-modal');
     }
 
     // Override deleteOrder to handle bulk delete
@@ -877,7 +934,7 @@ window.AdminOrders = (function () {
                 const deletedCount = selectedOrders.size;
                 selectedOrders.clear();
 
-                $('#delete-confirm-modal').modal('hide');
+                hideModal('delete-confirm-modal');
 
                 alert(`${deletedCount}개의 주문이 삭제되었습니다.`);
                 document.getElementById('total-orders-count').textContent = allOrders.length;
@@ -901,7 +958,7 @@ window.AdminOrders = (function () {
                 allOrders = allOrders.filter(o => o.id !== deleteTargetId);
                 selectedOrders.delete(deleteTargetId);
 
-                $('#delete-confirm-modal').modal('hide');
+                hideModal('delete-confirm-modal');
                 closeModal();
 
                 alert('주문이 삭제되었습니다.');

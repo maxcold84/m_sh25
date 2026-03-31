@@ -9,6 +9,10 @@ const AdminPosts = {
     imageToUpload: null,
     existingImage: null,
     easyMDE: null,
+    modal: null,
+    _currentTrigger: null,
+    _previousBodyOverflow: '',
+    _escapeHandlerBound: false,
 
     init: async function () {
         // Use shared PocketBase instance
@@ -27,6 +31,7 @@ const AdminPosts = {
         });
 
         this.bindEvents();
+        this.bindModalEvents();
         this.loadPosts();
 
         // Slug generation listener
@@ -57,18 +62,13 @@ const AdminPosts = {
                 'preview', 'side-by-side', 'fullscreen', '|', 'guide'
             ]
         });
-
-        // Modal fix: Refresh EasyMDE when modal opens to ensure proper rendering
-        $('#postModal').on('shown.bs.modal', function () {
-            if (AdminPosts.easyMDE) AdminPosts.easyMDE.codemirror.refresh();
-        });
     },
 
     bindEvents: function () {
         const addPostBtn = document.getElementById('add-post-btn');
         if (addPostBtn && !addPostBtn.dataset.bound) {
             addPostBtn.dataset.bound = 'true';
-            addPostBtn.addEventListener('click', () => this.openAddModal());
+            addPostBtn.addEventListener('click', (event) => this.openAddModal(event.currentTarget));
         }
 
         const postForm = document.getElementById('post-form');
@@ -101,7 +101,7 @@ const AdminPosts = {
 
                 const { action, postId } = button.dataset;
                 if (action === 'edit-post') {
-                    this.openEditModal(postId);
+                    this.openEditModal(postId, button);
                 } else if (action === 'delete-post') {
                     this.deletePost(postId);
                 }
@@ -109,11 +109,74 @@ const AdminPosts = {
         }
     },
 
+    bindModalEvents: function () {
+        const modal = this.modal || document.getElementById('postModal');
+        if (!modal || modal.dataset.bound) return;
+
+        this.modal = modal;
+        modal.dataset.bound = 'true';
+
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal || event.target.closest('[data-post-modal-close]')) {
+                this.closeModal();
+            }
+        });
+
+        if (!this._escapeHandlerBound) {
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && this.isModalOpen()) {
+                    this.closeModal();
+                }
+            });
+            this._escapeHandlerBound = true;
+        }
+    },
+
+    isModalOpen: function () {
+        return !!(this.modal && !this.modal.hidden);
+    },
+
+    openModal: function () {
+        const modal = this.modal || document.getElementById('postModal');
+        if (!modal) return;
+
+        this.modal = modal;
+        this._previousBodyOverflow = document.body.style.overflow;
+        modal.hidden = false;
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        window.setTimeout(() => {
+            if (this.easyMDE) {
+                this.easyMDE.codemirror.refresh();
+            }
+
+            const focusTarget = document.getElementById('post-title') || modal.querySelector('input, textarea, select, button');
+            if (focusTarget && typeof focusTarget.focus === 'function') {
+                focusTarget.focus();
+            }
+        }, 0);
+    },
+
+    closeModal: function () {
+        const modal = this.modal || document.getElementById('postModal');
+        if (!modal) return;
+
+        modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = this._previousBodyOverflow || '';
+
+        if (this._currentTrigger && typeof this._currentTrigger.focus === 'function') {
+            this._currentTrigger.focus();
+        }
+        this._currentTrigger = null;
+    },
+
     loadPosts: async function () {
         const tableBody = document.getElementById('post-table-body');
         const spinner = document.getElementById('loading-spinner');
 
-        spinner.style.display = 'block';
+        spinner.style.display = 'flex';
         tableBody.innerHTML = '';
 
         try {
@@ -124,7 +187,7 @@ const AdminPosts = {
             spinner.style.display = 'none';
 
             if (records.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="5" class="text-center">등록된 글이 없습니다</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="5" class="admin-empty-state">등록된 글이 없습니다</td></tr>';
                 return;
             }
 
@@ -139,28 +202,32 @@ const AdminPosts = {
                 }
 
                 const statusBadge = post.published
-                    ? '<span class="badge badge-success">공개</span>'
-                    : '<span class="badge badge-secondary">비공개</span>';
+                    ? '<span class="admin-pill admin-pill--success">공개</span>'
+                    : '<span class="admin-pill admin-pill--muted">비공개</span>';
 
                 const createdDate = new Date(post.created).toLocaleDateString('ko-KR');
 
+                const imageCellHtml = imageHtml
+                    ? `<div class="admin-post-thumb">${imageHtml}</div>`
+                    : '<div class="admin-post-thumb admin-post-thumb--empty">-</div>';
+
                 tr.innerHTML = `
                     <td>
-                        <div class="admin-post-thumb">
-                            ${imageHtml}
-                        </div>
+                        ${imageCellHtml}
                     </td>
                     <td>
-                        <div class="font-weight-bold">${post.title}</div>
-                        <small class="text-muted">/${post.slug}</small>
+                        <div class="admin-post-title">
+                            <div class="admin-post-title__main">${post.title}</div>
+                            <div class="admin-post-title__slug">/${post.slug}</div>
+                        </div>
                     </td>
                     <td>${statusBadge}</td>
                     <td>${createdDate}</td>
                     <td>
                         <div class="admin-post-actions">
-                            <button class="btn btn-sm btn-info" type="button" data-action="edit-post" data-post-id="${post.id}">수정</button>
-                            <button class="btn btn-sm btn-danger" type="button" data-action="delete-post" data-post-id="${post.id}">삭제</button>
-                            <a href="/ko/blog/${post.slug}/" target="_blank" rel="noreferrer" class="btn btn-sm btn-light">미리보기</a>
+                            <button class="admin-post-action-btn admin-post-action-btn--edit" type="button" data-action="edit-post" data-post-id="${post.id}">수정</button>
+                            <button class="admin-post-action-btn admin-post-action-btn--delete" type="button" data-action="delete-post" data-post-id="${post.id}">삭제</button>
+                            <a href="/ko/blog/${post.slug}/" target="_blank" rel="noreferrer" class="admin-post-action-btn admin-post-action-btn--preview">미리보기</a>
                         </div>
                     </td>
                 `;
@@ -170,17 +237,18 @@ const AdminPosts = {
             console.error('Error loading posts:', error);
             spinner.style.display = 'none';
             if (error.status === 404) {
-                tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">PocketBase에 "posts" 컬렉션이 없습니다.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="5" class="admin-empty-state" style="color: #b91c1c;">PocketBase에 "posts" 컬렉션이 없습니다.</td></tr>';
             } else {
                 alert('글 목록을 불러오는 중 오류가 발생했습니다');
             }
         }
     },
 
-    openAddModal: function () {
+    openAddModal: function (trigger) {
         this.currentPost = null;
         this.imageToUpload = null;
         this.existingImage = null;
+        this._currentTrigger = trigger || document.getElementById('add-post-btn') || document.activeElement;
 
         document.getElementById('post-form').reset();
         if (this.easyMDE) this.easyMDE.value('');
@@ -191,15 +259,16 @@ const AdminPosts = {
         // Default published to true
         document.getElementById('post-published').checked = true;
 
-        $('#postModal').modal('show');
+        this.openModal();
     },
 
-    openEditModal: async function (id) {
+    openEditModal: async function (id, trigger) {
         try {
             const post = await this.pb.collection('posts').getOne(id);
             this.currentPost = post;
             this.imageToUpload = null;
             this.existingImage = post.image;
+            this._currentTrigger = trigger || document.activeElement;
 
             document.getElementById('post-id').value = post.id;
             document.getElementById('post-title').value = post.title;
@@ -235,7 +304,7 @@ const AdminPosts = {
             }
 
             document.getElementById('postModalLabel').innerText = '글 수정';
-            $('#postModal').modal('show');
+            this.openModal();
 
         } catch (error) {
             console.error('Error fetching post details:', error);
@@ -290,7 +359,7 @@ const AdminPosts = {
                 await this.pb.collection('posts').create(formData);
             }
 
-            $('#postModal').modal('hide');
+            this.closeModal();
             this.loadPosts();
         } catch (error) {
             console.error('Error saving post:', error);

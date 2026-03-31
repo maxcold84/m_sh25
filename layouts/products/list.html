@@ -1,6 +1,10 @@
 {{ define "main" }}
 
-<section class="section gallery">
+<section
+  class="section gallery"
+  data-product-list-page
+  data-product-list-currency="{{ site.Params.currency }}"
+  data-product-list-lang="{{ site.Language.Lang }}">
   <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="mb-10 text-center">
       <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{{ .Title }}</h1>
@@ -18,88 +22,5 @@
     </div>
   </div>
 </section>
-
-<script>
-  document.addEventListener('DOMContentLoaded', async function () {
-    const container = document.getElementById('product-list-container');
-
-    try {
-      console.log('Loading product list from API...');
-      const result = await productsApi.getList({ perPage: 100, sort: '-order,-created' });
-
-      if (result.items && result.items.length > 0) {
-        console.log('Products loaded:', result.items.length);
-        container.innerHTML = ''; // Clear loading spinner
-
-        result.items.forEach(product => {
-          const imageUrl = (product.images && product.images.length > 0)
-            ? productsApi.getImageUrl(product, product.images[0], '300x300')
-            : 'https://via.placeholder.com/300x300?text=No+Image';
-
-          const finalPrice = product.discount_price || product.price;
-
-          // Hugo static page URL
-          const detailUrl = `/ko/products/${product.slug}/`;
-
-          const col = document.createElement('div');
-          col.className = 'h-full';
-          col.innerHTML = `
-            <article class="group flex h-full flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
-              <div class="relative aspect-square overflow-hidden bg-slate-100">
-                <img class="h-full w-full object-cover transition duration-500 group-hover:scale-105" src="${imageUrl}" alt="${product.title}">
-                <div class="absolute inset-0 flex flex-col justify-between bg-gradient-to-t from-slate-950/35 via-transparent to-transparent p-4 opacity-100 transition lg:opacity-0 lg:group-hover:opacity-100">
-                  <a href="${detailUrl}" class="inline-flex h-11 w-11 items-center justify-center self-end rounded-full bg-white/90 text-slate-700 shadow-lg backdrop-blur transition hover:bg-white hover:text-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
-                    <i class="tf-ion-plus-round text-xl"></i>
-                  </a>
-                  <button class="cart-btn inline-flex w-full items-center justify-center gap-2 rounded-full bg-amber-400 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-200 transition hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
-                    <span aria-hidden="true">🛒</span>
-                    <span>장바구니 추가</span>
-                  </button>
-                </div>
-              </div>
-              <div class="flex flex-1 flex-col p-4 text-center sm:p-5">
-                <h4 class="text-base font-semibold leading-6 text-slate-900 sm:text-lg">
-                  <a href="${detailUrl}" class="transition hover:text-amber-500">${product.title}</a>
-                </h4>
-                <p class="mt-2 text-lg font-semibold text-slate-700">
-                  ${product.discount_price
-              ? `{{ site.Params.currency }}${product.discount_price.toLocaleString()} <s class="text-sm font-medium text-slate-400">{{ site.Params.currency }}${product.price.toLocaleString()}</s>`
-              : `{{ site.Params.currency }}${product.price.toLocaleString()}`
-            }
-                </p>
-              </div>
-            </article>
-          `;
-
-          // Add cart functionality
-          const cartBtn = col.querySelector('.cart-btn');
-          cartBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            if (typeof Cart !== 'undefined' && Cart.addItem) {
-              Cart.addItem({
-                id: product.id,
-                name: product.title,
-                price: finalPrice,
-                image: imageUrl,
-                options: {}
-              });
-            } else {
-              console.error('Cart is not defined');
-              alert('장바구니 기능을 사용할 수 없습니다.');
-            }
-          });
-
-          container.appendChild(col);
-        });
-      } else {
-        console.log('No products found');
-        container.innerHTML = '<div class="col-span-full py-12 text-center text-slate-600"><p>등록된 상품이 없습니다.</p></div>';
-      }
-    } catch (error) {
-      console.error('Failed to load products:', error);
-      container.innerHTML = '<div class="col-span-full py-12 text-center text-rose-600"><p>상품을 불러오는 중 오류가 발생했습니다: ' + error.message + '</p></div>';
-    }
-  });
-</script>
 
 {{ end }}

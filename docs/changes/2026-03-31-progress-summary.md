@@ -322,3 +322,156 @@
 1. [layouts/partials/cart-drawer.html](/C:/hugo/ex/shop/layouts/partials/cart-drawer.html) 와 [assets/scss/cart-styles.scss](/C:/hugo/ex/shop/assets/scss/cart-styles.scss) 의 추가 슬림화
 2. [layouts/partials/products.html](/C:/hugo/ex/shop/layouts/partials/products.html) 의 slider/legacy theme 패턴 정리
 3. [layouts/admin/login.html](/C:/hugo/ex/shop/layouts/admin/login.html), [layouts/partials/admin/category-modal.html](/C:/hugo/ex/shop/layouts/partials/admin/category-modal.html) 를 포함한 admin Bootstrap-free 전환 마감
+
+## 추가 진행 (2026-03-31 야간)
+
+### 13. Public / Admin Bootstrap 경계 재정의
+
+- 파일:
+  - [layouts/partials/head.html](/C:/hugo/ex/shop/layouts/partials/head.html)
+  - [layouts/partials/footer.html](/C:/hugo/ex/shop/layouts/partials/footer.html)
+  - [config/_default/hugo.toml](/C:/hugo/ex/shop/config/_default/hugo.toml)
+  - [layouts/admin/baseof.html](/C:/hugo/ex/shop/layouts/admin/baseof.html)
+- 반영 사항:
+  - public `head` 에서 Bootstrap CSS를 제외
+  - public `footer` 에서 Bootstrap JS를 제외
+  - admin은 전용 base에서 Bootstrap bundle 을 별도로 받도록 유지
+- 효과:
+  - public 은 Tailwind + theme CSS 중심
+  - Bootstrap 의존은 사실상 admin shell 쪽으로 격리됨
+
+### 14. Public Single / Detail / Policy 추가 정리
+
+- 파일:
+  - [layouts/blog/single.html](/C:/hugo/ex/shop/layouts/blog/single.html)
+  - [layouts/_default/single.html](/C:/hugo/ex/shop/layouts/_default/single.html)
+  - [layouts/privacy-policy/list.html](/C:/hugo/ex/shop/layouts/privacy-policy/list.html)
+  - [layouts/terms-conditions/list.html](/C:/hugo/ex/shop/layouts/terms-conditions/list.html)
+  - [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html)
+  - [assets/js/reviews.js](/C:/hugo/ex/shop/assets/js/reviews.js)
+  - [layouts/partials/image.html](/C:/hugo/ex/shop/layouts/partials/image.html)
+- 반영 사항:
+  - single/policy/detail/review 영역을 Tailwind-first 레이아웃과 컴포넌트 클래스로 정리
+  - review alert/confirm 흐름은 오버레이/토스트 기반으로 교체
+  - 이미지 출력도 `img-fluid` 기반에서 Tailwind-friendly 출력으로 변경
+- 효과:
+  - public 상세 페이지군에서 Bootstrap 의존이 더 줄어듦
+  - 모바일 읽기/리뷰 경험이 더 일관됨
+
+### 15. 현재 기준선
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
+
+### 지금 남은 가장 큰 작업
+
+1. [layouts/partials/products.html](/C:/hugo/ex/shop/layouts/partials/products.html) 의 slider legacy 패턴 단순화
+2. [layouts/partials/cart-drawer.html](/C:/hugo/ex/shop/layouts/partials/cart-drawer.html) + [assets/scss/cart-styles.scss](/C:/hugo/ex/shop/assets/scss/cart-styles.scss) 추가 슬림화
+3. admin modal/table shell 의 Bootstrap 의존 추가 축소
+4. 필요 시 public `config/_default/hugo.toml` 의 plugin 목록을 public/admin 분리 구조로 더 명시화
+
+## 추가 진행 (2026-03-31 심야)
+
+### 16. Admin Bootstrap runtime 제거 및 release output 재검증
+
+- 파일:
+  - [layouts/admin/baseof.html](/C:/hugo/ex/shop/layouts/admin/baseof.html)
+  - [config/_default/hugo.toml](/C:/hugo/ex/shop/config/_default/hugo.toml)
+- 반영 사항:
+  - admin base 에서 `jQuery` 와 `bootstrap.bundle.min.js` 로드를 제거
+  - 전역 plugin CSS 목록에서 `bootstrap.min.css` 를 제거
+  - admin base 는 Bootstrap CSS를 더 이상 받지 않고 `style.scss` + page-local admin styles만 사용
+- 검증:
+  - `pnpm build` 통과
+  - `pnpm preflight:release` 통과
+  - `rg "localhost:1313|livereload.js" server` 결과 없음
+  - `rg "bootstrap.min.css|bootstrap.bundle.min.js|jquery-3.6.0.min.js" server` 결과 없음
+- 효과:
+  - admin runtime 기준으로도 Bootstrap 의존이 제거됨
+  - 이전에 남아 있던 dev-style `server/` 산출물은 clean build 후 사라졌고, release preflight 와 실제 산출물이 다시 일치함
+
+### 17. 현재 남은 큰 작업 재정리
+
+1. [layouts/partials/products.html](/C:/hugo/ex/shop/layouts/partials/products.html) 의 slider legacy 패턴 단순화
+2. [layouts/partials/cart-drawer.html](/C:/hugo/ex/shop/layouts/partials/cart-drawer.html) 와 [assets/scss/cart-styles.scss](/C:/hugo/ex/shop/assets/scss/cart-styles.scss) 의 구조 슬림화
+3. admin UI 안의 `alert/confirm/prompt` 흐름을 custom dialog 또는 inline feedback 으로 정리
+
+## 추가 진행 (2026-03-31 심야 후반)
+
+### 18. Homepage Products 모듈 분리 및 Cart Bootstrap 정리
+
+- 파일:
+  - [assets/js/home-products.js](/C:/hugo/ex/shop/assets/js/home-products.js)
+  - [assets/js/main.js](/C:/hugo/ex/shop/assets/js/main.js)
+  - [layouts/partials/products.html](/C:/hugo/ex/shop/layouts/partials/products.html)
+  - [layouts/partials/cart-drawer.html](/C:/hugo/ex/shop/layouts/partials/cart-drawer.html)
+  - [layouts/partials/cart-template.html](/C:/hugo/ex/shop/layouts/partials/cart-template.html)
+  - [assets/scss/cart-styles.scss](/C:/hugo/ex/shop/assets/scss/cart-styles.scss)
+- 반영 사항:
+  - homepage products 의 대형 inline script 를 [home-products.js](/C:/hugo/ex/shop/assets/js/home-products.js) 모듈로 분리
+  - [main.js](/C:/hugo/ex/shop/assets/js/main.js) 에서 homepage products 와 cart drawer 를 bundle 기준으로 bootstrap
+  - `products.html` 은 markup 중심 partial 로 단순화
+  - 상품 카드의 장바구니 버튼은 `data-cart-action="add-item"` 기반으로 연결
+  - 상품 상세 링크는 현재 언어 기준 경로로 생성하고, 외부 placeholder 서비스와 `alert()` 의존을 제거
+  - coarse pointer / reduced motion 환경에서는 자동 회전 대신 스크롤 중심 동작으로 완화
+  - cart template 의 inline style 제거, cart partial 의 inline init 제거
+  - cart 의 수량/삭제 버튼 터치 타깃 확대, checkout 영역 safe-area padding 추가
+- 효과:
+  - homepage/products/cart 흐름이 bundle-first 구조로 더 정리됨
+  - 모바일에서 자동 회전 간섭과 작은 터치 타깃 문제가 줄어듦
+  - cart partial/template 가 마크업 중심에 가까워짐
+
+### 19. 최신 검증
+
+- `node --check assets/js/home-products.js` 통과
+- `node --check assets/js/main.js` 통과
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
+- `rg "localhost:1313|livereload.js" server` 결과 없음
+- `rg "bootstrap.min.css|bootstrap.bundle.min.js|jquery-3.6.0.min.js" server` 결과 없음
+
+### 20. 지금 남은 큰 작업
+
+1. [layouts/products/list.html](/C:/hugo/ex/shop/layouts/products/list.html) 를 포함한 남은 page-local inline script 정리
+2. [assets/js/cart.js](/C:/hugo/ex/shop/assets/js/cart.js) 및 admin JS 안의 `window.*`, `alert/confirm/prompt` 흐름 축소
+3. product single/detail 의 남은 legacy style block 추가 정리
+
+## 추가 진행 (2026-03-31 심야 마감 전)
+
+### 21. Public Inline Script 추가 정리
+
+- 파일:
+  - [assets/js/product-list-page.js](/C:/hugo/ex/shop/assets/js/product-list-page.js)
+  - [assets/js/blog-reading-progress.js](/C:/hugo/ex/shop/assets/js/blog-reading-progress.js)
+  - [assets/js/main.js](/C:/hugo/ex/shop/assets/js/main.js)
+  - [layouts/products/list.html](/C:/hugo/ex/shop/layouts/products/list.html)
+  - [layouts/blog/single.html](/C:/hugo/ex/shop/layouts/blog/single.html)
+  - [layouts/partials/related-products.html](/C:/hugo/ex/shop/layouts/partials/related-products.html)
+- 반영 사항:
+  - `products/list` 의 inline fetch/render/cart script 를 `product-list-page.js` 로 이동
+  - `blog/single` 의 reading progress inline script 를 `blog-reading-progress.js` 로 이동
+  - 두 페이지 모두 template 내 `type="module"` 직접 로드 대신 [main.js](/C:/hugo/ex/shop/assets/js/main.js) bootstrap 경로로 수렴
+  - `related-products` 의 slick 초기화도 partial inline script 대신 bundle bootstrap 으로 이동
+  - product list 카드도 language-aware URL, placeholder 제거, `data-cart-action="add-item"` 기반으로 정리
+- 효과:
+  - public page-local inline script 범위가 더 줄어듦
+  - bundle 기준 초기화 경로가 homepage/list/blog/related-products 까지 확대됨
+  - 모바일에서 blog reading progress 업데이트가 더 가볍게 동작함
+
+### 22. 최신 검증
+
+- `node --check assets/js/product-list-page.js` 통과
+- `node --check assets/js/blog-reading-progress.js` 통과
+- `node --check assets/js/main.js` 통과
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
+- `rg "localhost:1313|livereload.js" server` 결과 없음
+
+### 23. 지금 남은 큰 작업
+
+1. [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html) 의 큰 inline script를 module/bootstrap 으로 분리
+2. [assets/js/admin-orders.js](/C:/hugo/ex/shop/assets/js/admin-orders.js), [assets/js/admin-posts.js](/C:/hugo/ex/shop/assets/js/admin-posts.js), [assets/js/admin-products.js](/C:/hugo/ex/shop/assets/js/admin-products.js) 의 `alert/confirm/prompt` 흐름을 custom dialog 또는 toast 로 치환
+3. [assets/js/cart.js](/C:/hugo/ex/shop/assets/js/cart.js) 와 admin JS 안의 `window.*` 노출 축소

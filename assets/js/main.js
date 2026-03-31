@@ -20,6 +20,9 @@ import { ProductsApi, productsApi } from './products-api.js';
 import { Reviews } from './reviews.js';
 import { QnA } from './qna.js';
 import { Profile } from './profile.js';
+import { initHomeProducts } from './home-products.js';
+import { initProductListPage } from './product-list-page.js';
+import { initReadingProgress } from './blog-reading-progress.js';
 
 // ============================================
 // 하위 호환성: 전역 노출
@@ -52,11 +55,31 @@ if (typeof window !== 'undefined') {
 function initializeApp() {
     console.log('[Main] Initializing application...');
 
+    bootstrapCartDrawer();
     setupHeaderNavigation();
+    bootstrapHomeProducts();
+    bootstrapProductListPage();
+    bootstrapRelatedProducts();
     bootstrapProductDetail();
     bootstrapProfilePage();
+    bootstrapReadingProgress();
 
     console.log('[Main] Application initialized');
+}
+
+let cartInitialized = false;
+
+function bootstrapCartDrawer() {
+    if (cartInitialized) {
+        return;
+    }
+
+    if (!document.getElementById('cart-drawer') || !window.ShopConfig) {
+        return;
+    }
+
+    cartInitialized = true;
+    Cart.init(window.ShopConfig);
 }
 
 function setupHeaderNavigation() {
@@ -153,6 +176,71 @@ function bootstrapProfilePage() {
     if (document.getElementById('profile-form') || document.getElementById('save-button')) {
         Profile.init();
     }
+}
+
+function bootstrapHomeProducts() {
+    initHomeProducts();
+}
+
+function bootstrapProductListPage() {
+    initProductListPage();
+}
+
+function bootstrapReadingProgress() {
+    initReadingProgress();
+}
+
+function bootstrapRelatedProducts() {
+    const sliderElement = document.getElementById('related-products-slider');
+    const jQueryRef = window.jQuery || window.$;
+
+    if (!sliderElement || !jQueryRef?.fn?.slick) {
+        return;
+    }
+
+    const $slider = jQueryRef(sliderElement);
+    if ($slider.hasClass('slick-initialized')) {
+        return;
+    }
+
+    $slider.slick({
+        infinite: true,
+        speed: 500,
+        slidesToShow: 4,
+        slidesToScroll: 1,
+        arrows: false,
+        dots: false,
+        autoplay: true,
+        autoplaySpeed: 3000,
+        pauseOnHover: true,
+        swipe: true,
+        touchMove: true,
+        swipeToSlide: true,
+        responsive: [
+            {
+                breakpoint: 1200,
+                settings: {
+                    slidesToShow: 3
+                }
+            },
+            {
+                breakpoint: 992,
+                settings: {
+                    slidesToShow: 2
+                }
+            },
+            {
+                breakpoint: 576,
+                settings: {
+                    slidesToShow: 1,
+                    arrows: false,
+                    dots: false,
+                    swipe: true,
+                    touchMove: true
+                }
+            }
+        ]
+    });
 }
 
 // DOMContentLoaded에서 초기화

@@ -1,9 +1,9 @@
 <!-- Admin Orders Filters -->
-<div class="alert alert-light border mb-4 p-3">
-    <div style="display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; align-items: flex-end;">
-        <div style="flex: 1 1 220px; min-width: 0;">
-            <label for="status-filter" class="font-weight-bold mb-1 d-block">상태 필터</label>
-            <select id="status-filter" class="form-control form-control-sm">
+<section class="rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm shadow-slate-200/50 ring-1 ring-slate-200/60 backdrop-blur sm:p-5">
+    <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+        <div class="min-w-0">
+            <label for="status-filter" class="mb-2 block text-sm font-semibold text-slate-700">상태 필터</label>
+            <select id="status-filter" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100">
                 <option value="">전체 (All)</option>
                 <option value="paid">결제완료 (Paid)</option>
                 <option value="shipping">배송중 (Shipping)</option>
@@ -12,10 +12,12 @@
                 <option value="archived">보관됨 (Archived)</option>
             </select>
         </div>
-        <div style="flex: 0 0 auto;">
-            <button type="button" id="refresh-btn" class="btn btn-outline-secondary btn-sm" title="새로고침">
+        <div class="flex justify-start md:justify-end">
+            <button type="button" id="refresh-btn"
+                class="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200"
+                title="새로고침">
                 <i class="tf-ion-refresh"></i> 새로고침
             </button>
         </div>
     </div>
-</div>
+</section>

@@ -116,6 +116,72 @@ function buildProductUrl(product, itemOptions) {
     return slug ? `/${lang}/products/${slug}/` : null;
 }
 
+function getDisplayPrice(price) {
+    if (isKoreanPage() && price < 1000) {
+        return price * 1000;
+    }
+
+    if (!isKoreanPage() && price > 1000) {
+        return price / 1000;
+    }
+
+    return price;
+}
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+}
+
+function updateCartSummary(items) {
+    const count = items.reduce((sum, item) => sum + item.quantity, 0);
+    const total = items.reduce((sum, item) => sum + (getDisplayPrice(item.price) * item.quantity), 0);
+    const formattedTotal = formatCurrencyUtil(total);
+
+    const countElement = document.getElementById('cart-item-count');
+    if (countElement) {
+        countElement.textContent = count;
+        countElement.classList.toggle('hidden', count === 0);
+    }
+
+    const subtotalEl = document.getElementById('cart-subtotal');
+    const totalEl = document.getElementById('cart-total');
+    const footerEl = document.getElementById('cart-footer');
+
+    if (subtotalEl) {
+        subtotalEl.textContent = formattedTotal;
+    }
+    if (totalEl) {
+        totalEl.textContent = formattedTotal;
+    }
+    if (footerEl) {
+        footerEl.classList.toggle('hidden', items.length === 0);
+    }
+
+    return { count, total, formattedTotal };
+}
+
+function renderCartError(error) {
+    const title = isKoreanPage()
+        ? '장바구니를 불러오는 중 오류가 발생했습니다.'
+        : 'We could not load your cart right now.';
+    const detail = error?.message ? escapeHtml(error.message) : '';
+    const retryLabel = isKoreanPage() ? '다시 시도' : 'Retry';
+
+    return `
+        <div class="cart-error">
+            <p class="cart-error-message">${title}</p>
+            ${detail ? `<p class="cart-error-detail">${detail}</p>` : ''}
+            <button type="button" data-cart-action="retry" class="retry-btn">${retryLabel}</button>
+        </div>
+    `;
+}
+
 async function fetchProductsByIds(productIds) {
     const uniqueIds = [...new Set(productIds.filter(Boolean))];
     if (uniqueIds.length === 0) {
@@ -194,7 +260,6 @@ export const Cart = {
     realtimeCleanup: null,
 
     async init(config) {
-        console.log('Cart initialized with config:', config);
         this.config = config;
 
         if (pb.authStore.isValid) {
@@ -275,7 +340,6 @@ export const Cart = {
     async getOrCreateCart() {
         if (pb.authStore.isValid) {
             const userId = pb.authStore.model.id;
-            console.log('User logged in:', userId);
 
             try {
                 const carts = await pb.collection('carts').getList(1, 1, {
@@ -288,7 +352,6 @@ export const Cart = {
                     const localCartId = localStorage.getItem('cart_id');
 
                     if (localCartId && localCartId !== userCart.id) {
-                        console.log('Merging local cart into user cart...');
                         await this.mergeCarts(localCartId, userCart.id);
                         localStorage.removeItem('cart_id');
                     }
@@ -403,8 +466,6 @@ export const Cart = {
     },
 
     async addItem(product) {
-        console.log('addItem called with:', product);
-
         try {
             const cart = await this.getOrCreateCart();
             const quantityToAdd = Math.max(1, Number(product.quantity) || 1);
@@ -502,7 +563,7 @@ export const Cart = {
 
         const priceEl = itemEl.querySelector('.item-price');
         if (priceEl) {
-            priceEl.textContent = this.formatCurrency(item.price * item.quantity);
+            priceEl.textContent = this.formatCurrency(getDisplayPrice(item.price) * item.quantity);
         }
 
         const minusBtn = itemEl.querySelector('button[aria-label="Decrease quantity"]');
@@ -513,29 +574,7 @@ export const Cart = {
 
     async updateCartTotals() {
         const items = await this.getItems();
-        const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const formattedTotal = this.formatCurrency(total);
-
-        const countElement = document.getElementById('cart-item-count');
-        if (countElement) {
-            const count = items.reduce((sum, item) => sum + item.quantity, 0);
-            countElement.textContent = count;
-            countElement.style.display = count > 0 ? 'inline-flex' : 'none';
-        }
-
-        const subtotalEl = document.getElementById('cart-subtotal');
-        const totalEl = document.getElementById('cart-total');
-        const footerEl = document.getElementById('cart-footer');
-
-        if (subtotalEl) {
-            subtotalEl.textContent = formattedTotal;
-        }
-        if (totalEl) {
-            totalEl.textContent = formattedTotal;
-        }
-        if (footerEl) {
-            footerEl.style.display = items.length > 0 ? 'block' : 'none';
-        }
+        updateCartSummary(items);
     },
 
     formatCurrency(amount) {
@@ -569,13 +608,7 @@ export const Cart = {
                 const options = normalizeOptions(item.options);
                 const displayOptions = splitOptions(options).variantOptions;
                 const product = productMap.get(item.product_id);
-                let displayPrice = item.price;
-
-                if (isKoreanPage() && displayPrice < 1000) {
-                    displayPrice *= 1000;
-                } else if (!isKoreanPage() && displayPrice > 1000) {
-                    displayPrice /= 1000;
-                }
+                const displayPrice = getDisplayPrice(item.price);
 
                 return {
                     ...item,
@@ -607,38 +640,7 @@ export const Cart = {
 
     async renderCart() {
         const items = await this.getItems();
-        const total = items.reduce((sum, item) => {
-            let price = item.price;
-            if (isKoreanPage() && price < 1000) {
-                price *= 1000;
-            } else if (!isKoreanPage() && price > 1000) {
-                price /= 1000;
-            }
-            return sum + (price * item.quantity);
-        }, 0);
-
-        const formattedTotal = this.formatCurrency(total);
-
-        const countElement = document.getElementById('cart-item-count');
-        if (countElement) {
-            const count = items.reduce((sum, item) => sum + item.quantity, 0);
-            countElement.textContent = count;
-            countElement.style.display = count > 0 ? 'inline-flex' : 'none';
-        }
-
-        const subtotalEl = document.getElementById('cart-subtotal');
-        const totalEl = document.getElementById('cart-total');
-        const footerEl = document.getElementById('cart-footer');
-
-        if (subtotalEl) {
-            subtotalEl.textContent = formattedTotal;
-        }
-        if (totalEl) {
-            totalEl.textContent = formattedTotal;
-        }
-        if (footerEl) {
-            footerEl.style.display = items.length > 0 ? 'block' : 'none';
-        }
+        const { formattedTotal } = updateCartSummary(items);
 
         const templateElement = document.getElementById('cart-template');
         if (!templateElement) {
@@ -662,13 +664,7 @@ export const Cart = {
 
             const container = document.getElementById('cart-items-container');
             if (container) {
-                container.innerHTML = `
-                    <div class="cart-error" style="padding: 20px; text-align: center; color: #e53e3e;">
-                        <p style="margin-bottom: 10px;">장바구니를 불러오는 중 오류가 발생했습니다.</p>
-                        <p class="error-detail" style="font-size: 0.8em; color: #718096; margin-bottom: 15px;">${error.message}</p>
-                        <button type="button" data-cart-action="retry" class="retry-btn" style="padding: 8px 16px; background: #4a5568; color: white; border: none; border-radius: 4px; cursor: pointer;">다시 시도</button>
-                    </div>
-                `;
+                container.innerHTML = renderCartError(error);
             }
         }
     },
@@ -685,17 +681,12 @@ export const Cart = {
             ? forceOpen
             : !drawer.classList.contains('open');
 
-        if (typeof forceOpen === 'boolean') {
-            drawer.classList.toggle('open', forceOpen);
-            overlay.classList.toggle('open', forceOpen);
-        } else {
-            drawer.classList.toggle('open');
-            overlay.classList.toggle('open');
-        }
+        drawer.classList.toggle('open', isOpen);
+        overlay.classList.toggle('open', isOpen);
 
         document.body.classList.toggle('cart-drawer-open', isOpen);
 
-        if (drawer.classList.contains('open')) {
+        if (isOpen) {
             this.renderCart();
         }
     }

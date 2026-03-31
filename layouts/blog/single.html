@@ -91,15 +91,4 @@
     </div>
 </section>
 
-<script>
-    document.addEventListener('scroll', function () {
-        const docElement = document.documentElement;
-        const docBody = document.body;
-        const scrollTop = docElement['scrollTop'] || docBody['scrollTop'];
-        const scrollBottom = (docElement['scrollHeight'] || docBody['scrollHeight']) - window.innerHeight;
-        const scrollPercent = scrollTop / (scrollBottom || 1) * 100 + '%';
-        document.getElementById('reading-progress').style.width = scrollPercent;
-    });
-</script>
-
 {{ end }}

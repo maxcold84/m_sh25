@@ -1,18 +1,18 @@
 ---
 title: "fdsf"
-date: "2025-12-04 15:22:28.939Z"
+slug: "fdsf"
+date: "2026-03-31 04:39:43.448Z"
 draft: false
-price: 55522
-discount_price: 5151
-description: "fdsfdsf"
+price: 505005
+discount_price: 5050
+description: "fdsfsdfds"
 images:
-  - "n571ve6oqops38x_0_8afkqnng8o6_vfpx0wggyr.jfif"
-  - "n571ve6oqops38x_1_9j55oecj3os_3qhf0qv5ak.jfif"
-mainImage: "n571ve6oqops38x_0_8afkqnng8o6_vfpx0wggyr.jfif"
+  - "uiid97ioug0a243_0_1772879901476_ii9g3r9hj0.png"
+mainImage: "uiid97ioug0a243_0_1772879901476_ii9g3r9hj0.png"
 colors: []
 sizes: []
-id: "n571ve6oqops38x"
+id: "uiid97ioug0a243"
 layout: "single"
 ---
 
-fdsfdsf
+fdsfsdfds

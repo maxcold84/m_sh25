@@ -1,56 +1,62 @@
 <!-- Admin Orders Table -->
 <!-- Bulk Actions -->
-<div id="bulk-actions" class="mb-3 d-none">
-    <div class="alert alert-info py-2 mb-0" style="display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; align-items: center;">
-        <span><strong id="selected-count">0</strong>개 주문 선택됨</span>
-        <div style="display: flex; flex-wrap: wrap; gap: .5rem;">
-            <button type="button" id="bulk-archive-btn" class="btn btn-sm btn-warning" data-action="bulk-archive">
+<div id="bulk-actions" class="hidden">
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-900 px-4 py-3 text-white shadow-sm">
+        <span class="text-sm font-medium"><strong id="selected-count">0</strong>개 주문 선택됨</span>
+        <div class="flex flex-wrap gap-2">
+            <button type="button" id="bulk-archive-btn"
+                class="inline-flex items-center justify-center gap-2 rounded-full bg-amber-400 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-amber-300 focus:outline-none focus:ring-4 focus:ring-amber-200"
+                data-action="bulk-archive">
                 <i class="tf-ion-archive"></i> 일괄 보관
             </button>
-            <button type="button" id="bulk-delete-btn" class="btn btn-sm btn-danger" data-action="bulk-delete">
+            <button type="button" id="bulk-delete-btn"
+                class="inline-flex items-center justify-center gap-2 rounded-full bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-400 focus:outline-none focus:ring-4 focus:ring-rose-200"
+                data-action="bulk-delete">
                 <i class="tf-ion-trash-a"></i> 일괄 삭제
             </button>
         </div>
     </div>
 </div>
 
-<div class="table-responsive">
-    <table class="table table-hover table-sm">
-        <thead>
-            <tr>
-                <th style="width: 40px;">
-                    <input type="checkbox" id="select-all-orders" title="전체 선택">
-                </th>
-                <th>주문번호 / 날짜</th>
-                <th>주문자 정보</th>
-                <th>상품</th>
-                <th>총 결제금액</th>
-                <th>운송장</th>
-                <th class="text-center">상태</th>
-                <th class="text-center">관리</th>
-            </tr>
-        </thead>
-        <tbody id="orders-table-body">
-            <!-- Orders will be injected here -->
-            <tr>
-                <td colspan="8" class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
-                    <span class="ml-2">주문 목록을 불러오는 중...</span>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+<div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-200/60">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+            <thead class="bg-slate-50/80 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <tr>
+                    <th class="px-4 py-3" style="width: 40px;">
+                        <input type="checkbox" id="select-all-orders" title="전체 선택" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400">
+                    </th>
+                    <th class="px-4 py-3">주문번호 / 날짜</th>
+                    <th class="px-4 py-3">주문자 정보</th>
+                    <th class="px-4 py-3">상품</th>
+                    <th class="px-4 py-3">총 결제금액</th>
+                    <th class="px-4 py-3">운송장</th>
+                    <th class="px-4 py-3 text-center">상태</th>
+                    <th class="px-4 py-3 text-center">관리</th>
+                </tr>
+            </thead>
+            <tbody id="orders-table-body" class="divide-y divide-slate-100 bg-white">
+                <!-- Orders will be injected here -->
+                <tr>
+                    <td colspan="8" class="px-4 py-10 text-center text-slate-500">
+                        <div class="inline-flex items-center gap-3">
+                            <div class="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-900" role="status" aria-hidden="true"></div>
+                            <span>주문 목록을 불러오는 중...</span>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <!-- Pagination -->
-<div class="d-flex justify-content-between align-items-center mt-4">
-    <div>
-        <span class="text-muted">총 <strong id="total-orders-count">0</strong>건의 주문</span>
+<div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="text-sm text-slate-500">
+        총 <strong id="total-orders-count" class="font-semibold text-slate-900">0</strong>건의 주문
     </div>
     <nav aria-label="Page navigation">
-        <ul id="pagination-controls" class="pagination mb-0">
+        <ul id="pagination-controls" class="flex flex-wrap items-center gap-2">
             <!-- Pagination buttons injected by JS -->
         </ul>
     </nav>
