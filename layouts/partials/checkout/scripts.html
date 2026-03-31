@@ -1,6 +1,3 @@
-<!-- Mailcheck.js for email typo correction -->
-<script src="https://cdn.jsdelivr.net/npm/mailcheck@1.1.2/src/mailcheck.min.js"></script>
-
 <style>
     :root {
         --checkout-surface: rgba(255, 255, 255, 0.94);
@@ -323,7 +320,12 @@
     }
 </style>
 
-<script>
+{{ $daumPostcodeHelper := resources.Get "js/core/daum-postcode.js" }}
+{{ $emailSuggestionHelper := resources.Get "js/core/email-suggestion.js" }}
+<script type="module">
+    import { hasDaumPostcode, embedDaumPostcode } from '{{ $daumPostcodeHelper.RelPermalink }}';
+    import { getSuggestedEmail } from '{{ $emailSuggestionHelper.RelPermalink }}';
+
     document.addEventListener('DOMContentLoaded', function () {
         console.log('DOM loaded, checking dependencies...');
 
@@ -362,10 +364,10 @@
         };
 
         const openPostcode = () => {
-            if (!layer || !container || typeof daum === 'undefined') return;
+            if (!layer || !container || !hasDaumPostcode()) return;
 
-            new daum.Postcode({
-                oncomplete: function (data) {
+            embedDaumPostcode(container, {
+                onComplete(data) {
                     var roadAddr = data.roadAddress;
                     var extraRoadAddr = '';
 
@@ -410,14 +412,14 @@
                     }
 
                     if (postcodeFields.detailAddress) postcodeFields.detailAddress.focus();
-                    closePostcode();
                 },
-                width: '100%',
-                height: '100%',
-                maxSuggestItems: 5
-            }).embed(container);
-
-            layer.classList.remove('hidden');
+                onOpen() {
+                    layer.classList.remove('hidden');
+                },
+                onClose() {
+                    closePostcode();
+                }
+            });
         };
 
         postcodeButtons.forEach(button => button.addEventListener('click', openPostcode));
@@ -544,12 +546,6 @@
 
             if (!emailInput || !suggestionDiv) return;
 
-            // Check for Mailcheck library
-            if (typeof Mailcheck === 'undefined') {
-                console.warn('Mailcheck.js not loaded');
-                return;
-            }
-
             let suggestionLink = suggestionDiv.querySelector('a');
 
             emailInput.addEventListener('blur', function () {
@@ -559,26 +555,23 @@
                     return;
                 }
 
-                Mailcheck.run({
-                    email: email,
-                    domains: ['gmail.com', 'naver.com', 'daum.net', 'kakao.com', 'outlook.com', 'hanmail.net', 'nate.com'],
-                    topLevelDomains: ['com', 'net', 'org', 'kr'],
-                    suggested: function (suggestion) {
-                        const nextLink = suggestionLink.cloneNode(true);
-                        nextLink.textContent = suggestion.full;
-                        nextLink.addEventListener('click', function (e) {
-                            e.preventDefault();
-                            emailInput.value = suggestion.full;
-                            suggestionDiv.style.display = 'none';
-                        });
-                        suggestionLink.replaceWith(nextLink);
-                        suggestionLink = nextLink;
-                        suggestionDiv.style.display = 'block';
-                    },
-                    empty: function () {
-                        suggestionDiv.style.display = 'none';
-                    }
+                const suggestion = getSuggestedEmail(email, ['gmail.com', 'naver.com', 'daum.net', 'kakao.com', 'outlook.com', 'hanmail.net', 'nate.com']);
+                const nextLink = suggestionLink.cloneNode(true);
+                suggestionLink.replaceWith(nextLink);
+                suggestionLink = nextLink;
+
+                if (!suggestion) {
+                    suggestionDiv.style.display = 'none';
+                    return;
+                }
+
+                nextLink.textContent = suggestion;
+                nextLink.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    emailInput.value = suggestion;
+                    suggestionDiv.style.display = 'none';
                 });
+                suggestionDiv.style.display = 'block';
             });
         }
 

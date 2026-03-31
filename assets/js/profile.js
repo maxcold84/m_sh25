@@ -5,6 +5,7 @@
  */
 import { pb } from './core/pb-client.js';
 import { showToast } from './core/utils.js';
+import { hasDaumPostcode, embedDaumPostcode } from './core/daum-postcode.js';
 
 let postcodeLayer = null;
 let postcodeContainer = null;
@@ -122,13 +123,13 @@ function openPostcode() {
         return;
     }
 
-    if (typeof daum === 'undefined' || !daum.Postcode) {
+    if (!hasDaumPostcode()) {
         showToast('주소 검색 서비스를 불러오지 못했습니다.', { isError: true });
         return;
     }
 
-    new daum.Postcode({
-        oncomplete: function (data) {
+    embedDaumPostcode(postcodeContainer, {
+        onComplete(data) {
             const roadAddr = data.roadAddress;
             let extraRoadAddr = '';
 
@@ -184,15 +185,14 @@ function openPostcode() {
             if (detailAddressInput) {
                 detailAddressInput.focus();
             }
-
-            closePostcode();
         },
-        width: '100%',
-        height: '100%',
-        maxSuggestItems: 5
-    }).embed(postcodeContainer);
-
-    postcodeLayer.classList.remove('hidden');
+        onOpen() {
+            postcodeLayer.classList.remove('hidden');
+        },
+        onClose() {
+            closePostcode();
+        }
+    });
 }
 
 async function loadUserProfile() {

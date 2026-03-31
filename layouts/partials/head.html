@@ -14,17 +14,6 @@
   <!-- theme meta -->
   <meta name="theme-name" content="vex-hugo" />
 
-  <!-- Tailwind Utilities -->
-  <script>
-    globalThis.tailwind = globalThis.tailwind || {};
-    globalThis.tailwind.config = {
-      corePlugins: {
-        preflight: false
-      }
-    };
-  </script>
-  <script defer src="https://cdn.tailwindcss.com"></script>
-
   {{ "<!-- plugins -->" | safeHTML }}
   {{ range site.Params.plugins.css }}
   {{ if not (in .link "bootstrap.min.css") }}
@@ -39,6 +28,20 @@
   {{ "<!-- Cart Styles -->" | safeHTML }}
   {{ $cartStyles := resources.Get "scss/cart-styles.scss" | toCSS | minify }}
   <link rel="stylesheet" href="{{ $cartStyles.Permalink }}" media="screen">
+
+  {{ "<!-- Tailwind CSS (Hugo build-time) -->" | safeHTML }}
+  {{ with resources.Get "css/tailwind.css" }}
+    {{ $twOpts := dict "minify" (not hugo.IsDevelopment) }}
+    {{ with . | css.TailwindCSS $twOpts }}
+      {{ if hugo.IsDevelopment }}
+        <link rel="stylesheet" href="{{ .RelPermalink }}" media="screen">
+      {{ else }}
+        {{ with . | fingerprint }}
+          <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" crossorigin="anonymous" media="screen">
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
 
   {{ "<!--Favicon-->" | safeHTML }}
   <link rel="shortcut icon" href="{{ `images/favicon.png` | absURL }}" type="image/x-icon">

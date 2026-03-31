@@ -626,3 +626,128 @@
 - `pnpm lint` 통과
 - `pnpm build` 통과
 - `pnpm preflight:release` 통과
+
+## 종합 요약 문서
+
+- [overall summary](/C:/hugo/ex/shop/docs/changes/2026-03-31-overall-summary.md)
+- 목적:
+  - review 대응, build/release 안정화, module 전환, Tailwind 확장, admin/runtime 정리를 한 문서에서 확인할 수 있도록 최신 상태를 정리
+
+## 추가 진행 (2026-03-31 외부 전역 격리와 ESLint 강화)
+
+### 31. daum 주소검색 의존 격리
+
+- 파일:
+  - [assets/js/core/daum-postcode.js](/C:/hugo/ex/shop/assets/js/core/daum-postcode.js)
+  - [assets/js/profile.js](/C:/hugo/ex/shop/assets/js/profile.js)
+  - [layouts/partials/checkout/scripts.html](/C:/hugo/ex/shop/layouts/partials/checkout/scripts.html)
+- 반영 사항:
+  - `daum.Postcode` 접근을 공용 helper로 래핑
+  - profile은 helper module import 구조로 전환
+  - checkout은 helper import를 사용하는 module script로 격리
+- 효과:
+  - 외부 전역 `daum` 접근이 한 helper에 집중됨
+  - 추후 주소검색 교체/래핑 시 영향 범위가 줄어듦
+
+### 32. ESLint 강화
+
+- 파일:
+  - [.eslintrc.json](/C:/hugo/ex/shop/.eslintrc.json)
+- 반영 사항:
+  - app-owned globals whitelist 제거
+  - `no-global-assign` 규칙 추가
+- 효과:
+  - 전역 누수 회귀를 lint 단계에서 더 빨리 잡을 수 있음
+
+### 33. 현재 남은 외부 전역
+
+- `globalThis.tailwind`
+- `Mailcheck`
+- `PortOne`
+- `daum` 자체는 helper로 격리됐지만 외부 SDK 전역이라는 점은 유지
+
+### 34. 최신 검증
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
+
+## 추가 진행 (2026-03-31 Hugo 중심 Tailwind 전환)
+
+### 35. Hugo build-time Tailwind 전환
+
+- 파일:
+  - [assets/css/tailwind.css](/C:/hugo/ex/shop/assets/css/tailwind.css)
+  - [layouts/partials/head.html](/C:/hugo/ex/shop/layouts/partials/head.html)
+  - [config/_default/hugo.toml](/C:/hugo/ex/shop/config/_default/hugo.toml)
+- 반영 사항:
+  - Tailwind CDN + `globalThis.tailwind` config 제거
+  - Hugo `css.TailwindCSS` 파이프로 utility CSS 생성
+  - build stats / module mounts / cachebusters 추가
+- 효과:
+  - Tailwind 사용이 CDN runtime이 아니라 Hugo build-time 자산 파이프라인으로 이동
+  - `globalThis.tailwind` 외부 전역 제거
+
+### 36. 외부 전역 현재 상태
+
+- `daum`
+  - helper로 격리 완료
+- 남은 외부 SDK
+  - `Mailcheck`
+  - `PortOne`
+
+### 37. 최신 검증
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
+
+## 추가 진행 (2026-03-31 Mailcheck 제거)
+
+### 38. Mailcheck 외부 의존 제거
+
+- 파일:
+  - [assets/js/core/email-suggestion.js](/C:/hugo/ex/shop/assets/js/core/email-suggestion.js)
+  - [assets/js/auth.js](/C:/hugo/ex/shop/assets/js/auth.js)
+  - [layouts/_default/auth.html](/C:/hugo/ex/shop/layouts/_default/auth.html)
+  - [layouts/partials/checkout/scripts.html](/C:/hugo/ex/shop/layouts/partials/checkout/scripts.html)
+  - [.eslintrc.json](/C:/hugo/ex/shop/.eslintrc.json)
+- 반영 사항:
+  - Mailcheck CDN script 제거
+  - 공용 email suggestion helper로 auth / checkout 오타 보정 로직 대체
+  - ESLint globals에서 `Mailcheck` 제거
+- 효과:
+  - 외부 전역/SDK 의존이 한 단계 더 줄어듦
+  - 이메일 도메인 보정 로직을 프로젝트 코드 안에서 제어 가능
+
+### 39. 현재 남은 외부 SDK
+
+- `daum`
+  - helper로 격리됨
+- `PortOne`
+  - checkout 결제 SDK
+
+### 40. 최신 검증
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
+
+## 추가 진행 (2026-03-31 product single Tailwind 정리)
+
+### 41. Product single local style block 축소
+
+- 파일:
+  - [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html)
+- 반영 사항:
+  - 구매 영역과 리뷰 작성 폼의 시각 스타일을 Tailwind utility class 중심으로 markup에 이동
+  - local style block에서는 리뷰 카드/모달 등 JS 생성 마크업에 가까운 규칙 위주로 축소
+- 효과:
+  - `products/single` 의 큰 local style block이 줄어듦
+  - Tailwind 기준 통일이 product detail 구매/작성 흐름까지 확장됨
+
+### 42. 최신 검증
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 는 실행 중인 `hugo` dev 프로세스가 `server/` 산출물을 덮는 경우 흔들릴 수 있음

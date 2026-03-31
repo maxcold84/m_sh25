@@ -4,6 +4,7 @@
  * @module auth
  */
 import { pb } from './core/pb-client.js';
+import { getSuggestedEmail } from './core/email-suggestion.js';
 
 const Auth = (function () {
     // Track nickname check status
@@ -443,27 +444,28 @@ const Auth = (function () {
 
     function handleMailcheck(event) {
         const input = event.target;
-        if (typeof Mailcheck === 'undefined') return;
+        const suggestionLink = document.getElementById('email-suggestion-link');
+        const suggestionContainer = document.getElementById('email-suggestion');
+        const suggestion = getSuggestedEmail(input.value, ['gmail.com', 'naver.com', 'daum.net', 'hanmail.net', 'kakao.com']);
 
-        Mailcheck.run({
-            email: input.value,
-            suggested: function (suggestion) {
-                const suggestionLink = document.getElementById('email-suggestion-link');
-                const suggestionContainer = document.getElementById('email-suggestion');
-                if (suggestionLink && suggestionContainer) {
-                    suggestionLink.textContent = suggestion.full;
-                    suggestionContainer.hidden = false;
-                    suggestionLink.onclick = (e) => {
-                        e.preventDefault();
-                        input.value = suggestion.full;
-                        suggestionContainer.hidden = true;
-                    };
-                }
-            },
-            empty: function () {
-                const suggestionContainer = document.getElementById('email-suggestion');
-                if (suggestionContainer) suggestionContainer.hidden = true;
-            }
+        if (!suggestionLink || !suggestionContainer) {
+            return;
+        }
+
+        const nextLink = suggestionLink.cloneNode(true);
+        suggestionLink.replaceWith(nextLink);
+
+        if (!suggestion) {
+            suggestionContainer.hidden = true;
+            return;
+        }
+
+        nextLink.textContent = suggestion;
+        suggestionContainer.hidden = false;
+        nextLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            input.value = suggestion;
+            suggestionContainer.hidden = true;
         });
     }
 

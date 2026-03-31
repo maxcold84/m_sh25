@@ -21,6 +21,9 @@
         "slugify": "^1.6.6"
     },
     "devDependencies": {
-        "eslint": "^8.57.1"
+        "@tailwindcss/cli": "^4.2.2",
+        "@tailwindcss/typography": "^0.5.19",
+        "eslint": "^8.57.1",
+        "tailwindcss": "^4.2.2"
     }
 }

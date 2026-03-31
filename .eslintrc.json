@@ -11,20 +11,7 @@
         "EasyMDE": "readonly",
         "$": "readonly",
         "jQuery": "readonly",
-        "daum": "readonly",
-        "PBClient": "readonly",
-        "Utils": "readonly",
-        "Cart": "readonly",
-        "Auth": "readonly",
-        "Profile": "readonly",
-        "Reviews": "readonly",
-        "QnA": "readonly",
-        "AdminAuth": "readonly",
-        "AdminOrders": "readonly",
-        "AdminProducts": "readonly",
-        "AdminCategories": "readonly",
-        "AdminPosts": "readonly",
-        "Mailcheck": "readonly"
+        "daum": "readonly"
     },
     "parserOptions": {
         "ecmaVersion": 2021,
@@ -39,6 +26,7 @@
         ],
         "no-console": "off",
         "no-undef": "error",
+        "no-global-assign": "error",
         "semi": [
             "warn",
             "always"

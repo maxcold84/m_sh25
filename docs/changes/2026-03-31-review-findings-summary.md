@@ -146,3 +146,27 @@
 - [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html) 의 큰 inline script 분리
 - admin JS 의 `alert/confirm/prompt` 흐름 치환
 - `window.*` 전역 노출 추가 축소
+
+## Latest Snapshot (2026-03-31 Final)
+
+### Additional Completed Work
+
+- [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html) 의 큰 inline script는 [product-detail-page.js](/C:/hugo/ex/shop/assets/js/product-detail-page.js) 로 이동
+- admin JS 의 `alert/confirm/prompt` 흐름은 custom feedback UI로 전환
+- 프로젝트가 만든 `window.*` 전역 의존은 제거
+- admin 목록/상품 관리 스크립트는 bundle 로 전환되어 import chain 누락 문제를 해결
+- `jQuery/$` 및 slick 의존도 제거
+
+### Current Remaining Scope
+
+- external globals
+  - `daum`
+  - `globalThis.tailwind`
+  - `Mailcheck`
+  - `PortOne`
+- Tailwind 기준 통일 마무리
+- ESLint 규칙 강화 (`no-global-assign`, globals whitelist 축소)
+
+### Reference
+
+- [overall summary](/C:/hugo/ex/shop/docs/changes/2026-03-31-overall-summary.md)
