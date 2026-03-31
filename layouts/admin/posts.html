@@ -786,6 +786,6 @@
 </style>
 
 {{ $adminPostScript := resources.Get "js/admin-posts.js" }}
-<script src="{{ $adminPostScript.Permalink }}"></script>
+<script type="module" src="{{ $adminPostScript.Permalink }}"></script>
 
 {{ end }}

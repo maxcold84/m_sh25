@@ -56,5 +56,5 @@
 </div>
 
 {{ $adminOrdersScript := resources.Get "js/admin-orders.js" }}
-<script src="{{ $adminOrdersScript.Permalink }}"></script>
+<script type="module" src="{{ $adminOrdersScript.Permalink }}"></script>
 {{ end }}

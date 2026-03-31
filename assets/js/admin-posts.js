@@ -2,32 +2,19 @@
  * Admin Posts Manager
  * Handles blog post CRUD operations for the admin interface
  */
+import { getAdminPb, checkAdmin } from './admin-auth.js';
+import { toast, confirmDialog, promptDialog } from './admin-feedback.js';
 
 function showAdminPostsToast(message, type = 'info', duration) {
-    if (window.AdminFeedback?.toast) {
-        window.AdminFeedback.toast(message, { type, duration });
-        return;
-    }
-
-    console.warn('[AdminPosts]', message);
+    toast(message, { type, duration });
 }
 
 function confirmAdminPostsAction(options) {
-    if (window.AdminFeedback?.confirm) {
-        return window.AdminFeedback.confirm(options);
-    }
-
-    console.warn('[AdminPosts] confirm unavailable:', options?.message || options?.title || '');
-    return Promise.resolve(false);
+    return confirmDialog(options);
 }
 
 function promptAdminPostsAction(options) {
-    if (window.AdminFeedback?.prompt) {
-        return window.AdminFeedback.prompt(options);
-    }
-
-    console.warn('[AdminPosts] prompt unavailable:', options?.message || options?.title || '');
-    return Promise.resolve(null);
+    return promptDialog(options);
 }
 
 const AdminPosts = {
@@ -42,18 +29,17 @@ const AdminPosts = {
     _escapeHandlerBound: false,
 
     init: async function () {
-        // Use shared PocketBase instance
-        this.pb = window.AdminAuth?.pb || window.PBClient.getInstance();
+        this.pb = getAdminPb();
 
         // Check auth
-        if (!AdminAuth.checkAdmin()) {
+        if (!checkAdmin()) {
             return;
         }
 
         // Initialize HTMX Auth
         document.body.addEventListener('htmx:configRequest', (event) => {
-            if (AdminAuth && AdminAuth.pb && AdminAuth.pb.authStore.isValid) {
-                event.detail.headers['Authorization'] = AdminAuth.pb.authStore.token;
+            if (this.pb && this.pb.authStore.isValid) {
+                event.detail.headers.Authorization = this.pb.authStore.token;
             }
         });
 
@@ -173,7 +159,7 @@ const AdminPosts = {
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
 
-        window.setTimeout(() => {
+        setTimeout(() => {
             if (this.easyMDE) {
                 this.easyMDE.codemirror.refresh();
             }

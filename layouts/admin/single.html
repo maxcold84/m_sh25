@@ -925,7 +925,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
 {{ $adminScript := resources.Get "js/admin-products.js" }}
-<script src="{{ $adminScript.Permalink }}"></script>
+<script type="module" src="{{ $adminScript.Permalink }}"></script>
 
 {{ end }}
 

@@ -26,37 +26,7 @@
 
   {{ "<!-- Site Configuration -->" | safeHTML }}
   <script src="{{ (resources.Get "js/pocketbase.umd.js").Permalink }}"></script>
-  <script>
-    window.SiteConfig = {
-      pocketbaseUrl: "{{ site.Params.pocketbase.url }}"
-    };
-
-    window.PBClient = {
-      _instance: null,
-      getInstance() {
-        if (!this._instance) {
-          this._instance = new PocketBase(window.SiteConfig?.pocketbaseUrl || 'http://127.0.0.1:8090');
-        }
-        return this._instance;
-      },
-      isAdmin() {
-        const pb = this.getInstance();
-        return pb.authStore.isValid && pb.authStore.isAdmin;
-      },
-      getUser() {
-        const pb = this.getInstance();
-        return pb.authStore.isValid ? pb.authStore.model : null;
-      },
-      isAuthenticated() {
-        return this.getInstance().authStore.isValid;
-      }
-    };
-  </script>
-
-  {{ $adminFeedbackScript := resources.Get "js/admin-feedback.js" }}
-  <script src="{{ $adminFeedbackScript.Permalink }}"></script>
-  {{ $adminAuthScript := resources.Get "js/admin-auth.js" }}
-  <script src="{{ $adminAuthScript.Permalink }}"></script>
+  <script id="site-config" type="application/json">{{ jsonify (dict "pocketbaseUrl" site.Params.pocketbase.url) }}</script>
 </head>
 
 <body id="body" class="admin-shell">

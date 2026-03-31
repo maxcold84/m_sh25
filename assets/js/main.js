@@ -23,6 +23,8 @@ import { Profile } from './profile.js';
 import { initHomeProducts } from './home-products.js';
 import { initProductListPage } from './product-list-page.js';
 import { initReadingProgress } from './blog-reading-progress.js';
+import { initProductDetailPage } from './product-detail-page.js';
+import { getShopConfig } from './core/runtime-config.js';
 
 // ============================================
 // Auto Initialization
@@ -34,7 +36,6 @@ function initializeApp() {
     setupHeaderNavigation();
     bootstrapHomeProducts();
     bootstrapProductListPage();
-    bootstrapRelatedProducts();
     bootstrapProductDetail();
     bootstrapProfilePage();
     bootstrapReadingProgress();
@@ -49,12 +50,17 @@ function bootstrapCartDrawer() {
         return;
     }
 
-    if (!document.getElementById('cart-drawer') || !window.ShopConfig) {
+    if (!document.getElementById('cart-drawer')) {
+        return;
+    }
+
+    const shopConfig = getShopConfig();
+    if (!shopConfig?.storeId) {
         return;
     }
 
     cartInitialized = true;
-    Cart.init(window.ShopConfig);
+    Cart.init(shopConfig);
 }
 
 function setupHeaderNavigation() {
@@ -66,8 +72,8 @@ function setupHeaderNavigation() {
         return;
     }
 
-    const desktopQuery = typeof window.matchMedia === 'function'
-        ? window.matchMedia('(min-width: 768px)')
+    const desktopQuery = typeof matchMedia === 'function'
+        ? matchMedia('(min-width: 768px)')
         : { matches: true };
     let menuOpen = false;
 
@@ -124,7 +130,7 @@ function setupHeaderNavigation() {
         }
     });
 
-    window.addEventListener('resize', syncMenuState);
+    addEventListener('resize', syncMenuState);
     syncMenuState();
 }
 
@@ -133,6 +139,10 @@ function bootstrapProductDetail() {
     const reviewRoot = document.getElementById('review-list');
     const qnaRoot = document.getElementById('qna-list');
     const productId = productDetailRoot?.dataset.productId || reviewRoot?.dataset.productId || qnaRoot?.dataset.productId;
+
+    if (productDetailRoot) {
+        initProductDetailPage();
+    }
 
     if (!productId) {
         return;
@@ -163,59 +173,6 @@ function bootstrapProductListPage() {
 
 function bootstrapReadingProgress() {
     initReadingProgress();
-}
-
-function bootstrapRelatedProducts() {
-    const sliderElement = document.getElementById('related-products-slider');
-    const jQueryRef = window.jQuery || window.$;
-
-    if (!sliderElement || !jQueryRef?.fn?.slick) {
-        return;
-    }
-
-    const $slider = jQueryRef(sliderElement);
-    if ($slider.hasClass('slick-initialized')) {
-        return;
-    }
-
-    $slider.slick({
-        infinite: true,
-        speed: 500,
-        slidesToShow: 4,
-        slidesToScroll: 1,
-        arrows: false,
-        dots: false,
-        autoplay: true,
-        autoplaySpeed: 3000,
-        pauseOnHover: true,
-        swipe: true,
-        touchMove: true,
-        swipeToSlide: true,
-        responsive: [
-            {
-                breakpoint: 1200,
-                settings: {
-                    slidesToShow: 3
-                }
-            },
-            {
-                breakpoint: 992,
-                settings: {
-                    slidesToShow: 2
-                }
-            },
-            {
-                breakpoint: 576,
-                settings: {
-                    slidesToShow: 1,
-                    arrows: false,
-                    dots: false,
-                    swipe: true,
-                    touchMove: true
-                }
-            }
-        ]
-    });
 }
 
 // DOMContentLoaded에서 초기화

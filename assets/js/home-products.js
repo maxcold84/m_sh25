@@ -5,10 +5,10 @@ const WRAPPER_SELECTOR = '[data-home-products-wrapper]';
 const CONTAINER_SELECTOR = '[data-home-products-container]';
 const LOADING_SELECTOR = '[data-home-products-loading]';
 const CARD_WIDTH = 'clamp(15rem, 72vw, 16rem)';
-const CURRENCY = window.ShopConfig?.currency || '₩';
+const CURRENCY = '₩';
 
 function isKoreanPage() {
-    return document.documentElement.lang === 'ko' || window.location.pathname.startsWith('/ko/');
+    return document.documentElement.lang === 'ko' || location.pathname.startsWith('/ko/');
 }
 
 function getLanguageCode() {
@@ -56,10 +56,10 @@ function getProductUrl(slug) {
 }
 
 function canAutoAnimate() {
-    const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches
-        || window.matchMedia?.('(hover: none)')?.matches
+    const coarsePointer = matchMedia?.('(pointer: coarse)')?.matches
+        || matchMedia?.('(hover: none)')?.matches
         || false;
-    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches || false;
+    const reducedMotion = matchMedia?.('(prefers-reduced-motion: reduce)')?.matches || false;
     return !coarsePointer && !reducedMotion;
 }
 
@@ -389,7 +389,7 @@ function initCarousel(container, wrapper, autoAnimate) {
         wrapper.style.cursor = 'grab';
     }
 
-    window.addEventListener('resize', () => {
+    addEventListener('resize', () => {
         if (!container.querySelector('.home-product-card')) {
             return;
         }

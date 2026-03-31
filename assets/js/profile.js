@@ -24,7 +24,7 @@ function init() {
     if (!currentUser) {
         showToast('로그인이 필요합니다.', { isError: true });
         setTimeout(() => {
-            window.location.href = document.documentElement.lang === 'ko' ? '/ko/login/' : '/en/login/';
+            location.href = document.documentElement.lang === 'ko' ? '/ko/login/' : '/en/login/';
         }, 1500);
         return;
     }
@@ -79,7 +79,7 @@ function handleProfileActionClick(event) {
             break;
         case 'history-back':
             event.preventDefault();
-            window.history.back();
+            history.back();
             break;
         case 'close-tracking-modal':
             event.preventDefault();
@@ -122,12 +122,12 @@ function openPostcode() {
         return;
     }
 
-    if (typeof window.daum === 'undefined' || !window.daum.Postcode) {
+    if (typeof daum === 'undefined' || !daum.Postcode) {
         showToast('주소 검색 서비스를 불러오지 못했습니다.', { isError: true });
         return;
     }
 
-    new window.daum.Postcode({
+    new daum.Postcode({
         oncomplete: function (data) {
             const roadAddr = data.roadAddress;
             let extraRoadAddr = '';
@@ -542,7 +542,7 @@ function trackDelivery() {
 
     const carrierInfo = carriers[carrier];
     if (carrierInfo) {
-        window.open(carrierInfo.url + trackingNumber, '_blank');
+        open(carrierInfo.url + trackingNumber, '_blank');
     } else {
         showToast('지원하지 않는 택배사입니다.', { isError: true });
     }

@@ -17,9 +17,9 @@
             <p class="mt-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">추천 상품</p>
         </div>
 
-        <div class="related-products-slider" id="related-products-slider">
+        <div class="related-products-slider flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" id="related-products-slider">
             {{ range $allProducts | first 12 }}
-            <div class="h-full px-2 py-1">
+            <div class="h-full min-w-[16rem] flex-none snap-start sm:min-w-[18rem] lg:min-w-[19rem]">
                 <a href="{{ .RelPermalink }}" class="group flex h-full flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
                     <div class="relative aspect-square overflow-hidden bg-slate-100">
                         {{ $imagePath := "" }}

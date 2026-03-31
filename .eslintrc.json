@@ -11,6 +11,7 @@
         "EasyMDE": "readonly",
         "$": "readonly",
         "jQuery": "readonly",
+        "daum": "readonly",
         "PBClient": "readonly",
         "Utils": "readonly",
         "Cart": "readonly",

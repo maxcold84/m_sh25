@@ -18,14 +18,14 @@ const Auth = (function () {
         updateAuthUI();
 
         // Redirect if already logged in and on login/signup page
-        const isAuthPage = window.location.pathname.includes('/login/') ||
-            window.location.pathname.includes('/signup/') ||
-            window.location.pathname.endsWith('/login') ||
-            window.location.pathname.endsWith('/signup');
+        const isAuthPage = location.pathname.includes('/login/') ||
+            location.pathname.includes('/signup/') ||
+            location.pathname.endsWith('/login') ||
+            location.pathname.endsWith('/signup');
 
         if (pb.authStore.isValid && isAuthPage) {
             console.log('[Auth] Already logged in, redirecting to home...');
-            window.location.href = getHomeUrl();
+            location.href = getHomeUrl();
             return;
         }
 
@@ -133,13 +133,13 @@ const Auth = (function () {
             });
 
             if (updateUrl) {
-                const nextUrl = new URL(window.location.href);
+                const nextUrl = new URL(location.href);
                 nextUrl.hash = tabName;
-                window.history.replaceState(null, '', nextUrl.toString());
+                history.replaceState(null, '', nextUrl.toString());
             }
         };
 
-        const requestedTab = window.location.hash.replace('#', '');
+        const requestedTab = location.hash.replace('#', '');
         setActiveTab(AUTH_TABS.includes(requestedTab) ? requestedTab : getDefaultTab(), { updateUrl: false });
 
         tabButtons.forEach(button => {
@@ -148,8 +148,8 @@ const Auth = (function () {
             });
         });
 
-        window.addEventListener('hashchange', () => {
-            const hashTab = window.location.hash.replace('#', '');
+        addEventListener('hashchange', () => {
+            const hashTab = location.hash.replace('#', '');
             if (AUTH_TABS.includes(hashTab)) {
                 setActiveTab(hashTab, { updateUrl: false });
             }
@@ -229,7 +229,7 @@ const Auth = (function () {
             }
 
             setTimeout(() => {
-                window.location.href = consumeAuthRedirect();
+                location.href = consumeAuthRedirect();
             }, 500);
         } catch (error) {
             console.error('Login failed:', error);
@@ -275,7 +275,7 @@ const Auth = (function () {
             showToast('회원가입을 축하합니다!');
 
             setTimeout(() => {
-                window.location.href = getHomeUrl();
+                location.href = getHomeUrl();
             }, 1000);
         } catch (error) {
             console.error('Signup failed:', error);
@@ -292,14 +292,14 @@ const Auth = (function () {
     async function handleOAuth2Login(provider) {
         try {
             // Store current URL for redirect after login
-            const currentUrl = window.location.pathname + window.location.search + window.location.hash;
+            const currentUrl = location.pathname + location.search + location.hash;
             storeAuthRedirect(currentUrl);
 
             const authData = await pb.collection('users').authWithOAuth2({ provider });
 
             if (authData && authData.record) {
                 showToast(`${provider} 로그인 성공!`);
-                window.location.href = consumeAuthRedirect();
+                location.href = consumeAuthRedirect();
             }
         } catch (error) {
             console.error(`${provider} OAuth login failed:`, error);
@@ -310,7 +310,7 @@ const Auth = (function () {
     function logout() {
         pb.authStore.clear();
         showToast('로그아웃 되었습니다.');
-        window.location.href = getHomeUrl();
+        location.href = getHomeUrl();
     }
 
     function showMessage(el, message, className) {
@@ -351,7 +351,7 @@ const Auth = (function () {
     }
 
     function getHomeUrl() {
-        const isKo = document.documentElement.lang === 'ko' || window.location.pathname.includes('/ko/');
+        const isKo = document.documentElement.lang === 'ko' || location.pathname.includes('/ko/');
         return isKo ? '/ko/' : '/';
     }
 
@@ -365,8 +365,8 @@ const Auth = (function () {
         }
 
         try {
-            const url = new URL(value, window.location.origin);
-            return url.origin === window.location.origin;
+            const url = new URL(value, location.origin);
+            return url.origin === location.origin;
         } catch (error) {
             return false;
         }

@@ -574,38 +574,15 @@ textarea.form-control {
 .product-image-slider {
   position: sticky;
   top: 80px;
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
 
-  .slick-list {
-    margin-bottom: 10px;
-    border-radius: 5px;
-  }
-
-  .slick-dots {
-    margin-top: 10px;
-    padding-left: 0;
-    display: flex;
-
-    li {
-      list-style-type: none;
-      margin: 10px;
-      border-radius: 5px;
-      padding: 10px;
-      cursor: pointer;
-
-      &:first-child {
-        margin-left: 0;
-      }
-
-      &:last-child {
-        margin-right: 0;
-      }
-
-      img {
-        max-height: 80px;
-        height: auto;
-        max-width: 100%;
-      }
-    }
+  .slide-item {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
   }
 }
 

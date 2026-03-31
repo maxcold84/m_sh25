@@ -8,13 +8,13 @@ function getLanguage(section) {
         return explicitLang.startsWith('ko') ? 'ko' : 'en';
     }
 
-    return document.documentElement.lang === 'ko' || window.location.pathname.startsWith('/ko/')
+    return document.documentElement.lang === 'ko' || location.pathname.startsWith('/ko/')
         ? 'ko'
         : 'en';
 }
 
 function getCurrency(section) {
-    return section?.dataset.productListCurrency || window.ShopConfig?.currency || '₩';
+    return section?.dataset.productListCurrency || '₩';
 }
 
 function createPlaceholderImage(label) {

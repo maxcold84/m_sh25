@@ -5,7 +5,7 @@ function getScrollState() {
     const docBody = document.body;
     const scrollTop = docElement.scrollTop || docBody.scrollTop || 0;
     const scrollHeight = Math.max(docElement.scrollHeight, docBody.scrollHeight);
-    const viewportHeight = window.innerHeight || docElement.clientHeight || 0;
+    const viewportHeight = innerHeight || docElement.clientHeight || 0;
     const maxScroll = Math.max(scrollHeight - viewportHeight, 1);
 
     return Math.min(100, Math.max(0, (scrollTop / maxScroll) * 100));
@@ -33,15 +33,15 @@ function initReadingProgress() {
         }
 
         ticking = true;
-        window.requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
             updateProgress(progressEl);
             ticking = false;
         });
     };
 
     updateProgress(progressEl);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', onScroll, { passive: true });
 }
 
 export { initReadingProgress };

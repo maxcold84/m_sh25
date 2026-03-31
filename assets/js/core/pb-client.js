@@ -3,6 +3,7 @@
  * 모든 모듈에서 공유하는 단일 PocketBase 인스턴스 제공
  * @module core/pb-client
  */
+import { getPocketBaseUrl } from './runtime-config.js';
 
 // PocketBase 싱글톤 인스턴스
 let _instance = null;
@@ -11,7 +12,7 @@ let _instance = null;
  * PocketBase URL 가져오기
  * @returns {string}
  */
-const getUrl = () => window.SiteConfig?.pocketbaseUrl || 'http://127.0.0.1:8090';
+const getUrl = () => getPocketBaseUrl();
 
 /**
  * PocketBase 인스턴스 반환 (싱글톤)

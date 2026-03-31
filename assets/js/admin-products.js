@@ -2,23 +2,16 @@
  * Admin Products Manager
  * Handles product CRUD operations for the admin interface
  */
+import { getPocketBaseUrl } from './core/runtime-config.js';
+import { getAdminPb, checkAdmin } from './admin-auth.js';
+import { toast, confirmDialog } from './admin-feedback.js';
 
 function showAdminProductsToast(message, type = 'info', duration) {
-    if (window.AdminFeedback?.toast) {
-        window.AdminFeedback.toast(message, { type, duration });
-        return;
-    }
-
-    console.warn('[AdminProducts]', message);
+    toast(message, { type, duration });
 }
 
 function confirmAdminProductsAction(options) {
-    if (window.AdminFeedback?.confirm) {
-        return window.AdminFeedback.confirm(options);
-    }
-
-    console.warn('[AdminProducts] confirm unavailable:', options?.message || options?.title || '');
-    return Promise.resolve(false);
+    return confirmDialog(options);
 }
 
 const AdminCategories = {
@@ -195,7 +188,7 @@ const AdminCategories = {
 
         const input = document.getElementById('new-category-name');
         if (input) {
-            window.setTimeout(() => input.focus(), 0);
+            setTimeout(() => input.focus(), 0);
         }
     },
 
@@ -226,11 +219,10 @@ const AdminProducts = {
     _escapeHandlerBound: false,
 
     init: async function () {
-        // Use shared PocketBase instance
-        this.pb = window.AdminAuth?.pb || window.PBClient.getInstance();
+        this.pb = getAdminPb();
 
         // Check auth
-        if (!AdminAuth.checkAdmin()) {
+        if (!checkAdmin()) {
             return;
         }
 
@@ -241,8 +233,8 @@ const AdminProducts = {
 
         // Initialize HTMX Auth
         document.body.addEventListener('htmx:configRequest', (event) => {
-            if (AdminAuth && AdminAuth.pb && AdminAuth.pb.authStore.isValid) {
-                event.detail.headers['Authorization'] = AdminAuth.pb.authStore.token;
+            if (this.pb && this.pb.authStore.isValid) {
+                event.detail.headers.Authorization = this.pb.authStore.token;
             }
         });
 
@@ -343,7 +335,7 @@ const AdminProducts = {
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
 
-        window.setTimeout(() => {
+        setTimeout(() => {
             const focusTarget = document.getElementById('product-title') || modal.querySelector('input, textarea, select');
             if (focusTarget && typeof focusTarget.focus === 'function') {
                 focusTarget.focus();
@@ -447,7 +439,7 @@ const AdminProducts = {
                         <div class="admin-switch">
                             <input type="checkbox" class="admin-switch__input" id="status-${product.id}" 
                                 ${product.enabled ? 'checked' : ''}
-                                hx-patch="${window.SiteConfig?.pocketbaseUrl || ''}/api/collections/products/records/${product.id}"
+                                hx-patch="${getPocketBaseUrl()}/api/collections/products/records/${product.id}"
                                 hx-trigger="change"
                                 hx-vals='js:{"enabled": event.target.checked}'
                                 hx-swap="none">

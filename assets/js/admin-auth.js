@@ -1,40 +1,41 @@
-const AdminAuth = (function () {
-    let pbInstance = null;
+import { getInstance } from './core/pb-client.js';
 
-    // Helper to lazy-load pb instance
-    function getPb() {
-        if (!pbInstance && window.PBClient) {
-            pbInstance = window.PBClient.getInstance();
-        }
-        return pbInstance;
+let pbInstance = null;
+
+export function getAdminPb() {
+    if (!pbInstance) {
+        pbInstance = getInstance();
     }
 
-    function checkAdmin() {
-        const pb = getPb();
-        if (!pb || !pb.authStore.isValid || !pb.authStore.isAdmin) {
-            // Store current URL to redirect back after login (optional)
-            sessionStorage.setItem('adminRedirectUrl', window.location.href);
-            window.location.href = '/ko/admin/login';
-            return false;
-        }
-        return true;
+    return pbInstance;
+}
+
+export function checkAdmin() {
+    const pb = getAdminPb();
+    if (!pb || !pb.authStore.isValid || !pb.authStore.isAdmin) {
+        sessionStorage.setItem('adminRedirectUrl', location.href);
+        location.href = '/ko/admin/login';
+        return false;
     }
 
-    function logout() {
-        const pb = getPb();
-        if (pb) {
-            pb.authStore.clear();
-        }
-        window.location.href = '/ko/admin/login';
+    return true;
+}
+
+export function logout() {
+    const pb = getAdminPb();
+    if (pb) {
+        pb.authStore.clear();
     }
 
-    return {
-        checkAdmin,
-        logout,
-        get pb() { return getPb(); } // Expose PB instance dynamically
-    };
-})();
+    location.href = '/ko/admin/login';
+}
 
+const AdminAuth = {
+    checkAdmin,
+    logout,
+    get pb() {
+        return getAdminPb();
+    }
+};
 
-window.AdminAuth = AdminAuth;
-
+export default AdminAuth;

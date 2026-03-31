@@ -327,6 +327,23 @@
     document.addEventListener('DOMContentLoaded', function () {
         console.log('DOM loaded, checking dependencies...');
 
+        const readConfig = (id) => {
+            const scriptEl = document.getElementById(id);
+            if (!scriptEl) {
+                return {};
+            }
+
+            try {
+                return JSON.parse(scriptEl.textContent || '{}');
+            } catch (error) {
+                console.warn(`Failed to parse checkout config: ${id}`, error);
+                return {};
+            }
+        };
+
+        const siteConfig = readConfig('site-config');
+        const shopConfig = readConfig('shop-config');
+
         const layer = document.getElementById('daum-layer');
         const container = document.getElementById('daum-postcode-container');
         const postcodeButtons = document.querySelectorAll('[data-checkout-action="open-postcode"]');
@@ -423,7 +440,7 @@
         }
 
         // Check if ShopConfig is defined
-        if (typeof window.ShopConfig === 'undefined') {
+        if (!shopConfig.storeId) {
             console.error('ShopConfig is not defined!');
             alert('시스템 초기화 오류: ShopConfig가 정의되지 않음');
             return;
@@ -431,7 +448,7 @@
 
         console.log('Dependencies OK, initializing...');
 
-        const pb = new PocketBase(window.SiteConfig?.pocketbaseUrl || 'http://127.0.0.1:8090');
+        const pb = new PocketBase(siteConfig.pocketbaseUrl || 'http://127.0.0.1:8090');
         const currentUser = pb.authStore.model;
 
         let cartItems = [];
@@ -477,12 +494,12 @@
         };
 
         function initPaymentMethods() {
-            if (!window.ShopConfig.channels) {
+            if (!shopConfig.channels) {
                 console.error('ShopConfig.channels not found!');
                 return;
             }
 
-            const channels = window.ShopConfig.channels;
+            const channels = shopConfig.channels;
             let html = '';
             let isFirst = true;
 
@@ -769,7 +786,7 @@
 
             if (!shippingInfo.receiver || !shippingInfo.phone || !shippingInfo.postcode || !shippingInfo.address) {
                 showToast('배송지 정보를 모두 입력해주세요.', true);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                scrollTo({ top: 0, behavior: 'smooth' });
                 return;
             }
 
@@ -846,7 +863,7 @@
 
             try {
                 const paymentId = `ord${crypto.randomUUID().replace(/-/g, '').substring(0, 29)}`;
-                const channelKey = window.ShopConfig.channels[selectedChannel];
+                const channelKey = shopConfig.channels[selectedChannel];
 
                 let payMethod = "CARD";
                 if (selectedChannel === 'kakaopay') payMethod = "EASY_PAY";
@@ -858,7 +875,7 @@
                 }).join(', ');
 
                 const requestData = {
-                    storeId: window.ShopConfig.storeId,
+                    storeId: shopConfig.storeId,
                     channelKey: channelKey,
                     paymentId: paymentId,
                     orderName: orderName,
@@ -866,7 +883,7 @@
                     currency: "KRW",
                     payMethod: payMethod,
                     customer: customerData,
-                    redirectUrl: window.location.origin + "/payment/complete",
+                    redirectUrl: location.origin + '/payment/complete',
                 };
 
                 const response = await PortOne.requestPayment(requestData);
@@ -932,7 +949,7 @@
                 }
 
                 alert('결제가 완료되었습니다!');
-                window.location.href = '/';
+                location.href = '/';
 
             } catch (err) {
                 console.error('Payment failed:', err);

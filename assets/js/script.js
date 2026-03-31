@@ -1,38 +1,8 @@
-// Preloader js
-$(window).on('load', function () {
-    $('.preloader').fadeOut(100);
-});
-
-(function ($) {
-    'use strict';
-
-    // Product slider
-    $('.product-slider').slick({
-        infinite: true,
-        slidesToShow: 4,
-        slidesToScroll: 1,
-        autoplay: true,
-        dots: false,
-        arrows: false,
-        responsive: [{
-            breakpoint: 1024,
-            settings: {
-                slidesToShow: 3
-            }
-        },
-        {
-            breakpoint: 600,
-            settings: {
-                slidesToShow: 2
-            }
-        },
-        {
-            breakpoint: 480,
-            settings: {
-                slidesToShow: 1
-            }
-        }
-        ]
+addEventListener('load', function () {
+    document.querySelectorAll('.preloader').forEach((element) => {
+        element.style.opacity = '0';
+        setTimeout(() => {
+            element.style.display = 'none';
+        }, 100);
     });
-
-})(jQuery);
+});

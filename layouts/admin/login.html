@@ -180,39 +180,6 @@
         </form>
     </div>
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const pb = new PocketBase(window.SiteConfig?.pocketbaseUrl || 'http://127.0.0.1:8090');
-        const form = document.getElementById('admin-login-form');
-        const btn = document.getElementById('login-btn');
-        const errorMessage = document.getElementById('error-message');
-
-        if (pb.authStore.isValid && pb.authStore.isAdmin) {
-            window.location.href = '/ko/admin/orders';
-        }
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            errorMessage.classList.remove('show');
-
-            const email = document.getElementById('email-address').value;
-            const password = document.getElementById('password').value;
-
-            btn.disabled = true;
-            btn.textContent = '로그인 중...';
-
-            try {
-                await pb.admins.authWithPassword(email, password);
-                window.location.href = '/ko/admin/orders';
-            } catch (err) {
-                console.error(err);
-                errorMessage.textContent = '로그인 실패: 이메일 또는 비밀번호를 확인해주세요.';
-                errorMessage.classList.add('show');
-                btn.disabled = false;
-                btn.textContent = '로그인';
-            }
-        });
-    });
-</script>
+{{ $adminLoginScript := resources.Get "js/admin-login.js" }}
+<script type="module" src="{{ $adminLoginScript.Permalink }}"></script>
 {{ end }}

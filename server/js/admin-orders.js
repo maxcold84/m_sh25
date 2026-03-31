@@ -1,3 +1,6 @@
+import { getAdminPb, checkAdmin, logout } from './admin-auth.js';
+import { toast, confirmDialog } from './admin-feedback.js';
+
 const AdminOrders = (function () {
     let pb;
     let allOrders = [];
@@ -24,21 +27,11 @@ const AdminOrders = (function () {
     const MODAL_IDS = ['order-detail-modal', 'delete-confirm-modal'];
 
     function showToast(message, type = 'info', duration) {
-        if (window.AdminFeedback?.toast) {
-            window.AdminFeedback.toast(message, { type, duration });
-            return;
-        }
-
-        console.warn('[AdminOrders]', message);
+        toast(message, { type, duration });
     }
 
     function confirmAction(options) {
-        if (window.AdminFeedback?.confirm) {
-            return window.AdminFeedback.confirm(options);
-        }
-
-        console.warn('[AdminOrders] confirm unavailable:', options?.message || options?.title || '');
-        return Promise.resolve(false);
+        return confirmDialog(options);
     }
 
     function getStatusMeta(status) {
@@ -105,11 +98,10 @@ const AdminOrders = (function () {
     function init() {
         console.log('AdminOrders initializing...');
 
-        // Use shared PocketBase instance from AdminAuth or PBClient
-        pb = window.AdminAuth?.pb || window.PBClient.getInstance();
+        pb = getAdminPb();
 
         // Strict Admin Check
-        if (!AdminAuth.checkAdmin()) {
+        if (!checkAdmin()) {
             console.warn('Backend verification check failed.');
             return;
         }
@@ -122,7 +114,7 @@ const AdminOrders = (function () {
         // Logout
         const logoutBtn = document.getElementById('admin-logout-btn');
         if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => AdminAuth.logout());
+            logoutBtn.addEventListener('click', () => logout());
         }
 
         // Filter
@@ -324,8 +316,8 @@ const AdminOrders = (function () {
             // If error is 403, it means not admin logic or rule issue
             if (err.status === 403) {
                 showToast('권한이 없습니다. 다시 로그인해주세요.', 'error', 1600);
-                window.setTimeout(() => {
-                    window.location.href = '/ko/admin/login';
+                setTimeout(() => {
+                    location.href = '/ko/admin/login';
                 }, 700);
             } else {
                 if (tableBody) {
@@ -749,7 +741,7 @@ const AdminOrders = (function () {
         }
 
         const url = CARRIERS[carrier].trackUrl + number;
-        window.open(url, '_blank');
+        open(url, '_blank');
     }
 
     // ============ Selection Functions ============

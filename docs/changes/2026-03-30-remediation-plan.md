@@ -64,3 +64,50 @@
 - CSP 현실화
 - `window.SiteConfig`, `window.ShopConfig` 노출 범위 재검토
 - admin/data flow 검증 강화
+
+## 계획 보강 (2026-03-31)
+
+### 추가 축 1. JS 완전 모듈화
+
+- 목표:
+  - 남아 있는 page-local inline script 를 모두 bundle/bootstrap 구조로 이동
+  - public/admin 공용 `window.*` 의존을 최소화
+  - admin plain script 구조도 단계적으로 module entry 기반으로 전환
+- 주요 대상:
+  - [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html)
+  - [assets/js/cart.js](/C:/hugo/ex/shop/assets/js/cart.js)
+  - [assets/js/admin-orders.js](/C:/hugo/ex/shop/assets/js/admin-orders.js)
+  - [assets/js/admin-posts.js](/C:/hugo/ex/shop/assets/js/admin-posts.js)
+  - [assets/js/admin-products.js](/C:/hugo/ex/shop/assets/js/admin-products.js)
+- 완료 기준:
+  - 템플릿에 남은 의미 있는 inline runtime script 제거
+  - `window.Cart`, `window.AdminAuth`, `window.PBClient` 등 필요한 전역만 최소 범위로 유지
+  - 페이지 초기화는 `main.js` 혹은 명시적 module entry 에서만 수행
+
+### 추가 축 2. ESLint 규칙 강화
+
+- 목표:
+  - 전역 의존과 암묵적 변수 참조를 lint 단계에서 더 빨리 차단
+  - 모듈 전환과 함께 globals whitelist 를 단계적으로 축소
+- 규칙 방향:
+  - `no-undef` 는 현재처럼 `error` 로 유지
+  - `no-global-assign` 를 `error` 로 추가
+  - 필요 시 admin/public 별 overrides 로 전역 허용 범위를 분리
+- 완료 기준:
+  - [.eslintrc.json](/C:/hugo/ex/shop/.eslintrc.json) 의 globals 목록이 실제 필요한 런타임 전역만 남도록 축소
+  - lint 통과가 전역 누수와 잘못된 할당을 잡아내는 수준으로 강화
+
+### 추가 축 3. Tailwind 기반 통일
+
+- 목표:
+  - Bootstrap 제거 이후 남은 legacy class, inline style, page-local style block 을 줄이고 Tailwind 기준으로 통일
+  - 모바일 사용성과 component consistency 를 함께 맞춘다
+- 주요 대상:
+  - [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html)
+  - [layouts/partials/cart-drawer.html](/C:/hugo/ex/shop/layouts/partials/cart-drawer.html)
+  - admin modal / table shell
+  - 남은 page-local `<style>` 블록
+- 완료 기준:
+  - public 화면은 Tailwind + theme CSS 중심으로 일관성 확보
+  - admin 화면도 utility/class 기준이 정리되어 Bootstrap-era shell 흔적 최소화
+  - 모바일 터치 타깃, spacing, safe-area 대응이 공통 기준으로 정리

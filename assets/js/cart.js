@@ -7,7 +7,7 @@ import { pb } from './core/pb-client.js';
 import { formatCurrency as formatCurrencyUtil, showToast } from './core/utils.js';
 
 function isKoreanPage() {
-    return document.documentElement.lang === 'ko' || window.location.pathname.includes('/korean/');
+    return document.documentElement.lang === 'ko' || location.pathname.includes('/korean/');
 }
 
 function escapeFilterValue(value) {
@@ -632,9 +632,9 @@ export const Cart = {
             return;
         }
 
-        const baseUrl = window.location.origin;
+        const baseUrl = location.origin;
         const lang = document.documentElement.lang || 'en';
-        window.location.href = `${baseUrl}/${lang}/checkout/`;
+        location.href = `${baseUrl}/${lang}/checkout/`;
         this.toggleDrawer(false);
     },
 
@@ -691,13 +691,6 @@ export const Cart = {
         }
     }
 };
-
-// ============================================
-// Compatibility / UI hooks
-// ============================================
-if (typeof window !== 'undefined') {
-    window.Cart = Cart;
-}
 
 let cartEventsBound = false;
 
@@ -770,7 +763,7 @@ function setupCartEvents() {
         if (actionEl.dataset.navAction === 'language-select') {
             const nextUrl = actionEl.value;
             if (nextUrl) {
-                window.location.href = nextUrl;
+                location.href = nextUrl;
             }
         }
     });

@@ -108,7 +108,7 @@ export function formatDate(date, options = {}) {
  * @returns {boolean}
  */
 export function isKorean() {
-    return document.documentElement.lang === 'ko' || window.location.pathname.includes('/korean/');
+    return document.documentElement.lang === 'ko' || location.pathname.includes('/korean/');
 }
 
 /**

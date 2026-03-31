@@ -529,3 +529,100 @@
 - `pnpm lint` 통과
 - `pnpm build` 통과
 - `pnpm preflight:release` 통과
+
+## 계획 추가 메모 (2026-03-31)
+
+### JS 완전 모듈화
+
+- 남은 inline script 와 `window.*` 의존을 모두 추적해 bundle/bootstrap 구조로 수렴
+- 특히 [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html), [assets/js/cart.js](/C:/hugo/ex/shop/assets/js/cart.js), admin plain scripts 를 우선 대상으로 본다
+
+### ESLint 규칙 강화
+
+- 현재 `no-undef` 는 이미 `error` 로 활성화되어 있으므로 유지
+- 다음 단계에서 `no-global-assign` 를 `error` 로 추가
+- globals whitelist 를 public/admin 실제 런타임 기준으로 축소
+
+### Tailwind 기반 통일
+
+- 남은 legacy style block, inline style, mixed class 패턴을 Tailwind 기준으로 정리
+- 공용 spacing, touch target, safe-area 대응을 mobile-first 기준으로 맞춘다
+
+## 추가 진행 (2026-03-31 window 제거)
+
+### 26. 프로젝트가 만든 `window.*` 전역 제거
+
+- 파일:
+  - [assets/js/core/runtime-config.js](/C:/hugo/ex/shop/assets/js/core/runtime-config.js)
+  - [layouts/partials/head.html](/C:/hugo/ex/shop/layouts/partials/head.html)
+  - [layouts/admin/baseof.html](/C:/hugo/ex/shop/layouts/admin/baseof.html)
+  - [assets/js/core/pb-client.js](/C:/hugo/ex/shop/assets/js/core/pb-client.js)
+  - [assets/js/admin-auth.js](/C:/hugo/ex/shop/assets/js/admin-auth.js)
+  - [assets/js/admin-feedback.js](/C:/hugo/ex/shop/assets/js/admin-feedback.js)
+  - [assets/js/admin-login.js](/C:/hugo/ex/shop/assets/js/admin-login.js)
+  - [assets/js/admin-orders.js](/C:/hugo/ex/shop/assets/js/admin-orders.js)
+  - [assets/js/admin-posts.js](/C:/hugo/ex/shop/assets/js/admin-posts.js)
+  - [assets/js/admin-products.js](/C:/hugo/ex/shop/assets/js/admin-products.js)
+  - [assets/js/product-detail-page.js](/C:/hugo/ex/shop/assets/js/product-detail-page.js)
+  - [assets/js/cart.js](/C:/hugo/ex/shop/assets/js/cart.js)
+  - [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html)
+  - [layouts/partials/checkout/scripts.html](/C:/hugo/ex/shop/layouts/partials/checkout/scripts.html)
+  - [layouts/admin/login.html](/C:/hugo/ex/shop/layouts/admin/login.html)
+  - [layouts/admin/orders.html](/C:/hugo/ex/shop/layouts/admin/orders.html)
+  - [layouts/admin/posts.html](/C:/hugo/ex/shop/layouts/admin/posts.html)
+  - [layouts/admin/single.html](/C:/hugo/ex/shop/layouts/admin/single.html)
+  - [.eslintrc.json](/C:/hugo/ex/shop/.eslintrc.json)
+- 반영 사항:
+  - `window.SiteConfig`, `window.ShopConfig` 를 JSON script config + runtime-config reader 로 교체
+  - admin shared state(`PBClient`, `AdminAuth`, `AdminFeedback`)를 global 대신 ES module import 구조로 전환
+  - admin pages 는 `type="module"` 로 스크립트를 로드하도록 변경
+  - product detail inline cart script 를 [product-detail-page.js](/C:/hugo/ex/shop/assets/js/product-detail-page.js) 로 이동해 `window.Cart` 제거
+  - checkout inline script 도 `window.SiteConfig/ShopConfig` 대신 로컬 config reader 로 변경
+  - 남은 브라우저 API 접근은 `location`, `history`, `matchMedia`, `open`, `scrollTo` 등으로 정리해 `window.` prefix 자체도 제거
+- 효과:
+  - 프로젝트가 만든 `window.*` 전역 의존이 제거됨
+  - config 주입, admin auth/feedback, product detail/cart 가 module/bootstrap 구조로 더 정리됨
+
+### 27. 최신 검증
+
+- `rg "window\." assets/js layouts --glob '!assets/js/pocketbase.umd.js'` 결과 없음
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
+
+## 추가 진행 (2026-03-31 외부 전역 축소)
+
+### 28. jQuery / slick 제거
+
+- 파일:
+  - [assets/js/script.js](/C:/hugo/ex/shop/assets/js/script.js)
+  - [assets/js/main.js](/C:/hugo/ex/shop/assets/js/main.js)
+  - [assets/js/product-detail-page.js](/C:/hugo/ex/shop/assets/js/product-detail-page.js)
+  - [layouts/partials/related-products.html](/C:/hugo/ex/shop/layouts/partials/related-products.html)
+  - [layouts/products/single.html](/C:/hugo/ex/shop/layouts/products/single.html)
+  - [assets/scss/style.scss](/C:/hugo/ex/shop/assets/scss/style.scss)
+  - [config/_default/hugo.toml](/C:/hugo/ex/shop/config/_default/hugo.toml)
+- 반영 사항:
+  - stale jQuery 기반 `script.js` slider 초기화 제거, preloader만 vanilla 처리
+  - related-products 는 slick 대신 native horizontal scroller + scroll-snap 구조로 전환
+  - product detail image slider도 slick 대신 native scroll container 구조로 전환
+  - plugin 설정에서 slick 자산 의존 제거
+- 효과:
+  - 프로젝트 코드 기준 `jQuery/$` 및 slick 의존 제거
+  - 모바일 스와이프/가로 스크롤 사용성이 더 단순하고 예측 가능해짐
+
+### 29. 현재 남은 외부 전역
+
+- `daum`
+  - [assets/js/profile.js](/C:/hugo/ex/shop/assets/js/profile.js)
+  - [layouts/partials/checkout/scripts.html](/C:/hugo/ex/shop/layouts/partials/checkout/scripts.html)
+- `globalThis.tailwind`
+  - [layouts/partials/head.html](/C:/hugo/ex/shop/layouts/partials/head.html)
+- 메모:
+  - 이 둘은 프로젝트가 만든 전역이 아니라 외부 라이브러리/CDN 전역이라, 완전 제거하려면 래핑 또는 라이브러리 교체/build-time 전환이 필요함
+
+### 30. 최신 검증
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
