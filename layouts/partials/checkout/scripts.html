@@ -322,9 +322,11 @@
 
 {{ $daumPostcodeHelper := resources.Get "js/core/daum-postcode.js" }}
 {{ $emailSuggestionHelper := resources.Get "js/core/email-suggestion.js" }}
+{{ $portoneHelper := resources.Get "js/core/portone-client.js" }}
 <script type="module">
     import { hasDaumPostcode, embedDaumPostcode } from '{{ $daumPostcodeHelper.RelPermalink }}';
     import { getSuggestedEmail } from '{{ $emailSuggestionHelper.RelPermalink }}';
+    import { hasPortOne, requestPortOnePayment } from '{{ $portoneHelper.RelPermalink }}';
 
     document.addEventListener('DOMContentLoaded', function () {
         console.log('DOM loaded, checking dependencies...');
@@ -465,6 +467,12 @@
 
         if (!cartContainer || !totalEl || !payBtn || !shippingForm || !paymentMethodsContainer) {
             console.error('Checkout page is missing required elements');
+            return;
+        }
+
+        if (!hasPortOne()) {
+            console.error('PortOne SDK is not loaded!');
+            alert('시스템 초기화 오류: 결제 SDK 로딩 실패');
             return;
         }
 
@@ -879,7 +887,7 @@
                     redirectUrl: location.origin + '/payment/complete',
                 };
 
-                const response = await PortOne.requestPayment(requestData);
+                const response = await requestPortOnePayment(requestData);
 
                 if (response.code != null) {
                     throw new Error(response.message);

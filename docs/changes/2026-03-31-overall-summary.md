@@ -235,3 +235,20 @@
 - external SDKs
   - `daum` (helper로 격리)
   - `PortOne`
+
+## Latest Update (2026-04-05 PortOne Wrapper)
+
+### Additional Completed Work
+
+- [assets/js/core/portone-client.js](/C:/hugo/ex/shop/assets/js/core/portone-client.js) 추가
+- checkout에서 PortOne SDK 직접 접근 대신 helper wrapper 사용
+
+### Current Remaining Scope
+
+- external SDKs
+  - `daum` (helper로 격리)
+  - `PortOne` (wrapper로 격리)
+- page-specific admin widget style cleanup
+  - EasyMDE overrides
+  - Sortable / image picker shell
+  - 일부 table-specific visuals

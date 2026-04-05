@@ -807,3 +807,52 @@
 - `pnpm lint` 통과
 - `pnpm build` 통과
 - `pnpm preflight:release` 통과
+
+## 추가 진행 (2026-04-05 admin widget style cleanup)
+
+### 48. Admin widget style cleanup 진행
+
+- 파일:
+  - [assets/scss/admin-posts.scss](/C:/hugo/ex/shop/assets/scss/admin-posts.scss)
+  - [assets/scss/admin-products.scss](/C:/hugo/ex/shop/assets/scss/admin-products.scss)
+  - [assets/scss/admin-shell.scss](/C:/hugo/ex/shop/assets/scss/admin-shell.scss)
+  - [layouts/admin/posts.html](/C:/hugo/ex/shop/layouts/admin/posts.html)
+  - [layouts/admin/single.html](/C:/hugo/ex/shop/layouts/admin/single.html)
+  - [layouts/admin/baseof.html](/C:/hugo/ex/shop/layouts/admin/baseof.html)
+  - [scripts/check-release-safety.mjs](/C:/hugo/ex/shop/scripts/check-release-safety.mjs)
+- 반영 사항:
+  - admin 공통 shell primitive는 shared stylesheet로 유지
+  - posts / products 전용 위젯 스타일을 page-specific SCSS로 분리
+  - preflight script의 ENOENT race를 보강
+- 현재 상태:
+  - 실제 렌더링에 필요한 공통/전용 스타일은 stylesheet로 분리된 상태
+  - 템플릿 내부에는 과거 스타일 블록의 주석 잔여가 일부 남아 있으며, 이는 후속 정리 대상으로 남김
+- 효과:
+  - admin widget style debt가 공통/전용 레이어로 분리됨
+  - 남은 cleanup 범위가 주석 잔여 및 위젯 특화 스타일로 좁혀짐
+
+### 49. 최신 검증
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
+
+## 추가 진행 (2026-04-05 PortOne wrapper)
+
+### 50. PortOne 접근 래핑
+
+- 파일:
+  - [assets/js/core/portone-client.js](/C:/hugo/ex/shop/assets/js/core/portone-client.js)
+  - [layouts/partials/checkout/scripts.html](/C:/hugo/ex/shop/layouts/partials/checkout/scripts.html)
+- 반영 사항:
+  - checkout에서 `PortOne.requestPayment(...)` 직접 호출 대신 helper wrapper 사용
+  - SDK 존재 여부 확인을 helper 기준으로 수행
+- 효과:
+  - 외부 결제 SDK 접근이 한 helper에 집중됨
+  - 추후 결제 경로 검증/교체 시 영향 범위가 줄어듦
+
+### 51. 최신 검증
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
