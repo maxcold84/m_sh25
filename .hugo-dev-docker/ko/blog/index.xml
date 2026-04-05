@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>최신 포스트 on Vex Hugo (Korean)</title>
+    <link>http://host.docker.internal:1314/ko/blog/</link>
+    <description>Recent content in 최신 포스트 on Vex Hugo (Korean)</description>
+    <generator>Hugo</generator>
+    <language>ko</language>
+    <lastBuildDate>Sun, 05 Apr 2026 06:09:32 +0000</lastBuildDate>
+    <atom:link href="http://host.docker.internal:1314/ko/blog/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>한글</title>
+      <link>http://host.docker.internal:1314/ko/blog/%ED%95%9C%EA%B8%80/</link>
+      <pubDate>Sun, 05 Apr 2026 06:09:32 +0000</pubDate>
+      <guid>http://host.docker.internal:1314/ko/blog/%ED%95%9C%EA%B8%80/</guid>
+      <description>&lt;p&gt;ㄹㄴㄹㅇㄴㄹㅇㄹㄴ&lt;img src=&#34;https://cdn.midjourney.com/styles/0_3930483878/house_640_N.webp&#34; alt=&#34;ㄹㄹㅇㄹ&#34;&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>dwdw</title>
+      <link>http://host.docker.internal:1314/ko/blog/dwdw/</link>
+      <pubDate>Tue, 31 Mar 2026 11:53:05 +0000</pubDate>
+      <guid>http://host.docker.internal:1314/ko/blog/dwdw/</guid>
+      <description>&lt;p&gt;fdsafsafds&lt;strong&gt;fdsfdsafdsafs&lt;/strong&gt;&#xA;&lt;img src=&#34;https://cdn.midjourney.com/styles/0_2852371714/house_640_N.webp&#34; alt=&#34;&#34;&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

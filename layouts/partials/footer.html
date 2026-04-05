@@ -50,5 +50,5 @@
 
 <!-- Auth Script -->
 <script>
-  const loginUrl = "{{ "login" | relLangURL }}";
+  const loginUrl = "{{ replaceRE "/?$" "/" ("login" | relLangURL) }}";
 </script>

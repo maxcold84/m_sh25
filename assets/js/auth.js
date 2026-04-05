@@ -16,6 +16,42 @@ const Auth = (function () {
     const AUTH_TABS = ['login', 'signup'];
     let oauthProvidersPromise = null;
 
+    function withNoAutoCancel(options = {}) {
+        return {
+            ...options,
+            requestKey: null
+        };
+    }
+
+    function escapeFilterValue(value) {
+        return String(value)
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"');
+    }
+
+    function getPocketBaseErrorMessage(error, fallbackMessage) {
+        const fieldErrors = error?.response?.data || error?.data?.data || {};
+        const fieldMessages = Object.values(fieldErrors)
+            .map(detail => detail?.message)
+            .filter(Boolean);
+
+        if (fieldMessages.length > 0) {
+            return fieldMessages.join(' / ');
+        }
+
+        return error?.response?.message || error?.message || fallbackMessage;
+    }
+
+    function setSubmitButtonState(form, isPending, pendingLabel, defaultLabel) {
+        const submitButton = form?.querySelector('button[type="submit"]');
+        if (!submitButton) {
+            return;
+        }
+
+        submitButton.disabled = isPending;
+        submitButton.textContent = isPending ? pendingLabel : defaultLabel;
+    }
+
     function init() {
         updateAuthUI();
 
@@ -147,10 +183,28 @@ const Auth = (function () {
         setActiveTab(AUTH_TABS.includes(requestedTab) ? requestedTab : getDefaultTab(), { updateUrl: false });
 
         tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
                 setActiveTab(button.dataset.authTab || 'login');
             });
         });
+
+        const loginNavLink = document.querySelector('#auth-login-link a');
+        const signupNavLink = document.querySelector('#auth-signup-link a');
+
+        if (loginNavLink) {
+            loginNavLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                setActiveTab('login');
+            });
+        }
+
+        if (signupNavLink) {
+            signupNavLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                setActiveTab('signup');
+            });
+        }
 
         addEventListener('hashchange', () => {
             const hashTab = location.hash.replace('#', '');
@@ -332,11 +386,12 @@ const Auth = (function () {
     async function handleLogin(event) {
         event.preventDefault();
         const form = event.target;
-        const email = form.email.value;
+        const email = form.email.value.trim();
         const password = form.password.value;
         const messageEl = document.getElementById('login-message');
 
         try {
+            setSubmitButtonState(form, true, '로그인 중...', '로그인');
             showMessage(messageEl, '로그인 중...', 'info');
             await pb.collection('users').authWithPassword(email, password);
             showMessage(messageEl, '로그인 성공!', 'success');
@@ -356,18 +411,29 @@ const Auth = (function () {
         } catch (error) {
             console.error('Login failed:', error);
             showMessage(messageEl, '이메일 또는 비밀번호가 일치하지 않습니다.', 'danger');
+        } finally {
+            setSubmitButtonState(form, false, '로그인 중...', '로그인');
         }
     }
 
     async function handleSignup(event) {
         event.preventDefault();
         const form = event.target;
-        const email = form.email.value;
+        const email = form.email.value.trim();
         const password = form.password.value;
         const passwordConfirm = form.passwordConfirm.value;
-        const name = form.name?.value || '';
-        const nickname = form.nickname?.value || '';
+        const name = form.name?.value.trim() || '';
+        const nickname = form.nickname?.value.trim() || '';
         const messageEl = document.getElementById('signup-message');
+
+        if (form.nickname) {
+            form.nickname.value = nickname;
+        }
+
+        if (!nickname) {
+            showMessage(messageEl, '닉네임을 입력해주세요.', 'warning');
+            return;
+        }
 
         if (password !== passwordConfirm) {
             showMessage(messageEl, '비밀번호가 일치하지 않습니다.', 'danger');
@@ -375,11 +441,22 @@ const Auth = (function () {
         }
 
         if (nickname && (!nicknameChecked || nickname !== checkedNickname)) {
-            showMessage(messageEl, '닉네임 중복 확인이 필요합니다.', 'warning');
-            return;
+            if (nicknameCheckTimeout) {
+                clearTimeout(nicknameCheckTimeout);
+                nicknameCheckTimeout = null;
+            }
+
+            showMessage(messageEl, '닉네임 확인 중...', 'info');
+
+            const isNicknameAvailable = await checkNickname(nickname);
+            if (!isNicknameAvailable || !nicknameChecked || nickname !== checkedNickname) {
+                showMessage(messageEl, '닉네임을 다시 확인해주세요.', 'warning');
+                return;
+            }
         }
 
         try {
+            setSubmitButtonState(form, true, '회원가입 처리 중...', '회원가입');
             showMessage(messageEl, '회원가입 처리 중...', 'info');
 
             const data = {
@@ -390,8 +467,8 @@ const Auth = (function () {
                 username: nickname || email.split('@')[0]
             };
 
-            await pb.collection('users').create(data);
-            await pb.collection('users').authWithPassword(email, password);
+            await pb.collection('users').create(data, withNoAutoCancel());
+            await pb.collection('users').authWithPassword(email, password, withNoAutoCancel());
 
             showMessage(messageEl, '회원가입 성공! 로그인 중...', 'success');
             showToast('회원가입을 축하합니다!');
@@ -405,9 +482,13 @@ const Auth = (function () {
             if (error.data?.data?.email) {
                 errorMsg = '이미 가입된 이메일입니다.';
             } else if (error.data?.data?.username) {
-                errorMsg = '이미 사용 중인 닉네임입니다.';
+                errorMsg = getPocketBaseErrorMessage(error, '닉네임을 다시 확인해주세요.');
+            } else {
+                errorMsg = getPocketBaseErrorMessage(error, errorMsg);
             }
             showMessage(messageEl, errorMsg, 'danger');
+        } finally {
+            setSubmitButtonState(form, false, '회원가입 처리 중...', '회원가입');
         }
     }
 
@@ -605,38 +686,41 @@ const Auth = (function () {
             updateNicknameStatus('', '');
             nicknameChecked = false;
             checkedNickname = '';
-            return;
+            return false;
         }
 
         const requestId = ++nicknameCheckRequestId;
 
         try {
-            const result = await pb.collection('users').getList(1, 1, {
-                filter: `username = "${nickname}"`
-            });
+            const result = await pb.collection('users').getList(1, 1, withNoAutoCancel({
+                filter: `username = "${escapeFilterValue(nickname)}"`
+            }));
 
             if (requestId !== nicknameCheckRequestId) {
-                return;
+                return false;
             }
 
             if (result.totalItems > 0) {
                 updateNicknameStatus('이미 사용 중인 닉네임입니다.', 'danger');
                 nicknameChecked = false;
                 checkedNickname = '';
+                return false;
             } else {
                 updateNicknameStatus('사용 가능한 닉네임입니다.', 'success');
                 nicknameChecked = true;
                 checkedNickname = nickname;
+                return true;
             }
         } catch (error) {
             if (requestId !== nicknameCheckRequestId) {
-                return;
+                return false;
             }
 
             console.error('Nickname check failed:', error);
-            updateNicknameStatus('닉네임 확인 중 오류가 발생했습니다.', 'warning');
+            updateNicknameStatus(getPocketBaseErrorMessage(error, '닉네임 확인 중 오류가 발생했습니다.'), 'warning');
             nicknameChecked = false;
             checkedNickname = '';
+            return false;
         }
     }
 
@@ -660,7 +744,10 @@ const Auth = (function () {
                 checkedNickname = '';
             }
             if (nicknameCheckTimeout) clearTimeout(nicknameCheckTimeout);
-            nicknameCheckTimeout = setTimeout(() => { checkNickname(nickname); }, 500);
+            nicknameCheckTimeout = setTimeout(() => {
+                nicknameCheckTimeout = null;
+                void checkNickname(nickname);
+            }, 500);
         });
     }
 

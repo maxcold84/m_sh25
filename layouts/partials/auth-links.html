@@ -1,14 +1,13 @@
 {{/* Fixed whitespace with variables */}}
-{{ $login := "login" }}
-{{ $signup := "signup" }}
+{{ $login := replaceRE "/?$" "/" ("login" | relLangURL) }}
 {{ $profile := "profile" }}
 <li class="w-full md:w-auto" id="auth-login-link">
     <a class="block rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 md:px-3 md:py-2"
-        href="{{ $login | relLangURL }}">{{- if eq .Site.Language.Lang "ko" }}로그인{{ else }}Login{{ end -}}</a>
+        href="{{ $login }}">{{- if eq .Site.Language.Lang "ko" }}로그인{{ else }}Login{{ end -}}</a>
 </li>
 <li class="w-full md:w-auto" id="auth-signup-link">
     <a class="block rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 md:px-3 md:py-2"
-        href="{{ $login | relLangURL }}#signup">{{- if eq .Site.Language.Lang "ko" }}회원가입{{ else }}Sign Up{{ end -}}</a>
+        href="{{ $login }}#signup">{{- if eq .Site.Language.Lang "ko" }}회원가입{{ else }}Sign Up{{ end -}}</a>
 </li>
 <li class="w-full md:w-auto" id="auth-logout-link" style="display: none;">
     <a class="block rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 md:px-3 md:py-2"

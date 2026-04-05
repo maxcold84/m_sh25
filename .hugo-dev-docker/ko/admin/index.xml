@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Admins on Vex Hugo (Korean)</title>
+    <link>http://host.docker.internal:1314/ko/admin/</link>
+    <description>Recent content in Admins on Vex Hugo (Korean)</description>
+    <generator>Hugo</generator>
+    <language>ko</language>
+    <atom:link href="http://host.docker.internal:1314/ko/admin/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>관리자 로그인</title>
+      <link>http://host.docker.internal:1314/ko/admin/login/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://host.docker.internal:1314/ko/admin/login/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>블로그 관리</title>
+      <link>http://host.docker.internal:1314/ko/admin/posts/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://host.docker.internal:1314/ko/admin/posts/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>상품 관리</title>
+      <link>http://host.docker.internal:1314/ko/admin/products/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://host.docker.internal:1314/ko/admin/products/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>주문 관리</title>
+      <link>http://host.docker.internal:1314/ko/admin/orders/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://host.docker.internal:1314/ko/admin/orders/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>

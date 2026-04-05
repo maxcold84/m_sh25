@@ -1,5 +1,4 @@
 ---
 title: "Sign Up"
-layout: "auth"
-authType: "signup"
+layout: "auth-redirect"
 ---

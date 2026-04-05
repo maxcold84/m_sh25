@@ -10,8 +10,89 @@ import { hasDaumPostcode, embedDaumPostcode } from './core/daum-postcode.js';
 let postcodeLayer = null;
 let postcodeContainer = null;
 let profileActionListenerBound = false;
+let missingUserRedirectScheduled = false;
 
-function init() {
+function withNoAutoCancel(options = {}) {
+    return {
+        ...options,
+        requestKey: null
+    };
+}
+
+function escapeFilterValue(value) {
+    return String(value)
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"');
+}
+
+function getPocketBaseErrorMessage(error, fallbackMessage) {
+    const fieldErrors = error?.response?.data || error?.data?.data || {};
+    const fieldMessages = Object.values(fieldErrors)
+        .map(detail => detail?.message)
+        .filter(Boolean);
+
+    if (fieldMessages.length > 0) {
+        return fieldMessages.join(' / ');
+    }
+
+    return error?.response?.message || error?.message || fallbackMessage;
+}
+
+function isNotFoundError(error) {
+    return error?.status === 404 || error?.response?.code === 404;
+}
+
+function redirectToLoginBecauseUserIsMissing() {
+    if (missingUserRedirectScheduled) {
+        return;
+    }
+
+    missingUserRedirectScheduled = true;
+    pb.authStore.clear();
+    showToast('로그인 세션이 만료되었습니다. 다시 로그인해주세요.', { isError: true });
+    setTimeout(() => {
+        location.href = document.documentElement.lang === 'ko' ? '/ko/login/' : '/en/login/';
+    }, 1200);
+}
+
+async function getCurrentUserRecord(options = {}) {
+    const { refresh = false, redirectOnMissing = false } = options;
+    const authUser = pb.authStore.model;
+
+    if (!pb.authStore.isValid || !authUser?.id) {
+        return null;
+    }
+
+    const hasUsableProfile =
+        Boolean(authUser.email)
+        && Boolean(authUser.username || authUser.name || authUser.phone || authUser.address);
+
+    if (!refresh && hasUsableProfile) {
+        return authUser;
+    }
+
+    try {
+        const freshUser = await pb.collection('users').getOne(authUser.id, withNoAutoCancel());
+        pb.authStore.save(pb.authStore.token, {
+            ...authUser,
+            ...freshUser
+        });
+        return pb.authStore.model;
+    } catch (error) {
+        if (isNotFoundError(error)) {
+            console.warn('Current user record was not found:', error);
+            if (redirectOnMissing) {
+                redirectToLoginBecauseUserIsMissing();
+            }
+            return null;
+        }
+
+        console.warn('Failed to refresh current user record, falling back to auth store:', error);
+        return authUser;
+    }
+}
+
+async function init() {
     // Page check: Only run on profile page
     const saveBtn = document.getElementById('save-button');
     const orderHistory = document.getElementById('order-history-list');
@@ -20,7 +101,7 @@ function init() {
         return; // Not on profile page
     }
 
-    const currentUser = pb.authStore.model;
+    const currentUser = await getCurrentUserRecord({ refresh: true, redirectOnMissing: true });
 
     if (!currentUser) {
         showToast('로그인이 필요합니다.', { isError: true });
@@ -33,8 +114,8 @@ function init() {
     postcodeLayer = document.getElementById('daum-layer');
     postcodeContainer = document.getElementById('daum-postcode-container');
 
-    loadUserProfile();
-    loadOrderHistory(); // Load orders
+    await loadUserProfile(currentUser);
+    await loadOrderHistory(); // Load orders
     bindProfileActionListeners();
 
     if (saveBtn) {
@@ -195,16 +276,19 @@ function openPostcode() {
     });
 }
 
-async function loadUserProfile() {
+async function loadUserProfile(userRecord = null) {
     try {
-        const currentUser = pb.authStore.model;
+        const currentUser = userRecord || await getCurrentUserRecord({ refresh: true });
+        if (!currentUser) {
+            throw new Error('Current user is unavailable');
+        }
 
         // Load basic info (readonly)
         const nameInput = document.getElementById('name');
         if (nameInput) nameInput.value = currentUser.name || '';
 
         const nicknameInput = document.getElementById('nickname');
-        if (nicknameInput) nicknameInput.value = currentUser.username || '';
+        if (nicknameInput) nicknameInput.value = currentUser.username || currentUser.name || '';
 
         const emailInput = document.getElementById('email');
         if (emailInput) emailInput.value = currentUser.email || '';
@@ -233,7 +317,7 @@ async function loadUserProfile() {
 
 async function handleSave() {
     const saveBtn = document.getElementById('save-button');
-    const currentUser = pb.authStore.model;
+    const currentUser = await getCurrentUserRecord({ refresh: true, redirectOnMissing: true });
 
     if (!currentUser) {
         showToast('로그인이 필요합니다.', { isError: true });
@@ -241,19 +325,38 @@ async function handleSave() {
     }
 
     // Get form data
+    const name = document.getElementById('name').value.trim();
     const nickname = document.getElementById('nickname').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const postcode = document.getElementById('postcode').value.trim();
     const address = document.getElementById('address').value.trim();
     const detailAddress = document.getElementById('detailAddress').value.trim();
     const extraAddress = document.getElementById('extraAddress').value.trim();
+    const currentUsername = currentUser.username || '';
+
+    if (!nickname) {
+        showToast('닉네임을 입력해주세요.', { isError: true });
+        return;
+    }
 
     // Disable button during save
     saveBtn.disabled = true;
     saveBtn.textContent = '저장중...';
 
     try {
+        if (nickname !== currentUsername) {
+            const duplicateCheck = await pb.collection('users').getList(1, 1, withNoAutoCancel({
+                filter: `username = "${escapeFilterValue(nickname)}" && id != "${escapeFilterValue(currentUser.id)}"`
+            }));
+
+            if (duplicateCheck.totalItems > 0) {
+                showToast('이미 사용 중인 닉네임입니다.', { isError: true });
+                return;
+            }
+        }
+
         const data = {
+            name: name,
             phone: phone,
             postcode: postcode,
             address: address,
@@ -262,16 +365,21 @@ async function handleSave() {
             username: nickname
         };
 
-        // Update user record
-        await pb.collection('users').update(currentUser.id, data);
+        const updatedUser = await pb.collection('users').update(currentUser.id, data, withNoAutoCancel());
 
-        // Refresh auth store to get updated user data
-        await pb.collection('users').authRefresh();
+        if (pb.authStore.isValid && pb.authStore.model?.id === updatedUser.id) {
+            pb.authStore.save(pb.authStore.token, {
+                ...pb.authStore.model,
+                ...updatedUser
+            });
+        }
+
+        await loadUserProfile(updatedUser);
 
         showToast('프로필이 성공적으로 저장되었습니다!', { isError: false });
     } catch (error) {
         console.error('Failed to save profile:', error);
-        showToast('프로필 저장에 실패했습니다: ' + error.message, { isError: true });
+        showToast(`프로필 저장에 실패했습니다: ${getPocketBaseErrorMessage(error, '잠시 후 다시 시도해주세요.')}`, { isError: true });
     } finally {
         saveBtn.disabled = false;
         saveBtn.textContent = '저장하기';
@@ -280,7 +388,7 @@ async function handleSave() {
 
 async function loadOrderHistory() {
     const container = document.getElementById('order-history-list');
-    const currentUser = pb.authStore.model;
+    const currentUser = await getCurrentUserRecord({ refresh: true, redirectOnMissing: true });
 
     if (!currentUser || !container) return;
 
@@ -426,7 +534,7 @@ async function loadOrderHistory() {
 
 async function handlePasswordChange() {
     const changeBtn = document.getElementById('change-password-btn');
-    const currentUser = pb.authStore.model;
+    const currentUser = await getCurrentUserRecord({ refresh: true, redirectOnMissing: true });
 
     if (!currentUser) {
         showToast('로그인이 필요합니다.', { isError: true });
@@ -456,7 +564,7 @@ async function handlePasswordChange() {
             oldPassword: oldPassword,
             password: newPassword,
             passwordConfirm: newPasswordConfirm
-        });
+        }, withNoAutoCancel());
 
         showToast('비밀번호가 성공적으로 변경되었습니다.', { isError: false });
 
@@ -467,7 +575,7 @@ async function handlePasswordChange() {
 
     } catch (error) {
         console.error('Failed to change password:', error);
-        showToast('비밀번호 변경 실패: ' + error.message, { isError: true });
+        showToast(`비밀번호 변경 실패: ${getPocketBaseErrorMessage(error, '잠시 후 다시 시도해주세요.')}`, { isError: true });
     } finally {
         changeBtn.disabled = false;
         changeBtn.textContent = '비밀번호 변경';

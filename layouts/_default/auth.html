@@ -6,22 +6,24 @@
                 <h1 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{{ .Title }}</h1>
             </div>
 
+            {{ $loginUrl := replaceRE "/?$" "/" ("login" | relLangURL) }}
+            {{ $signupHashUrl := printf "%s#signup" $loginUrl }}
             {{ $authType := .Params.authType | default "login" }}
             {{ $loginActive := eq $authType "login" }}
             {{ $signupActive := eq $authType "signup" }}
 
             <div class="mt-6 grid grid-cols-2 rounded-2xl bg-slate-100 p-1 text-sm font-semibold text-slate-500"
                 role="tablist" aria-label="{{ .Title }}">
-                <button type="button" id="login-tab" data-auth-tab="login" role="tab" aria-controls="login"
+                <a href="{{ $loginUrl }}" id="login-tab" data-auth-tab="login" role="tab" aria-controls="login"
                     aria-selected="{{ if $loginActive }}true{{ else }}false{{ end }}"
                     class="rounded-xl px-3 py-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 {{ if $loginActive }}bg-white text-slate-900 shadow-sm ring-1 ring-slate-200{{ else }}text-slate-500 hover:text-slate-900{{ end }}">
                     {{ T "login" }}
-                </button>
-                <button type="button" id="signup-tab" data-auth-tab="signup" role="tab" aria-controls="signup"
+                </a>
+                <a href="{{ $signupHashUrl }}" id="signup-tab" data-auth-tab="signup" role="tab" aria-controls="signup"
                     aria-selected="{{ if $signupActive }}true{{ else }}false{{ end }}"
                     class="rounded-xl px-3 py-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 {{ if $signupActive }}bg-white text-slate-900 shadow-sm ring-1 ring-slate-200{{ else }}text-slate-500 hover:text-slate-900{{ end }}">
                     {{ T "signup" }}
-                </button>
+                </a>
             </div>
 
             <div class="mt-6">
