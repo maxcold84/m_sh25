@@ -1,5 +1,24 @@
 const configCache = new Map();
 
+function normalizeConfigValue(value, id) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+        return value;
+    }
+
+    if (typeof value === 'string') {
+        try {
+            const nestedValue = JSON.parse(value);
+            if (nestedValue && typeof nestedValue === 'object' && !Array.isArray(nestedValue)) {
+                return nestedValue;
+            }
+        } catch (error) {
+            console.warn(`Failed to parse nested runtime config: ${id}`, error);
+        }
+    }
+
+    return {};
+}
+
 function readJsonScript(id) {
     if (configCache.has(id)) {
         return configCache.get(id);
@@ -12,7 +31,8 @@ function readJsonScript(id) {
     }
 
     try {
-        const value = JSON.parse(scriptEl.textContent || '{}');
+        const rawValue = JSON.parse(scriptEl.textContent || '{}');
+        const value = normalizeConfigValue(rawValue, id);
         configCache.set(id, value);
         return value;
     } catch (error) {

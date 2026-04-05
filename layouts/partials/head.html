@@ -57,10 +57,10 @@
   <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 
   <!-- Site Configuration -->
-  <script id="site-config" type="application/json">{{ jsonify (dict "pocketbaseUrl" site.Params.pocketbase.url) }}</script>
+  <script id="site-config" type="application/json">{{ dict "pocketbaseUrl" site.Params.pocketbase.url | jsonify | safeJS }}</script>
 
   <!-- Shop Configuration -->
-  <script id="shop-config" type="application/json">{{ jsonify (dict
+  <script id="shop-config" type="application/json">{{ dict
     "storeId" site.Params.portone.store_id
     "channels" (dict
       "inicis" site.Params.portone.inicis_channel_key
@@ -68,7 +68,7 @@
       "korean_payment" site.Params.portone.korean_payment_channel_key
     )
     "koreanPaymentPassKey" "uC8xslzJfLSuc67mrBTGAC7ANOX8EbIa"
-  ) }}</script>
+  | jsonify | safeJS }}</script>
 
   <!-- PocketBase & Mustache (외부 라이브러리) -->
   {{ $pb := resources.Get "js/pocketbase.umd.js" }}

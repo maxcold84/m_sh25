@@ -338,7 +338,19 @@
             }
 
             try {
-                return JSON.parse(scriptEl.textContent || '{}');
+                const rawValue = JSON.parse(scriptEl.textContent || '{}');
+                if (rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue)) {
+                    return rawValue;
+                }
+
+                if (typeof rawValue === 'string') {
+                    const nestedValue = JSON.parse(rawValue);
+                    if (nestedValue && typeof nestedValue === 'object' && !Array.isArray(nestedValue)) {
+                        return nestedValue;
+                    }
+                }
+
+                return {};
             } catch (error) {
                 console.warn(`Failed to parse checkout config: ${id}`, error);
                 return {};

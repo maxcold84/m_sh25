@@ -28,7 +28,7 @@
 
   {{ "<!-- Site Configuration -->" | safeHTML }}
   <script src="{{ (resources.Get "js/pocketbase.umd.js").Permalink }}"></script>
-  <script id="site-config" type="application/json">{{ jsonify (dict "pocketbaseUrl" site.Params.pocketbase.url) }}</script>
+  <script id="site-config" type="application/json">{{ dict "pocketbaseUrl" site.Params.pocketbase.url | jsonify | safeJS }}</script>
 </head>
 
 <body id="body" class="admin-shell">
