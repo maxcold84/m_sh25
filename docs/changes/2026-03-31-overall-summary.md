@@ -199,3 +199,39 @@
   - `PortOne`
 - Tailwind utility/class 기준으로 남은 local style block 축소
 - ESLint globals whitelist 추가 축소 및 override 세분화
+
+## Latest Update (2026-04-05 Admin Shell Consolidation)
+
+### Additional Completed Work
+
+- [assets/scss/admin-shell.scss](/C:/hugo/ex/shop/assets/scss/admin-shell.scss) 추가
+- [layouts/admin/posts.html](/C:/hugo/ex/shop/layouts/admin/posts.html), [layouts/admin/single.html](/C:/hugo/ex/shop/layouts/admin/single.html) 의 공통 admin shell CSS를 shared stylesheet로 이동
+- admin 템플릿 local style block은 페이지 특화 영역 위주로 축소
+
+### Current Remaining Scope
+
+- page-specific admin widget styles
+  - EasyMDE overrides
+  - Sortable / image picker shell
+  - post/product table-specific visuals
+- external SDKs
+  - `daum` (helper로 격리)
+  - `PortOne`
+
+## Latest Update (2026-04-05 Admin Page Styles)
+
+### Additional Completed Work
+
+- admin shell 공통 스타일은 [admin-shell.scss](/C:/hugo/ex/shop/assets/scss/admin-shell.scss) 로 유지
+- posts / products 전용 스타일을 [admin-posts.scss](/C:/hugo/ex/shop/assets/scss/admin-posts.scss), [admin-products.scss](/C:/hugo/ex/shop/assets/scss/admin-products.scss) 로 분리
+- release preflight 스크립트에 ENOENT race 방어 추가
+
+### Current Remaining Scope
+
+- page-specific admin widget style cleanup
+  - EasyMDE overrides
+  - Sortable / image picker shell
+  - 일부 table-specific visuals
+- external SDKs
+  - `daum` (helper로 격리)
+  - `PortOne`

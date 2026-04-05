@@ -51,7 +51,17 @@ function walk(dirPath, options = {}) {
         return;
     }
 
-    for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
+    let entries = [];
+    try {
+        entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    } catch (error) {
+        if (error?.code === 'ENOENT') {
+            return;
+        }
+        throw error;
+    }
+
+    for (const entry of entries) {
         const fullPath = path.join(dirPath, entry.name);
         if (entry.isDirectory()) {
             walk(fullPath, options);

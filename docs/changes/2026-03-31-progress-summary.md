@@ -751,3 +751,59 @@
 - `pnpm lint` 통과
 - `pnpm build` 통과
 - `pnpm preflight:release` 는 실행 중인 `hugo` dev 프로세스가 `server/` 산출물을 덮는 경우 흔들릴 수 있음
+
+## 추가 진행 (2026-04-05 admin shell 공통화)
+
+### 43. Admin shared stylesheet 도입
+
+- 파일:
+  - [assets/scss/admin-shell.scss](/C:/hugo/ex/shop/assets/scss/admin-shell.scss)
+  - [layouts/admin/baseof.html](/C:/hugo/ex/shop/layouts/admin/baseof.html)
+  - [layouts/admin/posts.html](/C:/hugo/ex/shop/layouts/admin/posts.html)
+  - [layouts/admin/single.html](/C:/hugo/ex/shop/layouts/admin/single.html)
+- 반영 사항:
+  - admin shell 공통 primitive(`admin-toolbar`, `admin-card`, `admin-field`, `admin-btn`, `admin-modal` 등)를 shared stylesheet로 이동
+  - posts / products 템플릿에서는 공통 중복 스타일을 제거하고 페이지별 스타일만 남김
+- 효과:
+  - admin local style block 중복이 줄어듦
+  - 남은 스타일은 EasyMDE, Sortable, table/product-specific shell처럼 페이지 특화 영역 위주로 축소됨
+
+### 44. 최신 검증
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과
+
+## 추가 진행 (2026-04-05 admin page-style 정리)
+
+### 45. Admin page-specific stylesheet 분리
+
+- 파일:
+  - [assets/scss/admin-posts.scss](/C:/hugo/ex/shop/assets/scss/admin-posts.scss)
+  - [assets/scss/admin-products.scss](/C:/hugo/ex/shop/assets/scss/admin-products.scss)
+  - [assets/scss/admin-shell.scss](/C:/hugo/ex/shop/assets/scss/admin-shell.scss)
+  - [layouts/admin/baseof.html](/C:/hugo/ex/shop/layouts/admin/baseof.html)
+  - [layouts/admin/posts.html](/C:/hugo/ex/shop/layouts/admin/posts.html)
+  - [layouts/admin/single.html](/C:/hugo/ex/shop/layouts/admin/single.html)
+- 반영 사항:
+  - admin 공통 shell primitive는 shared stylesheet로 유지
+  - posts / products 전용 스타일을 페이지별 SCSS 파일로 분리
+  - 템플릿에서는 공통 head block을 통해 page stylesheet를 로드하도록 구조 정리
+- 효과:
+  - admin 템플릿의 큰 로컬 스타일 중복이 더 줄어듦
+  - 남은 스타일 debt는 EasyMDE / Sortable / page widget 같은 특화 영역 위주로 축소됨
+
+### 46. Release preflight 안정성 보강
+
+- 파일:
+  - [scripts/check-release-safety.mjs](/C:/hugo/ex/shop/scripts/check-release-safety.mjs)
+- 반영 사항:
+  - `server/` 스캔 중 ENOENT race가 나도 안전하게 넘어가도록 처리
+- 효과:
+  - clean build 직후나 dev 프로세스 영향이 있을 때 preflight가 더 견고하게 동작
+
+### 47. 최신 검증
+
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `pnpm preflight:release` 통과

@@ -23,6 +23,8 @@
   {{ "<!-- admin styles -->" | safeHTML }}
   {{ $styles := resources.Get "scss/style.scss" | toCSS | minify }}
   <link rel="stylesheet" href="{{ $styles.Permalink }}" media="screen">
+  {{ $adminShared := resources.Get "scss/admin-shell.scss" | toCSS | minify }}
+  <link rel="stylesheet" href="{{ $adminShared.Permalink }}" media="screen">
 
   {{ "<!-- Site Configuration -->" | safeHTML }}
   <script src="{{ (resources.Get "js/pocketbase.umd.js").Permalink }}"></script>
