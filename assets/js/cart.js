@@ -6,6 +6,13 @@
 import { pb } from './core/pb-client.js';
 import { formatCurrency as formatCurrencyUtil, showToast } from './core/utils.js';
 
+function withNoAutoCancel(options = {}) {
+    return {
+        ...options,
+        requestKey: null
+    };
+}
+
 function isKoreanPage() {
     return document.documentElement.lang === 'ko' || location.pathname.includes('/korean/');
 }
@@ -128,6 +135,11 @@ function getDisplayPrice(price) {
     return price;
 }
 
+function normalizeNumber(value, fallback = 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (char) => ({
         '&': '&amp;',
@@ -139,8 +151,8 @@ function escapeHtml(value) {
 }
 
 function updateCartSummary(items) {
-    const count = items.reduce((sum, item) => sum + item.quantity, 0);
-    const total = items.reduce((sum, item) => sum + (getDisplayPrice(item.price) * item.quantity), 0);
+    const count = items.reduce((sum, item) => sum + normalizeNumber(item.quantity), 0);
+    const total = items.reduce((sum, item) => sum + (getDisplayPrice(normalizeNumber(item.price)) * normalizeNumber(item.quantity)), 0);
     const formattedTotal = formatCurrencyUtil(total);
 
     const countElement = document.getElementById('cart-item-count');
@@ -182,6 +194,14 @@ function renderCartError(error) {
     `;
 }
 
+function isAutoCancelledError(error) {
+    return Boolean(
+        error?.isAbort
+        || error?.originalError?.name === 'AbortError'
+        || String(error?.message || '').includes('autocancelled')
+    );
+}
+
 async function fetchProductsByIds(productIds) {
     const uniqueIds = [...new Set(productIds.filter(Boolean))];
     if (uniqueIds.length === 0) {
@@ -193,9 +213,9 @@ async function fetchProductsByIds(productIds) {
             .map(id => `id="${escapeFilterValue(id)}"`)
             .join(' || ');
 
-        const products = await pb.collection('products').getFullList({
+        const products = await pb.collection('products').getFullList(withNoAutoCancel({
             filter
-        });
+        }));
 
         return new Map(products.map(product => [product.id, product]));
     } catch (error) {
@@ -203,7 +223,7 @@ async function fetchProductsByIds(productIds) {
 
         const entries = await Promise.allSettled(
             uniqueIds.map(async id => {
-                const product = await pb.collection('products').getOne(id);
+                const product = await pb.collection('products').getOne(id, withNoAutoCancel());
                 return [id, product];
             })
         );
@@ -258,6 +278,7 @@ export const Cart = {
     config: null,
     realtimeCartId: null,
     realtimeCleanup: null,
+    lastItemsSnapshot: [],
 
     async init(config) {
         this.config = config;
@@ -438,7 +459,7 @@ export const Cart = {
 
                 if (existingItem) {
                     await pb.collection('cart_items').update(existingItem.id, {
-                        quantity: existingItem.quantity + item.quantity,
+                        quantity: normalizeNumber(existingItem.quantity) + normalizeNumber(item.quantity, 1),
                         price: item.price,
                         image: item.image || existingItem.image,
                         name: item.name || existingItem.name,
@@ -488,7 +509,7 @@ export const Cart = {
 
             if (existingItem) {
                 await pb.collection('cart_items').update(existingItem.id, {
-                    quantity: existingItem.quantity + quantityToAdd,
+                    quantity: normalizeNumber(existingItem.quantity) + quantityToAdd,
                     price: product.price,
                     image: product.image,
                     name: product.name,
@@ -522,8 +543,8 @@ export const Cart = {
 
     async changeQuantity(itemId, delta) {
         try {
-            const item = await pb.collection('cart_items').getOne(itemId);
-            const newQuantity = item.quantity + delta;
+            const item = await pb.collection('cart_items').getOne(itemId, withNoAutoCancel());
+            const newQuantity = normalizeNumber(item.quantity, 1) + delta;
 
             if (newQuantity <= 0) {
                 await this.removeItem(itemId);
@@ -538,9 +559,9 @@ export const Cart = {
 
     async updateQuantity(itemId, newQuantity) {
         try {
-            const updatedItem = await pb.collection('cart_items').update(itemId, {
+            const updatedItem = await pb.collection('cart_items').update(itemId, withNoAutoCancel({
                 quantity: newQuantity
-            });
+            }));
 
             this.updateItemUI(updatedItem);
             await this.updateCartTotals();
@@ -558,17 +579,17 @@ export const Cart = {
 
         const qtyEl = itemEl.querySelector('.quantity-value');
         if (qtyEl) {
-            qtyEl.textContent = item.quantity;
+            qtyEl.textContent = normalizeNumber(item.quantity, 1);
         }
 
         const priceEl = itemEl.querySelector('.item-price');
         if (priceEl) {
-            priceEl.textContent = this.formatCurrency(getDisplayPrice(item.price) * item.quantity);
+            priceEl.textContent = this.formatCurrency(getDisplayPrice(normalizeNumber(item.price)) * normalizeNumber(item.quantity, 1));
         }
 
         const minusBtn = itemEl.querySelector('button[aria-label="Decrease quantity"]');
         if (minusBtn) {
-            minusBtn.disabled = item.quantity <= 1;
+            minusBtn.disabled = normalizeNumber(item.quantity, 1) <= 1;
         }
     },
 
@@ -583,7 +604,7 @@ export const Cart = {
 
     async removeItem(itemId) {
         try {
-            await pb.collection('cart_items').delete(itemId);
+            await pb.collection('cart_items').delete(itemId, withNoAutoCancel());
             await this.renderCart();
         } catch (error) {
             console.error('Error removing item:', error);
@@ -594,33 +615,44 @@ export const Cart = {
     async getItems() {
         const cartId = localStorage.getItem('cart_id');
         if (!cartId) {
+            this.lastItemsSnapshot = [];
             return [];
         }
 
         try {
-            const records = await pb.collection('cart_items').getFullList({
+            const records = await pb.collection('cart_items').getFullList(withNoAutoCancel({
                 filter: `cart="${escapeFilterValue(cartId)}"`,
                 sort: '-created'
-            });
+            }));
             const productMap = await fetchProductsByIds(records.map(item => item.product_id));
 
-            return records.map(item => {
+            const items = records.map(item => {
                 const options = normalizeOptions(item.options);
                 const displayOptions = splitOptions(options).variantOptions;
                 const product = productMap.get(item.product_id);
-                const displayPrice = getDisplayPrice(item.price);
+                const quantity = normalizeNumber(item.quantity, 1);
+                const displayPrice = getDisplayPrice(normalizeNumber(item.price));
 
                 return {
                     ...item,
                     options,
                     optionSummary: formatOptionSummary(displayOptions),
-                    formattedPrice: this.formatCurrency(displayPrice * item.quantity),
-                    isMinQuantity: item.quantity <= 1,
+                    quantity,
+                    formattedPrice: this.formatCurrency(displayPrice * quantity),
+                    isMinQuantity: quantity <= 1,
                     productLink: buildProductUrl(product, options)
                 };
             });
+
+            this.lastItemsSnapshot = items;
+            return items;
         } catch (error) {
             console.error('Error fetching items:', error);
+
+            if (isAutoCancelledError(error) && this.lastItemsSnapshot.length > 0) {
+                return this.lastItemsSnapshot;
+            }
+
             return [];
         }
     },
