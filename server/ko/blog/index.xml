@@ -1,1 +1,19 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>최신 포스트 on Vex Hugo (Korean)</title><link>/ko/blog/</link><description>Recent content in 최신 포스트 on Vex Hugo (Korean)</description><generator>Hugo</generator><language>ko</language><lastBuildDate>Tue, 31 Mar 2026 11:53:05 +0000</lastBuildDate><atom:link href="/ko/blog/index.xml" rel="self" type="application/rss+xml"/><item><title>dwdw</title><link>/ko/blog/dwdw/</link><pubDate>Tue, 31 Mar 2026 11:53:05 +0000</pubDate><guid>/ko/blog/dwdw/</guid><description>&lt;p&gt;fdsafsafds&lt;strong&gt;fdsfdsafdsafs&lt;/strong&gt;&lt;/p&gt;</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>최신 포스트 on Vex Hugo (Korean)</title>
+    <link>//localhost:1313/ko/blog/</link>
+    <description>Recent content in 최신 포스트 on Vex Hugo (Korean)</description>
+    <generator>Hugo</generator>
+    <language>ko</language>
+    <lastBuildDate>Tue, 31 Mar 2026 11:53:05 +0000</lastBuildDate>
+    <atom:link href="//localhost:1313/ko/blog/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>dwdw</title>
+      <link>//localhost:1313/ko/blog/dwdw/</link>
+      <pubDate>Tue, 31 Mar 2026 11:53:05 +0000</pubDate>
+      <guid>//localhost:1313/ko/blog/dwdw/</guid>
+      <description>&lt;p&gt;fdsafsafds&lt;strong&gt;fdsfdsafdsafs&lt;/strong&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -14,6 +14,7 @@ const Auth = (function () {
     let nicknameCheckRequestId = 0;
     const AUTH_REDIRECT_KEY = 'auth_redirect';
     const AUTH_TABS = ['login', 'signup'];
+    let oauthProvidersPromise = null;
 
     function init() {
         updateAuthUI();
@@ -89,6 +90,8 @@ const Auth = (function () {
                 }
             });
         });
+
+        void syncOAuthButtons();
 
         // Nickname check setup
         setupNicknameCheck();
@@ -208,6 +211,124 @@ const Auth = (function () {
         }
     }
 
+    function isKoreanLocale() {
+        return document.documentElement.lang === 'ko' || location.pathname.includes('/ko/');
+    }
+
+    function getAuthMessageElement() {
+        return document.getElementById('auth-message');
+    }
+
+    function getOAuthDisplayName(provider) {
+        if (!provider) {
+            return 'OAuth';
+        }
+
+        return provider.charAt(0).toUpperCase() + provider.slice(1);
+    }
+
+    function getOAuthUnavailableMessage(provider) {
+        const providerName = getOAuthDisplayName(provider);
+        return isKoreanLocale()
+            ? `${providerName} 로그인이 아직 설정되지 않았습니다. PocketBase OAuth provider 설정을 먼저 완료해 주세요.`
+            : `${providerName} login is not configured yet. Please finish the PocketBase OAuth provider setup first.`;
+    }
+
+    function getOAuthProvidersEmptyMessage() {
+        return isKoreanLocale()
+            ? '현재 사용 가능한 소셜 로그인이 없습니다. PocketBase OAuth provider 설정을 확인해 주세요.'
+            : 'No social login providers are available right now. Please check the PocketBase OAuth provider setup.';
+    }
+
+    function getOAuthProvidersLoadErrorMessage() {
+        return isKoreanLocale()
+            ? '소셜 로그인 설정을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+            : 'We could not verify the social login configuration. Please try again shortly.';
+    }
+
+    function getOAuthLoginFailedMessage(provider, error) {
+        const providerName = getOAuthDisplayName(provider);
+        const rawMessage = error?.response?.message || error?.data?.message || error?.message || '';
+
+        if (/missing or invalid provider/i.test(rawMessage)) {
+            return getOAuthUnavailableMessage(provider);
+        }
+
+        return isKoreanLocale()
+            ? `${providerName} 로그인에 실패했습니다.`
+            : `${providerName} sign-in failed.`;
+    }
+
+    async function getAvailableOAuthProviders(forceRefresh = false) {
+        if (!forceRefresh && oauthProvidersPromise) {
+            return oauthProvidersPromise;
+        }
+
+        oauthProvidersPromise = pb.collection('users')
+            .listAuthMethods()
+            .then((authMethods) => new Set((authMethods.authProviders || []).map(provider => provider.name)))
+            .catch((error) => {
+                oauthProvidersPromise = null;
+                throw error;
+            });
+
+        return oauthProvidersPromise;
+    }
+
+    async function syncOAuthButtons() {
+        const oauthButtons = Array.from(document.querySelectorAll('.oauth-login-btn'));
+        const oauthGrid = document.getElementById('oauth-login-grid');
+        const oauthStatus = document.getElementById('oauth-provider-status');
+
+        if (!oauthButtons.length) {
+            return;
+        }
+
+        try {
+            const availableProviders = await getAvailableOAuthProviders();
+            let visibleButtonCount = 0;
+
+            oauthButtons.forEach((button) => {
+                const provider = button.dataset.provider || '';
+                const isAvailable = availableProviders.has(provider);
+
+                button.hidden = !isAvailable;
+                button.disabled = !isAvailable;
+                button.setAttribute('aria-disabled', String(!isAvailable));
+
+                if (isAvailable) {
+                    visibleButtonCount += 1;
+                }
+            });
+
+            if (oauthGrid) {
+                oauthGrid.hidden = visibleButtonCount === 0;
+            }
+
+            if (oauthStatus) {
+                oauthStatus.hidden = visibleButtonCount !== 0;
+                oauthStatus.textContent = visibleButtonCount === 0 ? getOAuthProvidersEmptyMessage() : '';
+            }
+        } catch (error) {
+            console.error('Failed to load OAuth auth methods:', error);
+
+            oauthButtons.forEach((button) => {
+                button.hidden = false;
+                button.disabled = false;
+                button.removeAttribute('aria-disabled');
+            });
+
+            if (oauthGrid) {
+                oauthGrid.hidden = false;
+            }
+
+            if (oauthStatus) {
+                oauthStatus.hidden = false;
+                oauthStatus.textContent = getOAuthProvidersLoadErrorMessage();
+            }
+        }
+    }
+
     async function handleLogin(event) {
         event.preventDefault();
         const form = event.target;
@@ -291,7 +412,15 @@ const Auth = (function () {
     }
 
     async function handleOAuth2Login(provider) {
+        const authMessageEl = getAuthMessageElement();
+
         try {
+            const availableProviders = await getAvailableOAuthProviders(true);
+            if (!availableProviders.has(provider)) {
+                showMessage(authMessageEl, getOAuthUnavailableMessage(provider), 'warning');
+                return;
+            }
+
             // Store current URL for redirect after login
             const currentUrl = location.pathname + location.search + location.hash;
             storeAuthRedirect(currentUrl);
@@ -304,7 +433,9 @@ const Auth = (function () {
             }
         } catch (error) {
             console.error(`${provider} OAuth login failed:`, error);
-            showToast(`${provider} 로그인에 실패했습니다.`);
+            const message = getOAuthLoginFailedMessage(provider, error);
+            showMessage(authMessageEl, message, 'danger');
+            showToast(message);
         }
     }
 
