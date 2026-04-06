@@ -628,40 +628,42 @@
         <h2 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">상품 문의</h2>
         <p class="mt-1 text-sm leading-6 text-slate-500">질문과 답변을 한눈에 확인할 수 있어요.</p>
       </div>
-      <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 active:bg-slate-950" data-qna-action="scroll-form">
-        문의하기
+      <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 active:bg-slate-950" data-qna-action="toggle-compose" aria-expanded="false" aria-controls="qna-compose-panel">
+        <span data-qna-toggle-label>문의하기</span>
       </button>
     </div>
 
     <div id="qna-list" class="mb-6 space-y-4 sm:mb-8" data-product-id="product-8">
     </div>
 
-    <div id="qna-auth-message" class="hidden rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center sm:p-6">
-      <p class="text-base font-medium text-slate-900">상품 문의는 로그인 후 작성 가능합니다.</p>
-      <p class="mt-1 text-sm leading-6 text-slate-500">로그인하면 문의 작성과 내 문의 관리가 가능합니다.</p>
-      <a href="/en/login" class="mt-4 inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 active:bg-slate-950">로그인 / 회원가입</a>
-    </div>
-
-    <div id="qna-form-container" class="hidden rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm sm:p-6">
-      <div class="mb-4">
-        <h3 class="text-lg font-semibold text-slate-900">문의 작성</h3>
-        <p class="mt-1 text-sm leading-6 text-slate-500">개인정보가 포함되지 않도록 주의해주세요.</p>
+    <div id="qna-compose-panel" class="hidden space-y-4">
+      <div id="qna-auth-message" class="hidden rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center sm:p-6">
+        <p class="text-base font-medium text-slate-900">상품 문의는 로그인 후 작성 가능합니다.</p>
+        <p class="mt-1 text-sm leading-6 text-slate-500">로그인하면 문의 작성과 내 문의 관리가 가능합니다.</p>
+        <a href="/en/login" class="mt-4 inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 active:bg-slate-950">로그인 / 회원가입</a>
       </div>
-      <form id="qna-form" class="space-y-4">
-        <div>
-          <textarea class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-200" id="qna-content" rows="4" placeholder="문의 내용을 작성해주세요. (개인정보가 포함되지 않도록 주의해주세요)" required></textarea>
+
+      <div id="qna-form-container" class="hidden rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm sm:p-6">
+        <div class="mb-4">
+          <h3 class="text-lg font-semibold text-slate-900">문의 작성</h3>
+          <p class="mt-1 text-sm leading-6 text-slate-500">개인정보가 포함되지 않도록 주의해주세요.</p>
         </div>
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <label class="inline-flex items-center gap-3 text-sm font-medium text-slate-700" for="qna-secret">
-            <input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500" id="qna-secret">
-            <span class="inline-flex items-center gap-1.5">
-              <i class="tf-ion-locked text-base text-slate-500"></i>
-              비밀글로 작성
-            </span>
-          </label>
-          <button type="submit" class="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 active:bg-slate-950">등록하기</button>
-        </div>
-      </form>
+        <form id="qna-form" class="space-y-4">
+          <div>
+            <textarea class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-200" id="qna-content" rows="4" placeholder="문의 내용을 작성해주세요. (개인정보가 포함되지 않도록 주의해주세요)" required></textarea>
+          </div>
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <label class="inline-flex items-center gap-3 text-sm font-medium text-slate-700" for="qna-secret">
+              <input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500" id="qna-secret">
+              <span class="inline-flex items-center gap-1.5">
+                <i class="tf-ion-locked text-base text-slate-500"></i>
+                비밀글로 작성
+              </span>
+            </label>
+            <button type="submit" class="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 active:bg-slate-950">등록하기</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </section>

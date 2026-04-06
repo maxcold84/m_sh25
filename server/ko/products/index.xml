@@ -6,8 +6,29 @@
     <description>Recent content in 최신 컬렉션 상품 on Vex Hugo (Korean)</description>
     <generator>Hugo</generator>
     <language>ko</language>
-    <lastBuildDate>Mon, 06 Apr 2026 09:42:13 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 06 Apr 2026 10:12:34 +0000</lastBuildDate>
     <atom:link href="//localhost:1313/ko/products/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>fdsafs</title>
+      <link>//localhost:1313/ko/products/fdsafs/</link>
+      <pubDate>Mon, 06 Apr 2026 10:12:34 +0000</pubDate>
+      <guid>//localhost:1313/ko/products/fdsafs/</guid>
+      <description>&lt;p&gt;fdasf&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>ㄹㅇㄴㅁ</title>
+      <link>//localhost:1313/ko/products/product-1775470276112/</link>
+      <pubDate>Mon, 06 Apr 2026 10:11:42 +0000</pubDate>
+      <guid>//localhost:1313/ko/products/product-1775470276112/</guid>
+      <description>&lt;p&gt;ㄹㅇㅁㄴㄹㄴㅁ&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>fdsafsaf</title>
+      <link>//localhost:1313/ko/products/fdsafsaf/</link>
+      <pubDate>Mon, 06 Apr 2026 10:10:37 +0000</pubDate>
+      <guid>//localhost:1313/ko/products/fdsafsaf/</guid>
+      <description>&lt;p&gt;fdsafasf&lt;/p&gt;</description>
+    </item>
     <item>
       <title>로즈마리허브</title>
       <link>//localhost:1313/ko/products/product-1775468513421/</link>

@@ -2,8 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>//localhost:1313/ko/products/fdsafs/</loc>
+    <lastmod>2026-04-06T10:12:34+00:00</lastmod>
+  </url><url>
     <loc>//localhost:1313/ko/</loc>
-    <lastmod>2026-04-06T09:42:13+00:00</lastmod>
+    <lastmod>2026-04-06T10:12:34+00:00</lastmod>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
@@ -15,11 +18,8 @@
                 href="//localhost:1313/ko/"
                 />
   </url><url>
-    <loc>//localhost:1313/ko/products/product-1775468513421/</loc>
-    <lastmod>2026-04-06T09:42:13+00:00</lastmod>
-  </url><url>
     <loc>//localhost:1313/ko/products/</loc>
-    <lastmod>2026-04-06T09:42:13+00:00</lastmod>
+    <lastmod>2026-04-06T10:12:34+00:00</lastmod>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
@@ -30,6 +30,15 @@
                 hreflang="ko"
                 href="//localhost:1313/ko/products/"
                 />
+  </url><url>
+    <loc>//localhost:1313/ko/products/product-1775470276112/</loc>
+    <lastmod>2026-04-06T10:11:42+00:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/ko/products/fdsafsaf/</loc>
+    <lastmod>2026-04-06T10:10:37+00:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/ko/products/product-1775468513421/</loc>
+    <lastmod>2026-04-06T09:42:13+00:00</lastmod>
   </url><url>
     <loc>//localhost:1313/ko/categories/</loc>
     <lastmod>2026-04-05T06:09:32+00:00</lastmod>
