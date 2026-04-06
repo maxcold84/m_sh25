@@ -11,6 +11,9 @@ let qnaForm = null;
 let qnaList = null;
 let authMessage = null;
 let currentProductId = null;
+let qnaComposePanel = null;
+let qnaFormContainer = null;
+let composePanelOpen = false;
 
 /**
  * QnA 모듈 초기화
@@ -22,6 +25,8 @@ function init(productId) {
     qnaForm = document.getElementById('qna-form');
     qnaList = document.getElementById('qna-list');
     authMessage = document.getElementById('qna-auth-message');
+    qnaComposePanel = document.getElementById('qna-compose-panel');
+    qnaFormContainer = document.getElementById('qna-form-container');
 
     updateUI();
     loadInquiries();
@@ -40,32 +45,63 @@ function init(productId) {
 }
 
 function bindStaticActions() {
-    const scrollButtons = document.querySelectorAll('[data-qna-action="scroll-form"]');
-    scrollButtons.forEach((button) => {
+    const toggleButtons = document.querySelectorAll('[data-qna-action="toggle-compose"]');
+    toggleButtons.forEach((button) => {
         if (button.dataset.qnaBound === 'true') {
             return;
         }
 
         button.dataset.qnaBound = 'true';
         button.addEventListener('click', () => {
-            const formContainer = document.getElementById('qna-form-container');
-            const target = pb.authStore.isValid ? formContainer : authMessage;
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            setComposePanelOpen(!composePanelOpen, { focusInput: true, scrollIntoView: true });
         });
     });
 }
 
 function updateUI() {
     const isLoggedIn = pb.authStore.isValid;
-    const formContainer = document.getElementById('qna-form-container');
-
-    if (formContainer) {
-        formContainer.classList.toggle('hidden', !isLoggedIn);
+    if (qnaComposePanel) {
+        qnaComposePanel.classList.toggle('hidden', !composePanelOpen);
     }
+
+    if (qnaFormContainer) {
+        qnaFormContainer.classList.toggle('hidden', !composePanelOpen || !isLoggedIn);
+    }
+
     if (authMessage) {
-        authMessage.classList.toggle('hidden', isLoggedIn);
+        authMessage.classList.toggle('hidden', !composePanelOpen || isLoggedIn);
+    }
+
+    document.querySelectorAll('[data-qna-action="toggle-compose"]').forEach((button) => {
+        button.setAttribute('aria-expanded', composePanelOpen ? 'true' : 'false');
+
+        const label = button.querySelector('[data-qna-toggle-label]');
+        if (label) {
+            label.textContent = composePanelOpen ? '문의 작성 접기' : '문의하기';
+        }
+    });
+}
+
+function setComposePanelOpen(nextOpen, options = {}) {
+    composePanelOpen = nextOpen;
+    updateUI();
+
+    if (!composePanelOpen) {
+        return;
+    }
+
+    const { focusInput = false, scrollIntoView = false } = options;
+    const target = pb.authStore.isValid ? qnaFormContainer : authMessage;
+
+    if (scrollIntoView && target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    if (focusInput && pb.authStore.isValid) {
+        const textarea = document.getElementById('qna-content');
+        if (textarea) {
+            setTimeout(() => textarea.focus(), 120);
+        }
     }
 }
 
@@ -261,6 +297,7 @@ async function handleInquirySubmit(e) {
 
         qnaForm.reset();
         loadInquiries();
+        setComposePanelOpen(false);
         alert('문의가 등록되었습니다.');
 
     } catch (error) {

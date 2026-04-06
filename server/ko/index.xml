@@ -6,8 +6,15 @@
     <description>Recent content on Vex Hugo (Korean)</description>
     <generator>Hugo</generator>
     <language>ko</language>
-    <lastBuildDate>Sun, 05 Apr 2026 06:09:32 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 06 Apr 2026 09:42:13 +0000</lastBuildDate>
     <atom:link href="//localhost:1313/ko/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>로즈마리허브</title>
+      <link>//localhost:1313/ko/products/product-1775468513421/</link>
+      <pubDate>Mon, 06 Apr 2026 09:42:13 +0000</pubDate>
+      <guid>//localhost:1313/ko/products/product-1775468513421/</guid>
+      <description>&lt;p&gt;로즈마리허브&lt;/p&gt;</description>
+    </item>
     <item>
       <title>한글</title>
       <link>//localhost:1313/ko/blog/%ED%95%9C%EA%B8%80/</link>

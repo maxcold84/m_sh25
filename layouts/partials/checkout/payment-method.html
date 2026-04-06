@@ -9,49 +9,31 @@
         </div>
 
         <div id="payment-forms" class="payment-forms">
-            <div id="form-inicis" class="payment-form hidden">
+            <div id="form-customer" class="payment-form hidden">
                 <div class="payment-form__field">
-                    <label for="inicis-name" class="payment-form__label">이름</label>
-                    <input type="text" id="inicis-name" class="payment-form__input" placeholder="홍길동" autocomplete="name" enterkeyhint="next">
+                    <label for="payment-customer-name" class="payment-form__label">이름</label>
+                    <input type="text" id="payment-customer-name" class="payment-form__input" placeholder="홍길동" autocomplete="name" enterkeyhint="next">
                 </div>
                 <div class="payment-form__field">
-                    <label for="inicis-email" class="payment-form__label">이메일</label>
-                    <input type="email" id="inicis-email" class="payment-form__input"
+                    <label for="payment-customer-email" class="payment-form__label">이메일</label>
+                    <input type="email" id="payment-customer-email" class="payment-form__input"
                         placeholder="example@email.com" list="emailDomains" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" enterkeyhint="next">
-                    <div id="inicis-email-suggestion" class="payment-form__help" style="display: none;">
+                    <div id="payment-customer-email-suggestion" class="payment-form__help" style="display: none;">
                         혹시 <a href="#" class="payment-form__help-link"></a>을(를) 의미하셨나요?
                     </div>
                 </div>
                 <div class="payment-form__field">
-                    <label for="inicis-phone" class="payment-form__label">휴대폰</label>
-                    <input type="tel" id="inicis-phone" class="payment-form__input"
+                    <label for="payment-customer-phone" class="payment-form__label">휴대폰</label>
+                    <input type="tel" id="payment-customer-phone" class="payment-form__input"
                         placeholder="010-1234-5678" autocomplete="tel" inputmode="tel" enterkeyhint="done">
                 </div>
-            </div>
-
-            <div id="form-korean_payment" class="payment-form hidden">
-                <div class="payment-form__field">
-                    <label for="korean-name" class="payment-form__label">이름</label>
-                    <input type="text" id="korean-name" class="payment-form__input" placeholder="홍길동" autocomplete="name" enterkeyhint="next">
-                </div>
-                <div class="payment-form__field">
-                    <label for="korean-email" class="payment-form__label">이메일</label>
-                    <input type="email" id="korean-email" class="payment-form__input"
-                        placeholder="example@email.com" list="emailDomains" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" enterkeyhint="next">
-                    <div id="korean-email-suggestion" class="payment-form__help" style="display: none;">
-                        혹시 <a href="#" class="payment-form__help-link"></a>을(를) 의미하셨나요?
+                <div id="kakaopay-panel" class="hidden space-y-3">
+                    <div class="payment-form__notice">
+                        카카오페이 결제창으로 바로 이동할 수 있습니다.
                     </div>
-                </div>
-                <div class="payment-form__field">
-                    <label for="korean-phone" class="payment-form__label">휴대폰</label>
-                    <input type="tel" id="korean-phone" class="payment-form__input"
-                        placeholder="010-1234-5678" autocomplete="tel" inputmode="tel" enterkeyhint="done">
-                </div>
-            </div>
-
-            <div id="form-kakaopay" class="payment-form hidden">
-                <div class="payment-form__notice">
-                    카카오페이로 간편하게 결제하세요.
+                    <button type="button" id="kakaopay-quick-pay" class="payment-form__button">
+                        카카오페이로 결제하기
+                    </button>
                 </div>
             </div>
         </div>
