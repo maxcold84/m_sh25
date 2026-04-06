@@ -252,3 +252,34 @@
   - EasyMDE overrides
   - Sortable / image picker shell
   - 일부 table-specific visuals
+
+## Latest Update (2026-04-05 Auth/Admin Orders Stability)
+
+### Additional Completed Work
+
+- [layouts/partials/auth-links.html](/C:/hugo/ex/shop/layouts/partials/auth-links.html), [layouts/_default/auth.html](/C:/hugo/ex/shop/layouts/_default/auth.html), [layouts/_default/auth-redirect.html](/C:/hugo/ex/shop/layouts/_default/auth-redirect.html), [assets/js/auth.js](/C:/hugo/ex/shop/assets/js/auth.js) 에서 auth canonical URL과 탭 전환 흐름을 `/login/` + `#signup` 기준으로 정리
+- [layouts/admin/baseof.html](/C:/hugo/ex/shop/layouts/admin/baseof.html) 에 admin용 Hugo build-time Tailwind CSS와 `admin_head` block 연결 추가
+- [layouts/admin/orders.html](/C:/hugo/ex/shop/layouts/admin/orders.html), [layouts/partials/admin/orders-header.html](/C:/hugo/ex/shop/layouts/partials/admin/orders-header.html), [layouts/partials/admin/orders-filters.html](/C:/hugo/ex/shop/layouts/partials/admin/orders-filters.html) 을 admin 공통 shell 기준으로 재정렬
+- [assets/js/admin-orders.js](/C:/hugo/ex/shop/assets/js/admin-orders.js) 에 운송장 조회 상태 동기화와 URL 안전성 보강 추가
+- 상세 원인/재발 방지 기록을 [2026-04-05-auth-admin-orders-followup.md](/C:/hugo/ex/shop/docs/changes/2026-04-05-auth-admin-orders-followup.md) 로 분리 정리
+
+### Additional Verification
+
+- `node --check assets/js/auth.js` 통과
+- `node --check assets/js/admin-orders.js` 통과
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `http://127.0.0.1:1313/ko/admin/orders/` 응답 HTML에서 `admin-shell.min.css` 와 Tailwind CSS 동시 로드 확인
+- `server/ko/admin/orders/index.html` 기준 `localhost:1313`, `livereload.js` 제거 확인
+
+### Current Remaining Scope
+
+- external SDKs
+  - `daum` (helper로 격리)
+  - `PortOne` (wrapper로 격리)
+- admin page-specific widget cleanup
+  - EasyMDE overrides
+  - Sortable / image picker shell
+  - 일부 table-specific visuals
+- checkout/profile UX
+  - 배송지 정보와 회원정보 자동 연동 흐름은 아직 별도 작업으로 남아 있음

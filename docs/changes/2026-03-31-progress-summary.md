@@ -856,3 +856,59 @@
 - `pnpm lint` 통과
 - `pnpm build` 통과
 - `pnpm preflight:release` 통과
+
+## 추가 진행 (2026-04-05 auth/admin orders 안정화)
+
+### 52. Auth 탭 전환 최적화 및 `/signup/` 정리
+
+- 파일:
+  - [layouts/partials/auth-links.html](/C:/hugo/ex/shop/layouts/partials/auth-links.html)
+  - [layouts/_default/auth.html](/C:/hugo/ex/shop/layouts/_default/auth.html)
+  - [layouts/_default/auth-redirect.html](/C:/hugo/ex/shop/layouts/_default/auth-redirect.html)
+  - [layouts/partials/footer.html](/C:/hugo/ex/shop/layouts/partials/footer.html)
+  - [assets/js/auth.js](/C:/hugo/ex/shop/assets/js/auth.js)
+- 반영 사항:
+  - auth canonical URL을 `/login/` 기준으로 정규화
+  - `#signup` 탭 이동은 JS 탭 전환 중심으로 처리하도록 `preventDefault()` 추가
+  - `/signup/` 는 `/login/#signup` 로 보내는 보조 경로로 정리
+- 효과:
+  - 로그인/회원가입 전환이 새 페이지 이동보다 탭 전환으로 보이게 됨
+  - 브라우저의 path normalization 차이 때문에 문서 reload처럼 보이던 현상이 줄어듦
+
+### 53. `admin/orders/` 스타일 복구 및 운송장 조회 UI 보강
+
+- 파일:
+  - [layouts/admin/baseof.html](/C:/hugo/ex/shop/layouts/admin/baseof.html)
+  - [layouts/admin/orders.html](/C:/hugo/ex/shop/layouts/admin/orders.html)
+  - [layouts/partials/admin/orders-header.html](/C:/hugo/ex/shop/layouts/partials/admin/orders-header.html)
+  - [layouts/partials/admin/orders-filters.html](/C:/hugo/ex/shop/layouts/partials/admin/orders-filters.html)
+  - [assets/js/admin-orders.js](/C:/hugo/ex/shop/assets/js/admin-orders.js)
+  - [docs/changes/2026-04-05-auth-admin-orders-followup.md](/C:/hugo/ex/shop/docs/changes/2026-04-05-auth-admin-orders-followup.md)
+- 반영 사항:
+  - admin base에 Hugo build-time Tailwind CSS 로드 추가
+  - `admin_head` block 연결 복구
+  - orders 화면을 `admin-shell` 공통 primitive 기준으로 정리
+  - 운송장 조회 버튼 상태를 `syncTrackingUiState()` 로 일관되게 제어
+  - 조회 URL 생성 시 운송장번호 `encodeURIComponent(...)` 적용
+- 효과:
+  - `admin/orders/` 가 posts/products와 같은 admin 공통 스타일 체계를 사용
+  - 입력 중에도 배송조회 가능 상태를 더 분명하게 확인 가능
+  - 신규 택배사 추가 시 수정 지점을 문서와 코드에서 함께 추적하기 쉬워짐
+
+### 54. 오류 재발 방지 메모
+
+- 상세 문서:
+  - [2026-04-05-auth-admin-orders-followup.md](/C:/hugo/ex/shop/docs/changes/2026-04-05-auth-admin-orders-followup.md)
+- 핵심 포인트:
+  - admin 페이지가 Tailwind utility를 쓰면 admin base가 Tailwind를 반드시 로드해야 함
+  - auth entry는 `/login/` + `#signup` canonical 규칙 유지
+  - `server/` 검증 전에 실행 중인 `hugo server` 프로세스를 정리
+  - CSS 회귀는 source/base/dev HTML/server output 순서로 점검
+
+### 55. 최신 검증
+
+- `node --check assets/js/auth.js` 통과
+- `node --check assets/js/admin-orders.js` 통과
+- `pnpm lint` 통과
+- `pnpm build` 통과
+- `server/ko/admin/orders/index.html` 에서 `localhost:1313`, `livereload.js` 제거 확인

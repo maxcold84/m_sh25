@@ -25,6 +25,19 @@
   <link rel="stylesheet" href="{{ $styles.Permalink }}" media="screen">
   {{ $adminShared := resources.Get "scss/admin-shell.scss" | toCSS | minify }}
   <link rel="stylesheet" href="{{ $adminShared.Permalink }}" media="screen">
+  {{ with resources.Get "css/tailwind.css" }}
+    {{ $twOpts := dict "minify" (not hugo.IsDevelopment) }}
+    {{ with . | css.TailwindCSS $twOpts }}
+      {{ if hugo.IsDevelopment }}
+  <link rel="stylesheet" href="{{ .RelPermalink }}" media="screen">
+      {{ else }}
+        {{ with . | fingerprint }}
+  <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" crossorigin="anonymous" media="screen">
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+  {{ block "admin_head" . }}{{ end }}
 
   {{ "<!-- Site Configuration -->" | safeHTML }}
   <script src="{{ (resources.Get "js/pocketbase.umd.js").Permalink }}"></script>

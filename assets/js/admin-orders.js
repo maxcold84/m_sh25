@@ -181,6 +181,15 @@ const AdminOrders = (function () {
             trackDeliveryBtn.addEventListener('click', openTrackingUrl);
         }
 
+        const carrierSelect = document.getElementById('tracking-carrier');
+        const trackingNumberInput = document.getElementById('tracking-number');
+        if (carrierSelect) {
+            carrierSelect.addEventListener('change', syncTrackingUiState);
+        }
+        if (trackingNumberInput) {
+            trackingNumberInput.addEventListener('input', syncTrackingUiState);
+        }
+
         const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
         if (confirmDeleteBtn) {
             confirmDeleteBtn.addEventListener('click', () => deleteOrder());
@@ -647,21 +656,11 @@ const AdminOrders = (function () {
         const carrierSelect = document.getElementById('tracking-carrier');
         const numberInput = document.getElementById('tracking-number');
         const trackBtn = document.getElementById('track-delivery-btn');
-        const statusMsg = document.getElementById('tracking-status-msg');
 
         carrierSelect.value = order.tracking_carrier || '';
         numberInput.value = order.tracking_number || '';
-
-        // Show/hide track button based on existing tracking info
-        if (order.tracking_carrier && order.tracking_number) {
-            trackBtn.classList.remove('hidden');
-            statusMsg.textContent = '운송장이 등록되어 있습니다.';
-            statusMsg.className = 'mt-2 text-sm text-emerald-600';
-        } else {
-            trackBtn.classList.add('hidden');
-            statusMsg.textContent = '';
-            statusMsg.className = 'mt-2 text-sm text-slate-500';
-        }
+        trackBtn.dataset.savedTracking = order.tracking_carrier && order.tracking_number ? 'true' : 'false';
+        syncTrackingUiState();
 
         wireImageFallbacks(itemsContainer);
         showModal('order-detail-modal');
@@ -713,7 +712,8 @@ const AdminOrders = (function () {
 
             statusMsg.textContent = '운송장이 저장되었습니다!';
             statusMsg.className = 'mt-2 text-sm text-emerald-600';
-            trackBtn.classList.remove('hidden');
+            trackBtn.dataset.savedTracking = 'true';
+            syncTrackingUiState();
 
             // Update modal status badge
             const statusBadge = document.getElementById('modal-order-status');
@@ -740,8 +740,43 @@ const AdminOrders = (function () {
             return;
         }
 
-        const url = CARRIERS[carrier].trackUrl + number;
+        const url = CARRIERS[carrier].trackUrl + encodeURIComponent(number);
         open(url, '_blank');
+    }
+
+    function syncTrackingUiState() {
+        const carrierSelect = document.getElementById('tracking-carrier');
+        const numberInput = document.getElementById('tracking-number');
+        const trackBtn = document.getElementById('track-delivery-btn');
+        const statusMsg = document.getElementById('tracking-status-msg');
+
+        if (!carrierSelect || !numberInput || !trackBtn || !statusMsg) {
+            return;
+        }
+
+        const carrier = carrierSelect.value;
+        const number = numberInput.value.trim();
+        const hasTracking = Boolean(carrier && number && CARRIERS[carrier]);
+        const hasSavedTracking = trackBtn.dataset.savedTracking === 'true';
+
+        trackBtn.classList.toggle('hidden', !hasTracking);
+
+        if (!hasTracking) {
+            if (!number && !carrier) {
+                statusMsg.textContent = '';
+                statusMsg.className = 'mt-2 text-sm text-slate-500';
+                return;
+            }
+
+            statusMsg.textContent = '택배사와 운송장번호를 모두 입력하면 배송 조회를 사용할 수 있습니다.';
+            statusMsg.className = 'mt-2 text-sm text-slate-500';
+            return;
+        }
+
+        statusMsg.textContent = hasSavedTracking
+            ? `${CARRIERS[carrier].name} 운송장이 등록되어 있습니다.`
+            : `${CARRIERS[carrier].name} 배송 조회를 사용할 수 있습니다. 저장 후 주문 상태를 함께 반영하세요.`;
+        statusMsg.className = `mt-2 text-sm ${hasSavedTracking ? 'text-emerald-600' : 'text-sky-600'}`;
     }
 
     // ============ Selection Functions ============
