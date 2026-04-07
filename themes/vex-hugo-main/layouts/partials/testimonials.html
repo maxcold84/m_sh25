@@ -1,4 +1,11 @@
-{{ $data := index .Site.Data .Site.Language.Lang }}
+{{ $projectStore := newScratch }}
+{{ if ge hugo.Version "0.156.0" }}
+{{ $projectStore.Set "data" hugo.Data }}
+{{ else }}
+{{ $projectStore.Set "data" .Site.Data }}
+{{ end }}
+{{ $projectData := $projectStore.Get "data" }}
+{{ $data := index $projectData .Site.Language.Lang }}
 
 {{ if $data.homepage.testimonial.enable }}
 <section class="testimonials section" id="testimonial">

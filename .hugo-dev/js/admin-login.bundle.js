@@ -1,5 +1,5 @@
 (() => {
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\core\runtime-config.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\core\runtime-config.js
   var configCache = /* @__PURE__ */ new Map();
   function normalizeConfigValue(value, id) {
     if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -44,7 +44,7 @@
     return getSiteConfig().pocketbaseUrl || "http://127.0.0.1:8090";
   }
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\core\pb-client.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\core\pb-client.js
   var _instance = null;
   var getUrl = () => getPocketBaseUrl();
   function getInstance() {
@@ -56,7 +56,7 @@
   }
   var pb = getInstance();
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\admin-auth.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\admin-auth.js
   var pbInstance = null;
   function getAdminPb() {
     if (!pbInstance) {

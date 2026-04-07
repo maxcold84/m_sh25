@@ -5,7 +5,7 @@
       __defProp(target, name, { get: all[name], enumerable: true });
   };
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\core\runtime-config.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\core\runtime-config.js
   var configCache = /* @__PURE__ */ new Map();
   function normalizeConfigValue(value, id) {
     if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -53,7 +53,7 @@
     return getSiteConfig().pocketbaseUrl || "http://127.0.0.1:8090";
   }
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\core\pb-client.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\core\pb-client.js
   var _instance = null;
   var getUrl = () => getPocketBaseUrl();
   function getInstance() {
@@ -74,7 +74,7 @@
     return pb.authStore.isValid;
   }
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\core\utils.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\core\utils.js
   var utils_exports = {};
   __export(utils_exports, {
     debounce: () => debounce,
@@ -82,6 +82,9 @@
     escapeHtml: () => escapeHtml,
     formatCurrency: () => formatCurrency,
     formatDate: () => formatDate,
+    getDocumentLanguageTag: () => getDocumentLanguageTag,
+    getSiteLanguage: () => getSiteLanguage,
+    getSiteLocale: () => getSiteLocale,
     isKorean: () => isKorean,
     showMessage: () => showMessage,
     showToast: () => showToast,
@@ -102,6 +105,28 @@
       locale = korean ? "ko-KR" : "en-US";
     }
     return new Intl.NumberFormat(locale, { style: "currency", currency }).format(amount);
+  }
+  function getDocumentLanguageTag() {
+    return (document.documentElement.lang || "").trim();
+  }
+  function getSiteLanguage() {
+    const languageTag = getDocumentLanguageTag().toLowerCase();
+    if (languageTag === "ko" || languageTag.startsWith("ko-")) {
+      return "ko";
+    }
+    if (languageTag === "en" || languageTag.startsWith("en-")) {
+      return "en";
+    }
+    if (location.pathname === "/ko" || location.pathname.startsWith("/ko/") || location.pathname.includes("/korean/")) {
+      return "ko";
+    }
+    if (location.pathname === "/en" || location.pathname.startsWith("/en/")) {
+      return "en";
+    }
+    return "en";
+  }
+  function getSiteLocale() {
+    return getSiteLanguage() === "ko" ? "ko-KR" : "en-US";
   }
   function showToast(message, options = {}) {
     const { isError = false, duration = 3e3 } = options;
@@ -140,7 +165,7 @@
     return d.toLocaleDateString(locale, finalOptions);
   }
   function isKorean() {
-    return document.documentElement.lang === "ko" || location.pathname.includes("/korean/");
+    return getSiteLanguage() === "ko";
   }
   function debounce(func, wait = 300) {
     let timeout;
@@ -166,6 +191,9 @@
   var Utils = {
     escapeHtml,
     formatCurrency,
+    getDocumentLanguageTag,
+    getSiteLanguage,
+    getSiteLocale,
     showToast,
     showMessage,
     formatDate,
@@ -175,7 +203,7 @@
   };
   var utils_default = Utils;
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\cart.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\cart.js
   function withNoAutoCancel(options = {}) {
     return {
       ...options,
@@ -183,7 +211,7 @@
     };
   }
   function isKoreanPage() {
-    return document.documentElement.lang === "ko" || location.pathname.includes("/korean/");
+    return isKorean();
   }
   function escapeFilterValue(value) {
     return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
@@ -258,7 +286,7 @@
     if (metaUrl) {
       return metaUrl;
     }
-    const lang = document.documentElement.lang === "ko" ? "ko" : "en";
+    const lang = getSiteLanguage();
     const slug = product?.slug || itemOptions.__productSlug || "";
     return slug ? `/${lang}/products/${slug}/` : null;
   }
@@ -709,7 +737,7 @@
         return;
       }
       const baseUrl = location.origin;
-      const lang = document.documentElement.lang || "en";
+      const lang = getSiteLanguage();
       location.href = `${baseUrl}/${lang}/checkout/`;
       this.toggleDrawer(false);
     },
@@ -830,7 +858,7 @@
     setupCartEvents();
   }
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\core\email-suggestion.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\core\email-suggestion.js
   function levenshtein(a, b) {
     const source = a.toLowerCase();
     const target = b.toLowerCase();
@@ -889,7 +917,7 @@
     return `${localPart}@${bestDomain}`;
   }
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\auth.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\auth.js
   var Auth = /* @__PURE__ */ (function() {
     let nicknameChecked = false;
     let checkedNickname = "";
@@ -1492,12 +1520,14 @@
     Auth.init();
   }
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\products-api.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\products-api.js
   var ProductsApi = class {
     constructor() {
       this.pb = pb;
       this.collection = "products";
-      this.currentLang = document.documentElement.lang || "ko";
+    }
+    getCurrentLanguage() {
+      return getSiteLanguage();
     }
     /**
      * Get list of products with optional filtering
@@ -1510,7 +1540,8 @@
      */
     async getList({ page = 1, perPage = 20, sort = "-order,-created", filter = "" } = {}) {
       try {
-        const baseFilter = `language = "${this.currentLang}" && enabled = true`;
+        const currentLang = this.getCurrentLanguage();
+        const baseFilter = `language = "${currentLang}" && enabled = true`;
         const finalFilter = filter ? `${baseFilter} && (${filter})` : baseFilter;
         console.log("Fetching products with filter:", finalFilter);
         const records = await this.pb.collection(this.collection).getList(page, perPage, {
@@ -1531,8 +1562,9 @@
      */
     async getBySlug(slug) {
       try {
+        const currentLang = this.getCurrentLanguage();
         const record = await this.pb.collection(this.collection).getFirstListItem(
-          `slug = "${slug}" && language = "${this.currentLang}"`
+          `slug = "${slug}" && language = "${currentLang}"`
         );
         return record;
       } catch (error) {
@@ -1569,7 +1601,7 @@
   };
   var productsApi = new ProductsApi();
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\reviews.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\reviews.js
   var reviewForm = null;
   var reviewList = null;
   var authMessage = null;
@@ -2098,16 +2130,21 @@
     init
   };
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\qna.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\qna.js
   var qnaForm = null;
   var qnaList = null;
   var authMessage2 = null;
   var currentProductId2 = null;
+  var qnaComposePanel = null;
+  var qnaFormContainer = null;
+  var composePanelOpen = false;
   function init2(productId) {
     currentProductId2 = productId;
     qnaForm = document.getElementById("qna-form");
     qnaList = document.getElementById("qna-list");
     authMessage2 = document.getElementById("qna-auth-message");
+    qnaComposePanel = document.getElementById("qna-compose-panel");
+    qnaFormContainer = document.getElementById("qna-form-container");
     updateUI2();
     loadInquiries();
     if (qnaForm) {
@@ -2120,29 +2157,52 @@
     });
   }
   function bindStaticActions() {
-    const scrollButtons = document.querySelectorAll('[data-qna-action="scroll-form"]');
-    scrollButtons.forEach((button) => {
+    const toggleButtons = document.querySelectorAll('[data-qna-action="toggle-compose"]');
+    toggleButtons.forEach((button) => {
       if (button.dataset.qnaBound === "true") {
         return;
       }
       button.dataset.qnaBound = "true";
       button.addEventListener("click", () => {
-        const formContainer = document.getElementById("qna-form-container");
-        const target = pb.authStore.isValid ? formContainer : authMessage2;
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+        setComposePanelOpen(!composePanelOpen, { focusInput: true, scrollIntoView: true });
       });
     });
   }
   function updateUI2() {
     const isLoggedIn = pb.authStore.isValid;
-    const formContainer = document.getElementById("qna-form-container");
-    if (formContainer) {
-      formContainer.classList.toggle("hidden", !isLoggedIn);
+    if (qnaComposePanel) {
+      qnaComposePanel.classList.toggle("hidden", !composePanelOpen);
+    }
+    if (qnaFormContainer) {
+      qnaFormContainer.classList.toggle("hidden", !composePanelOpen || !isLoggedIn);
     }
     if (authMessage2) {
-      authMessage2.classList.toggle("hidden", isLoggedIn);
+      authMessage2.classList.toggle("hidden", !composePanelOpen || isLoggedIn);
+    }
+    document.querySelectorAll('[data-qna-action="toggle-compose"]').forEach((button) => {
+      button.setAttribute("aria-expanded", composePanelOpen ? "true" : "false");
+      const label = button.querySelector("[data-qna-toggle-label]");
+      if (label) {
+        label.textContent = composePanelOpen ? "\uBB38\uC758 \uC791\uC131 \uC811\uAE30" : "\uBB38\uC758\uD558\uAE30";
+      }
+    });
+  }
+  function setComposePanelOpen(nextOpen, options = {}) {
+    composePanelOpen = nextOpen;
+    updateUI2();
+    if (!composePanelOpen) {
+      return;
+    }
+    const { focusInput = false, scrollIntoView = false } = options;
+    const target = pb.authStore.isValid ? qnaFormContainer : authMessage2;
+    if (scrollIntoView && target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    if (focusInput && pb.authStore.isValid) {
+      const textarea = document.getElementById("qna-content");
+      if (textarea) {
+        setTimeout(() => textarea.focus(), 120);
+      }
     }
   }
   async function loadInquiries() {
@@ -2306,6 +2366,7 @@
       await pb.collection("product_inquiries").create(data);
       qnaForm.reset();
       loadInquiries();
+      setComposePanelOpen(false);
       alert("\uBB38\uC758\uAC00 \uB4F1\uB85D\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
     } catch (error) {
       console.error("Error creating inquiry:", error);
@@ -2358,7 +2419,7 @@
     init: init2
   };
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\core\daum-postcode.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\core\daum-postcode.js
   function getDaumPostcodeConstructor() {
     return globalThis?.daum?.Postcode || null;
   }
@@ -2391,7 +2452,7 @@
     return true;
   }
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\profile.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\profile.js
   var postcodeLayer = null;
   var postcodeContainer = null;
   var profileActionListenerBound = false;
@@ -2424,7 +2485,7 @@
     pb.authStore.clear();
     showToast("\uB85C\uADF8\uC778 \uC138\uC158\uC774 \uB9CC\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uB85C\uADF8\uC778\uD574\uC8FC\uC138\uC694.", { isError: true });
     setTimeout(() => {
-      location.href = document.documentElement.lang === "ko" ? "/ko/login/" : "/en/login/";
+      location.href = getSiteLanguage() === "ko" ? "/ko/login/" : "/en/login/";
     }, 1200);
   }
   async function getCurrentUserRecord(options = {}) {
@@ -2466,7 +2527,7 @@
     if (!currentUser) {
       showToast("\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.", { isError: true });
       setTimeout(() => {
-        location.href = document.documentElement.lang === "ko" ? "/ko/login/" : "/en/login/";
+        location.href = getSiteLanguage() === "ko" ? "/ko/login/" : "/en/login/";
       }, 1500);
       return;
     }
@@ -2926,7 +2987,7 @@
     trackDelivery
   };
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\home-products.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\home-products.js
   var SECTION_SELECTOR = "[data-home-products]";
   var WRAPPER_SELECTOR = "[data-home-products-wrapper]";
   var CONTAINER_SELECTOR = "[data-home-products-container]";
@@ -3298,7 +3359,7 @@
     loadProducts(container, wrapper, loading);
   }
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\product-list-page.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\product-list-page.js
   var SECTION_SELECTOR2 = "[data-product-list-page]";
   var CONTAINER_SELECTOR2 = "#product-list-container";
   function getLanguage(section) {
@@ -3435,7 +3496,7 @@
     }
   }
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\blog-reading-progress.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\blog-reading-progress.js
   var PROGRESS_SELECTOR = "#reading-progress";
   function getScrollState() {
     const docElement = document.documentElement;
@@ -3473,7 +3534,7 @@
     addEventListener("resize", onScroll, { passive: true });
   }
 
-  // ns-hugo-imp:C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\234ad284a7739027\assets\js\product-detail-page.js
+  // ns-hugo-imp:C:\hugo\ex\shop\assets\js\product-detail-page.js
   function initSlider() {
     const slider = document.querySelector(".product-image-slider");
     if (!slider) {
@@ -3518,7 +3579,7 @@
     const currency = productDetailRoot.dataset.productCurrency || "";
     const unitPrice = Number(productDetailRoot.dataset.productPrice || 0);
     const formatCurrency2 = (value) => {
-      const locale = document.documentElement.lang === "ko" ? "ko-KR" : "en-US";
+      const locale = getSiteLocale();
       return currency + new Intl.NumberFormat(locale).format(value);
     };
     const updateTotalPrice = () => {

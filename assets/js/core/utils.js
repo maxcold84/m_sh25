@@ -41,6 +41,48 @@ export function formatCurrency(amount, forceCurrency = null) {
 }
 
 /**
+ * 문서의 lang 속성 값을 반환
+ * @returns {string}
+ */
+export function getDocumentLanguageTag() {
+    return (document.documentElement.lang || '').trim();
+}
+
+/**
+ * 현재 사이트 언어 코드(ko/en)를 정규화
+ * @returns {'ko'|'en'}
+ */
+export function getSiteLanguage() {
+    const languageTag = getDocumentLanguageTag().toLowerCase();
+
+    if (languageTag === 'ko' || languageTag.startsWith('ko-')) {
+        return 'ko';
+    }
+
+    if (languageTag === 'en' || languageTag.startsWith('en-')) {
+        return 'en';
+    }
+
+    if (location.pathname === '/ko' || location.pathname.startsWith('/ko/') || location.pathname.includes('/korean/')) {
+        return 'ko';
+    }
+
+    if (location.pathname === '/en' || location.pathname.startsWith('/en/')) {
+        return 'en';
+    }
+
+    return 'en';
+}
+
+/**
+ * 현재 사이트 로케일을 반환
+ * @returns {string}
+ */
+export function getSiteLocale() {
+    return getSiteLanguage() === 'ko' ? 'ko-KR' : 'en-US';
+}
+
+/**
  * Toast 알림 표시
  * @param {string} message - 표시할 메시지
  * @param {Object} [options] - 옵션
@@ -108,7 +150,7 @@ export function formatDate(date, options = {}) {
  * @returns {boolean}
  */
 export function isKorean() {
-    return document.documentElement.lang === 'ko' || location.pathname.includes('/korean/');
+    return getSiteLanguage() === 'ko';
 }
 
 /**
@@ -152,6 +194,9 @@ export function throttle(func, limit = 300) {
 const Utils = {
     escapeHtml,
     formatCurrency,
+    getDocumentLanguageTag,
+    getSiteLanguage,
+    getSiteLocale,
     showToast,
     showMessage,
     formatDate,

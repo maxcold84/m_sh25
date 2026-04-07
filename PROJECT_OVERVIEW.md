@@ -69,6 +69,15 @@
 - 한국어: `/ko/...`
 - 영어: `/en/...`
 
+추가로 현재 템플릿의 `<html lang>` 값은 locale 기준으로 출력된다.
+
+- 한국어 페이지: `ko-KR`
+- 영어 페이지: `en-US`
+
+반면 PocketBase `products.language` 같은 데이터 필드는 여전히 `ko`, `en` 코드를 사용한다.
+따라서 클라이언트 코드에서는 locale 문자열을 그대로 API 필터나 리다이렉트 경로에 쓰지 말고,
+공통 정규화 헬퍼를 통해 site language 코드로 변환해야 한다.
+
 ## 5. 핵심 기능 요약
 
 ### 5.1 사용자 기능
@@ -142,6 +151,9 @@
 - `assets/js/admin-products.js`
   - 관리자 상품/카테고리 관리
   - 이미지 업로드 및 순서 정렬
+- `assets/js/core/utils.js`
+  - 통화/날짜/토스트 공통 유틸
+  - locale(`ko-KR`, `en-US`)를 site language(`ko`, `en`)로 정규화하는 헬퍼 제공
 
 ## 7. Hugo 템플릿 구조
 
@@ -306,6 +318,14 @@
 - 프런트가 미래 필드를 가정하고 있음
 
 이 부분은 운영 전에 재확인이 필요하다.
+
+### 11.6 Hugo locale 과 PocketBase language 코드가 다름
+
+- Hugo 템플릿은 locale 기반 `<html lang>`를 출력한다.
+- PocketBase 상품 데이터의 `language` 필드는 `ko`, `en`처럼 짧은 언어 코드를 사용한다.
+- 따라서 상품 목록 조회, 상품 링크 생성, checkout/login 리다이렉트처럼 언어를 참조하는 JS는 locale 직접 비교 대신 공통 정규화 헬퍼를 사용해야 한다.
+
+이 규칙을 놓치면 Hugo 업그레이드 이후 상품 목록이 비거나 언어별 경로가 어긋나는 회귀가 다시 생길 수 있다.
 
 ## 12. 개발자가 빠르게 이해해야 할 파일
 

@@ -51,21 +51,10 @@
         <select
           class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
           id="select-language" data-nav-action="language-select">
-          {{ $siteLanguages := .Site.Languages}}
-          {{ $pageLang := .Page.Lang}}
-          {{ range .Page.AllTranslations }}
-          {{ $translation := .}}
-          {{ range $siteLanguages }}
-          {{ if eq $translation.Lang .Lang }}
-          {{ $selected := false }}
-          {{ if eq $pageLang .Lang}}
-          <option id="{{ $translation.Language }}" value="{{ $translation.Permalink }}" selected>{{ .LanguageName }}
+          {{ range .AllTranslations }}
+          <option id="{{ .Language.Name }}" value="{{ .Permalink }}"{{ if eq .Language.Name $.Language.Name }} selected{{ end }}>
+            {{ .Language.Label }}
           </option>
-          {{ else }}
-          <option id="{{ $translation.Language }}" value="{{ $translation.Permalink }}">{{ .LanguageName }}</option>
-          {{ end }}
-          {{ end }}
-          {{ end }}
           {{ end }}
         </select>
         {{ end }}

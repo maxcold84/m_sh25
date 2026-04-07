@@ -1,4 +1,5 @@
 import { Cart } from './cart.js';
+import { getSiteLocale } from './core/utils.js';
 
 function initSlider() {
     const slider = document.querySelector('.product-image-slider');
@@ -55,7 +56,7 @@ export function initProductDetailPage() {
     const unitPrice = Number(productDetailRoot.dataset.productPrice || 0);
 
     const formatCurrency = (value) => {
-        const locale = document.documentElement.lang === 'ko' ? 'ko-KR' : 'en-US';
+        const locale = getSiteLocale();
         return currency + new Intl.NumberFormat(locale).format(value);
     };
 

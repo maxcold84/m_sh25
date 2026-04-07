@@ -16,7 +16,8 @@ defaultContentLanguageInSubdir = true
 
 [languages]
   [languages.en]
-    languageName = "English"
+    label = "English"
+    locale = "en-US"
     contentDir = "content/english"
     weight = 1
     # theme = "vex-hugo-main"
@@ -59,7 +60,8 @@ defaultContentLanguageInSubdir = true
     weight = 4
 
   [languages.ko]
-    languageName = "한국어"
+    label = "한국어"
+    locale = "ko-KR"
     contentDir = "content/korean"
     weight = 2
     title = "Vex Hugo (Korean)"

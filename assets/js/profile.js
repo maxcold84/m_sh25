@@ -4,7 +4,7 @@
  * @module profile
  */
 import { pb } from './core/pb-client.js';
-import { showToast } from './core/utils.js';
+import { getSiteLanguage, showToast } from './core/utils.js';
 import { hasDaumPostcode, embedDaumPostcode } from './core/daum-postcode.js';
 
 let postcodeLayer = null;
@@ -51,7 +51,7 @@ function redirectToLoginBecauseUserIsMissing() {
     pb.authStore.clear();
     showToast('로그인 세션이 만료되었습니다. 다시 로그인해주세요.', { isError: true });
     setTimeout(() => {
-        location.href = document.documentElement.lang === 'ko' ? '/ko/login/' : '/en/login/';
+        location.href = getSiteLanguage() === 'ko' ? '/ko/login/' : '/en/login/';
     }, 1200);
 }
 
@@ -106,7 +106,7 @@ async function init() {
     if (!currentUser) {
         showToast('로그인이 필요합니다.', { isError: true });
         setTimeout(() => {
-            location.href = document.documentElement.lang === 'ko' ? '/ko/login/' : '/en/login/';
+            location.href = getSiteLanguage() === 'ko' ? '/ko/login/' : '/en/login/';
         }, 1500);
         return;
     }

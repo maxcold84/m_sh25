@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on Vex Hugo (Korean)</title>
+    <link>/ko/tags/</link>
+    <description>Recent content in Tags on Vex Hugo (Korean)</description>
+    <generator>Hugo</generator>
+    <language>ko</language>
+    <lastBuildDate>Sun, 05 Apr 2026 06:09:32 +0000</lastBuildDate>
+    <atom:link href="/ko/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>상품</title>
+      <link>/ko/tags/%EC%83%81%ED%92%88/</link>
+      <pubDate>Sun, 05 Apr 2026 06:09:32 +0000</pubDate>
+      <guid>/ko/tags/%EC%83%81%ED%92%88/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>

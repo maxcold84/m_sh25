@@ -4,7 +4,7 @@
  * @module cart
  */
 import { pb } from './core/pb-client.js';
-import { formatCurrency as formatCurrencyUtil, showToast } from './core/utils.js';
+import { formatCurrency as formatCurrencyUtil, getSiteLanguage, isKorean, showToast } from './core/utils.js';
 
 function withNoAutoCancel(options = {}) {
     return {
@@ -14,7 +14,7 @@ function withNoAutoCancel(options = {}) {
 }
 
 function isKoreanPage() {
-    return document.documentElement.lang === 'ko' || location.pathname.includes('/korean/');
+    return isKorean();
 }
 
 function escapeFilterValue(value) {
@@ -117,7 +117,7 @@ function buildProductUrl(product, itemOptions) {
         return metaUrl;
     }
 
-    const lang = document.documentElement.lang === 'ko' ? 'ko' : 'en';
+    const lang = getSiteLanguage();
     const slug = product?.slug || itemOptions.__productSlug || '';
 
     return slug ? `/${lang}/products/${slug}/` : null;
@@ -665,7 +665,7 @@ export const Cart = {
         }
 
         const baseUrl = location.origin;
-        const lang = document.documentElement.lang || 'en';
+        const lang = getSiteLanguage();
         location.href = `${baseUrl}/${lang}/checkout/`;
         this.toggleDrawer(false);
     },

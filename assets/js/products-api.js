@@ -4,12 +4,16 @@
  * @module products-api
  */
 import { pb } from './core/pb-client.js';
+import { getSiteLanguage } from './core/utils.js';
 
 export class ProductsApi {
     constructor() {
         this.pb = pb;
         this.collection = 'products';
-        this.currentLang = document.documentElement.lang || 'ko';
+    }
+
+    getCurrentLanguage() {
+        return getSiteLanguage();
     }
 
     /**
@@ -23,8 +27,9 @@ export class ProductsApi {
      */
     async getList({ page = 1, perPage = 20, sort = '-order,-created', filter = '' } = {}) {
         try {
+            const currentLang = this.getCurrentLanguage();
             // Filter by current language and enabled status
-            const baseFilter = `language = "${this.currentLang}" && enabled = true`;
+            const baseFilter = `language = "${currentLang}" && enabled = true`;
             const finalFilter = filter ? `${baseFilter} && (${filter})` : baseFilter;
 
             console.log('Fetching products with filter:', finalFilter);
@@ -49,8 +54,9 @@ export class ProductsApi {
      */
     async getBySlug(slug) {
         try {
+            const currentLang = this.getCurrentLanguage();
             const record = await this.pb.collection(this.collection).getFirstListItem(
-                `slug = "${slug}" && language = "${this.currentLang}"`
+                `slug = "${slug}" && language = "${currentLang}"`
             );
             return record;
         } catch (error) {

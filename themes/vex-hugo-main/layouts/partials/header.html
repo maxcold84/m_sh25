@@ -28,21 +28,10 @@
         <!-- Language List -->
         {{ if .IsTranslated }}
         <select class="lang-list" id="select-language" data-nav-action="language-select">
-          {{ $siteLanguages := .Site.Languages}}
-          {{ $pageLang := .Page.Lang}}
-          {{ range .Page.AllTranslations }}
-          {{ $translation := .}}
-          {{ range $siteLanguages }}
-          {{ if eq $translation.Lang .Lang }}
-          {{ $selected := false }}
-          {{ if eq $pageLang .Lang}}
-          <option id="{{ $translation.Language }}" value="{{ $translation.Permalink }}" selected>{{ .LanguageName }}
+          {{ range .AllTranslations }}
+          <option id="{{ .Language.Name }}" value="{{ .Permalink }}"{{ if eq .Language.Name $.Language.Name }} selected{{ end }}>
+            {{ .Language.Label }}
           </option>
-          {{ else }}
-          <option id="{{ $translation.Language }}" value="{{ $translation.Permalink }}">{{ .LanguageName }}</option>
-          {{ end }}
-          {{ end }}
-          {{ end }}
           {{ end }}
         </select>
         {{ end }}

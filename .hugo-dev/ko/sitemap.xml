@@ -2,16 +2,54 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>//localhost:1313/ko/products/fdsafs/</loc>
+    <lastmod>2026-04-06T10:12:34+00:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/ko/</loc>
+    <lastmod>2026-04-06T10:12:34+00:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en-US"
+                href="//localhost:1313/en/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="ko-KR"
+                href="//localhost:1313/ko/"
+                />
+  </url><url>
+    <loc>//localhost:1313/ko/products/</loc>
+    <lastmod>2026-04-06T10:12:34+00:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en-US"
+                href="//localhost:1313/en/products/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="ko-KR"
+                href="//localhost:1313/ko/products/"
+                />
+  </url><url>
+    <loc>//localhost:1313/ko/products/product-1775470276112/</loc>
+    <lastmod>2026-04-06T10:11:42+00:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/ko/products/fdsafsaf/</loc>
+    <lastmod>2026-04-06T10:10:37+00:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/ko/products/product-1775468513421/</loc>
+    <lastmod>2026-04-06T09:42:13+00:00</lastmod>
+  </url><url>
     <loc>//localhost:1313/ko/categories/</loc>
     <lastmod>2026-04-05T06:09:32+00:00</lastmod>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/categories/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/categories/"
                 />
   </url><url>
@@ -19,26 +57,13 @@
     <lastmod>2026-04-05T06:09:32+00:00</lastmod>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/tags/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/tags/"
-                />
-  </url><url>
-    <loc>//localhost:1313/ko/</loc>
-    <lastmod>2026-04-05T06:09:32+00:00</lastmod>
-    <xhtml:link
-                rel="alternate"
-                hreflang="en"
-                href="//localhost:1313/en/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="ko"
-                href="//localhost:1313/ko/"
                 />
   </url><url>
     <loc>//localhost:1313/ko/categories/%EB%89%B4%EC%8A%A4/</loc>
@@ -54,12 +79,12 @@
     <lastmod>2026-04-05T06:09:32+00:00</lastmod>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/blog/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/blog/"
                 />
   </url><url>
@@ -71,19 +96,6 @@
   </url><url>
     <loc>//localhost:1313/ko/products/fdsf/</loc>
     <lastmod>2026-03-31T04:39:43+00:00</lastmod>
-  </url><url>
-    <loc>//localhost:1313/ko/products/</loc>
-    <lastmod>2026-03-31T04:39:43+00:00</lastmod>
-    <xhtml:link
-                rel="alternate"
-                hreflang="en"
-                href="//localhost:1313/en/products/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="ko"
-                href="//localhost:1313/ko/products/"
-                />
   </url><url>
     <loc>//localhost:1313/ko/products/fdsfs/</loc>
     <lastmod>2026-03-30T11:48:19+00:00</lastmod>
@@ -161,12 +173,12 @@
     <lastmod>2023-10-27T12:00:00+09:00</lastmod>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/checkout/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/checkout/"
                 />
   </url><url>
@@ -174,12 +186,12 @@
     <lastmod>2019-10-17T11:22:16+06:00</lastmod>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/products/product-2/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/products/product-2/"
                 />
   </url><url>
@@ -187,12 +199,12 @@
     <lastmod>2019-10-17T11:22:16+06:00</lastmod>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/products/product-5/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/products/product-5/"
                 />
   </url><url>
@@ -200,12 +212,12 @@
     <lastmod>2019-10-17T11:22:16+06:00</lastmod>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/products/product-6/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/products/product-6/"
                 />
   </url><url>
@@ -213,12 +225,12 @@
     <lastmod>2019-10-17T11:22:16+06:00</lastmod>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/products/product-4/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/products/product-4/"
                 />
   </url><url>
@@ -226,12 +238,12 @@
     <lastmod>2019-10-17T11:22:16+06:00</lastmod>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/products/product-3/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/products/product-3/"
                 />
   </url><url>
@@ -239,12 +251,12 @@
     <lastmod>2019-10-17T11:22:16+06:00</lastmod>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/products/product-1/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/products/product-1/"
                 />
   </url><url>
@@ -252,12 +264,12 @@
     <lastmod>2019-10-17T11:22:16+06:00</lastmod>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/products/product-8/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/products/product-8/"
                 />
   </url><url>
@@ -265,12 +277,12 @@
     <lastmod>2019-10-17T11:22:16+06:00</lastmod>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/products/product-7/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/products/product-7/"
                 />
   </url><url>
@@ -279,12 +291,12 @@
     <loc>//localhost:1313/ko/privacy-policy/</loc>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/privacy-policy/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/privacy-policy/"
                 />
   </url><url>
@@ -293,12 +305,12 @@
     <loc>//localhost:1313/ko/login/</loc>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/login/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/login/"
                 />
   </url><url>
@@ -309,24 +321,24 @@
     <loc>//localhost:1313/ko/contact/</loc>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/contact/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/contact/"
                 />
   </url><url>
     <loc>//localhost:1313/ko/terms-conditions/</loc>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/terms-conditions/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/terms-conditions/"
                 />
   </url><url>
@@ -335,24 +347,24 @@
     <loc>//localhost:1313/ko/profile/</loc>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/profile/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/profile/"
                 />
   </url><url>
     <loc>//localhost:1313/ko/signup/</loc>
     <xhtml:link
                 rel="alternate"
-                hreflang="en"
+                hreflang="en-US"
                 href="//localhost:1313/en/signup/"
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ko"
+                hreflang="ko-KR"
                 href="//localhost:1313/ko/signup/"
                 />
   </url>

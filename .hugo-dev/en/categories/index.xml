@@ -5,7 +5,7 @@
     <link>//localhost:1313/en/categories/</link>
     <description>Recent content in Categories on Vex Hugo</description>
     <generator>Hugo</generator>
-    <language>en</language>
+    <language>en-US</language>
     <atom:link href="//localhost:1313/en/categories/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>
