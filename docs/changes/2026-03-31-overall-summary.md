@@ -252,7 +252,6 @@
   - EasyMDE overrides
   - Sortable / image picker shell
   - 일부 table-specific visuals
-
 ## Latest Update (2026-04-05 Auth/Admin Orders Stability)
 
 ### Additional Completed Work
@@ -281,5 +280,32 @@
   - EasyMDE overrides
   - Sortable / image picker shell
   - 일부 table-specific visuals
-- checkout/profile UX
-  - 배송지 정보와 회원정보 자동 연동 흐름은 아직 별도 작업으로 남아 있음
+
+## Latest Update (2026-04-07 Checkout / Product UX)
+
+### Additional Completed Work
+
+- [layouts/partials/checkout/shipping-address.html](/C:/hugo/ex/shop/layouts/partials/checkout/shipping-address.html), [layouts/partials/checkout/scripts.html](/C:/hugo/ex/shop/layouts/partials/checkout/scripts.html) 에서 checkout 진입 시 회원 주소/연락처 자동 연동과 배송지 카드 정리 반영
+- [layouts/partials/checkout/payment-method.html](/C:/hugo/ex/shop/layouts/partials/checkout/payment-method.html), [layouts/partials/checkout/scripts.html](/C:/hugo/ex/shop/layouts/partials/checkout/scripts.html) 에서 STEP 2 결제자 입력 폼을 공통화하고 카카오페이 전용 CTA를 추가
+- [layouts/partials/checkout/scripts.html](/C:/hugo/ex/shop/layouts/partials/checkout/scripts.html) 에 KG 이니시스용 PG 친화적 주문명 생성 로직 추가
+- [layouts/partials/product-detail-qna.html](/C:/hugo/ex/shop/layouts/partials/product-detail-qna.html), [layouts/partials/qna-list.html](/C:/hugo/ex/shop/layouts/partials/qna-list.html), [assets/js/qna.js](/C:/hugo/ex/shop/assets/js/qna.js) 에 상품 문의 작성 패널 접기/펼치기 토글 반영
+- 상세 기록을 [2026-04-07-checkout-product-ux-followup.md](/C:/hugo/ex/shop/docs/changes/2026-04-07-checkout-product-ux-followup.md) 로 분리 정리
+
+### Additional Verification
+
+- `hugo --gc --minify --destination tmp_checkout_verify_20260406_step2` 통과
+- `hugo --gc --minify --destination tmp_checkout_verify_20260406_kakaopay` 통과
+- `HUGO_CACHEDIR=C:\hugo\ex\shop\.hugo_cache_local hugo --gc --minify --destination tmp_checkout_verify_20260406_inicis` 통과
+- `HUGO_CACHEDIR=C:\hugo\ex\shop\.hugo_cache_local hugo --gc --minify --destination tmp_product_qna_toggle_verify` 통과
+
+### Current Remaining Scope
+
+- external SDKs
+  - `daum` (helper로 격리)
+  - `PortOne` (wrapper로 격리)
+- admin page-specific widget cleanup
+  - EasyMDE overrides
+  - Sortable / image picker shell
+  - 일부 table-specific visuals
+- checkout / payment UX polish
+  - PG hosted 결제창 내부는 same-origin 제약으로 직접 제어할 수 없으므로 checkout 본문 요약 UX와 request payload 품질을 계속 관리할 필요가 있음
