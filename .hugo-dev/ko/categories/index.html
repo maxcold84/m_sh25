@@ -87,7 +87,7 @@
 <body id="body">
 <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <nav class="flex flex-wrap items-center gap-3 py-3 md:flex-nowrap" data-site-navigation>
+    <nav class="flex flex-wrap items-center gap-3 py-3 md:flex-nowrap" data-site-navigation data-ui-module="navigation auth">
       <a class="shrink-0 text-lg font-semibold tracking-tight text-slate-900 sm:text-xl"
         href="//localhost:1313/" style="width: 100px;">
         
@@ -225,10 +225,10 @@
         </div>
         <div class="md:w-1/2 md:pl-8 text-center md:text-left flex flex-col justify-center">
           <div class="content space-y-4">
-            <h4 class="text-2xl font-semibold text-slate-900"><a class="hover:text-amber-500 transition-colors" href="//localhost:1313/ko/blog/%ED%95%9C%EA%B8%80/">한글</a></h4>
-            <p class="text-slate-600 leading-relaxed"><p>ㄹㄴㄹㅇㄴㄹㅇㄹㄴ<img src="https://cdn.midjourney.com/styles/0_3930483878/house_640_N.webp" alt="ㄹㄹㅇㄹ"></p></p>
+            <h4 class="text-2xl font-semibold text-slate-900"><a class="hover:text-amber-500 transition-colors" href="//localhost:1313/ko/categories/%EB%89%B4%EC%8A%A4/">뉴스</a></h4>
+            <p class="text-slate-600 leading-relaxed"></p>
             <div>
-              <a href="//localhost:1313/ko/blog/%ED%95%9C%EA%B8%80/" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-100">더 읽기</a>
+              <a href="//localhost:1313/ko/categories/%EB%89%B4%EC%8A%A4/" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-100">더 읽기</a>
             </div>
           </div>
         </div>
@@ -237,11 +237,10 @@
       <div class="flex flex-col gap-8 md:flex-row md:items-center">
         <div class="md:w-1/2 order-2 md:order-1 md:pr-8 text-center md:text-left flex flex-col justify-center">
           <div class="content space-y-4">
-            <h4 class="text-2xl font-semibold text-slate-900"><a class="hover:text-amber-500 transition-colors" href="//localhost:1313/ko/blog/dwdw/">dwdw</a></h4>
-            <p class="text-slate-600 leading-relaxed"><p>fdsafsafds<strong>fdsfdsafdsafs</strong>
-<img src="https://cdn.midjourney.com/styles/0_2852371714/house_640_N.webp" alt=""></p></p>
+            <h4 class="text-2xl font-semibold text-slate-900"><a class="hover:text-amber-500 transition-colors" href="//localhost:1313/ko/categories/%EC%83%81%ED%92%88/">상품</a></h4>
+            <p class="text-slate-600 leading-relaxed"></p>
             <div>
-              <a href="//localhost:1313/ko/blog/dwdw/" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-100">더 읽기</a>
+              <a href="//localhost:1313/ko/categories/%EC%83%81%ED%92%88/" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-100">더 읽기</a>
             </div>
           </div>
         </div>
@@ -330,6 +329,7 @@
 
 <div
   id="cart-drawer"
+  data-ui-module="cart"
   role="dialog"
   aria-modal="true"
   aria-labelledby="cart-title">

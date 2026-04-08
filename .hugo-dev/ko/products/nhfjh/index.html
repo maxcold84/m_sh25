@@ -95,7 +95,7 @@
 <body id="body">
 <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <nav class="flex flex-wrap items-center gap-3 py-3 md:flex-nowrap" data-site-navigation>
+    <nav class="flex flex-wrap items-center gap-3 py-3 md:flex-nowrap" data-site-navigation data-ui-module="navigation auth">
       <a class="shrink-0 text-lg font-semibold tracking-tight text-slate-900 sm:text-xl"
         href="//localhost:1313/" style="width: 100px;">
         
@@ -256,6 +256,7 @@
     <div
       id="product-detail-container"
       class="product-detail-container w-full"
+      data-ui-module="product-detail"
       data-product-id="tefeqowjt8j602u"
       data-product-name="nhfjh"
       data-product-price="252552"
@@ -1461,7 +1462,7 @@
 
 
 
-<section class="gallery py-12 sm:py-16" id="products" data-home-products>
+<section class="gallery py-12 sm:py-16" id="products" data-home-products data-ui-module="home-products">
   <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="mb-6 text-center sm:mb-8">
       <h2 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">모든 제품 확인하기</h2>
@@ -1564,6 +1565,7 @@
 
 <div
   id="cart-drawer"
+  data-ui-module="cart"
   role="dialog"
   aria-modal="true"
   aria-labelledby="cart-title">

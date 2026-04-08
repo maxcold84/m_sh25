@@ -2906,7 +2906,7 @@ async function loadOrderHistory() {
             ` : "";
       const canTrack = order.status === "shipping" || order.status === "delivered";
       const trackingNumber = order.tracking_number || "";
-      const carrier = order.carrier || "";
+      const carrier = order.tracking_carrier || "";
       let trackingBtnHtml = "";
       if (canTrack && trackingNumber) {
         trackingBtnHtml = `
@@ -3744,27 +3744,39 @@ var init_blog_reading_progress = __esm({
 });
 
 // <stdin>
+var moduleRegistry = [
+  { name: "auth", selector: '[data-ui-module~="auth"]', init: initAuthModule },
+  { name: "cart", selector: '[data-ui-module~="cart"]', init: initCartDrawer },
+  { name: "navigation", selector: '[data-ui-module~="navigation"]', init: initHeaderNavigation },
+  { name: "home-products", selector: '[data-ui-module~="home-products"]', init: initHomeProductsSection },
+  { name: "product-list", selector: '[data-ui-module~="product-list"]', init: initProductListPageModule },
+  { name: "product-detail", selector: '[data-ui-module~="product-detail"]', init: initProductDetailModules },
+  { name: "profile", selector: '[data-ui-module~="profile"]', init: initProfilePage },
+  { name: "reading-progress", selector: '[data-ui-module~="reading-progress"]', init: initReadingProgressModule }
+];
 function initializeApp() {
   console.log("[Main] Initializing application...");
-  bootstrapAuth();
-  bootstrapCartDrawer();
-  setupHeaderNavigation();
-  bootstrapHomeProducts();
-  bootstrapProductListPage();
-  bootstrapProductDetail();
-  bootstrapProfilePage();
-  bootstrapReadingProgress();
+  moduleRegistry.forEach(queueModuleInitialization);
   console.log("[Main] Application initialized");
 }
 var cartInitialized = false;
-async function bootstrapAuth() {
+function queueModuleInitialization(moduleConfig) {
+  if (!document.querySelector(moduleConfig.selector)) {
+    return;
+  }
+  Promise.resolve(moduleConfig.init()).catch((error) => {
+    console.error(`[Main] Failed to initialize ${moduleConfig.name}:`, error);
+  });
+}
+async function initAuthModule() {
   await Promise.resolve().then(() => (init_auth(), auth_exports));
 }
-async function bootstrapCartDrawer() {
+async function initCartDrawer() {
+  const cartRoot = document.querySelector('[data-ui-module~="cart"]');
   if (cartInitialized) {
     return;
   }
-  if (!document.getElementById("cart-drawer")) {
+  if (!cartRoot) {
     return;
   }
   const { getShopConfig: getShopConfig2 } = await Promise.resolve().then(() => (init_runtime_config(), runtime_config_exports));
@@ -3776,10 +3788,10 @@ async function bootstrapCartDrawer() {
   const { Cart: Cart2 } = await Promise.resolve().then(() => (init_cart(), cart_exports));
   Cart2.init(shopConfig);
 }
-function setupHeaderNavigation() {
-  const navRoot = document.querySelector("[data-site-navigation]");
-  const navPanel = document.querySelector("[data-nav-panel]");
-  const toggleButton = document.querySelector("[data-nav-toggle]");
+function initHeaderNavigation() {
+  const navRoot = document.querySelector('[data-ui-module~="navigation"]');
+  const navPanel = navRoot?.querySelector("[data-nav-panel]");
+  const toggleButton = navRoot?.querySelector("[data-nav-toggle]");
   if (!navRoot || !navPanel || !toggleButton) {
     return;
   }
@@ -3831,8 +3843,8 @@ function setupHeaderNavigation() {
   addEventListener("resize", syncMenuState);
   syncMenuState();
 }
-async function bootstrapProductDetail() {
-  const productDetailRoot = document.getElementById("product-detail-container");
+async function initProductDetailModules() {
+  const productDetailRoot = document.querySelector('[data-ui-module~="product-detail"]');
   const reviewRoot = document.getElementById("review-list");
   const qnaRoot = document.getElementById("qna-list");
   const productId = productDetailRoot?.dataset.productId || reviewRoot?.dataset.productId || qnaRoot?.dataset.productId;
@@ -3852,27 +3864,27 @@ async function bootstrapProductDetail() {
     QnA2.init(productId);
   }
 }
-async function bootstrapProfilePage() {
-  if (document.getElementById("profile-form") || document.getElementById("save-button") || document.getElementById("order-history-list") || document.getElementById("tracking-modal")) {
+async function initProfilePage() {
+  if (document.querySelector('[data-ui-module~="profile"]')) {
     const { Profile: Profile2 } = await Promise.resolve().then(() => (init_profile(), profile_exports));
     Profile2.init();
   }
 }
-async function bootstrapHomeProducts() {
-  const homeProducts = document.querySelector("[data-home-products]");
+async function initHomeProductsSection() {
+  const homeProducts = document.querySelector('[data-ui-module~="home-products"]');
   if (homeProducts) {
     const { initHomeProducts: initHomeProducts2 } = await Promise.resolve().then(() => (init_home_products(), home_products_exports));
     initHomeProducts2();
   }
 }
-async function bootstrapProductListPage() {
-  if (document.querySelector("[data-product-list-page]") || document.getElementById("product-list-container")) {
+async function initProductListPageModule() {
+  if (document.querySelector('[data-ui-module~="product-list"]')) {
     const { initProductListPage: initProductListPage2 } = await Promise.resolve().then(() => (init_product_list_page(), product_list_page_exports));
     initProductListPage2();
   }
 }
-async function bootstrapReadingProgress() {
-  if (document.querySelector("article") || document.getElementById("reading-progress")) {
+async function initReadingProgressModule() {
+  if (document.querySelector('[data-ui-module~="reading-progress"]')) {
     const { initReadingProgress: initReadingProgress2 } = await Promise.resolve().then(() => (init_blog_reading_progress(), blog_reading_progress_exports));
     initReadingProgress2();
   }

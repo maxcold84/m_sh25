@@ -8,7 +8,7 @@
 {{ $data := index $projectData .Site.Language.Lang }}
 
 {{ if $data.homepage.products.enable }}
-<section class="gallery py-12 sm:py-16" id="products" data-home-products>
+<section class="gallery py-12 sm:py-16" id="products" data-home-products data-ui-module="home-products">
   <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="mb-6 text-center sm:mb-8">
       <h2 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{{ $data.homepage.products.title | markdownify }}</h2>

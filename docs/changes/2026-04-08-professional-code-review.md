@@ -19,7 +19,7 @@
 
 ## Findings
 
-### P1 - Auth flows are no longer initialized after the bundle refactor
+### P1 - Auth flows are no longer initialized after the ESM refactor
 
 - Evidence
   - `assets/js/main.js:18-27` now boots cart, navigation, product pages, profile, and reading progress only.
@@ -30,10 +30,10 @@
   - Header auth state (`login`, `signup`, `logout`, `profile`) will not react to auth state changes.
   - Logout click handling and OAuth button wiring are effectively disabled.
 - Recommendation
-  - Reintroduce auth bootstrap from `assets/js/main.js`, either as a static import or a guarded dynamic import keyed off auth-related DOM markers.
+  - Reintroduce auth initialization from `assets/js/main.js`, either as a static import or a guarded dynamic import keyed off auth-related DOM markers.
   - Add a smoke test covering `/login/` and header auth link state.
 
-### P1 - Home product slider and product list page no longer bootstrap
+### P1 - Home product slider and product list page no longer initialize
 
 - Evidence
   - `assets/js/main.js:158-170` checks `.products-section`, `[data-product-list]`, `#product-list`, and `#product-filters`.
@@ -43,7 +43,7 @@
   - Homepage product slider import path is skipped, leaving the loading placeholder in place.
   - `/products/` list import path is skipped, so the catalog page never replaces its loading state with real products.
 - Recommendation
-  - Align the bootstrap guards with the selectors the templates really render.
+  - Align the initialization guards with the selectors the templates really render.
   - Prefer reusing the module-level selectors (`[data-home-products]`, `[data-product-list-page]`) rather than inventing a second set of page-detection selectors.
 
 ### P1 - New default list template ignores the current page collection
@@ -89,7 +89,8 @@
 
 ## Suggested Fix Order
 
-1. Restore auth bootstrap so login/logout/signup flows work again.
-2. Fix homepage and catalog bootstrap selectors so product discovery recovers.
+1. Restore auth initialization so login/logout/signup flows work again.
+2. Fix homepage and catalog initialization selectors so product discovery recovers.
 3. Correct `_default/list.html` to respect page context.
 4. Unify tracking field naming before shipping the profile/admin tracking feature.
+
