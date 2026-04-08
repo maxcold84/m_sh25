@@ -476,7 +476,7 @@ async function loadOrderHistory() {
             // 배송조회 버튼 (shipping 또는 delivered 상태일 때만 표시)
             const canTrack = order.status === 'shipping' || order.status === 'delivered';
             const trackingNumber = order.tracking_number || '';
-            const carrier = order.carrier || '';
+            const carrier = order.tracking_carrier || '';
 
             let trackingBtnHtml = '';
             if (canTrack && trackingNumber) {

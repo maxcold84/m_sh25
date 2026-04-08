@@ -1,30 +1,10 @@
 /**
  * Main Entry Point (ES6)
- * 모든 코어 및 주요 모듈을 import하고 초기화
- * Hugo js.Build에서 번들링 진입점으로 사용
+ * 완전 모듈화 및 Dynamic Import 구조로 개편 (코드 스플리팅 적용)
  * @module main
  */
 
-// ============================================
-// Core Modules
-// ============================================
-import { pb, getInstance, isAdmin, getUser, isAuthenticated } from './core/pb-client.js';
-import * as Utils from './core/utils.js';
-
-// ============================================
-// Feature Modules
-// ============================================
-import { Cart } from './cart.js';
-import { Auth } from './auth.js';
-import { ProductsApi, productsApi } from './products-api.js';
-import { Reviews } from './reviews.js';
-import { QnA } from './qna.js';
-import { Profile } from './profile.js';
-import { initHomeProducts } from './home-products.js';
-import { initProductListPage } from './product-list-page.js';
-import { initReadingProgress } from './blog-reading-progress.js';
-import { initProductDetailPage } from './product-detail-page.js';
-import { getShopConfig } from './core/runtime-config.js';
+// Features will be dynamically imported for code splitting
 
 // ============================================
 // Auto Initialization
@@ -32,6 +12,7 @@ import { getShopConfig } from './core/runtime-config.js';
 function initializeApp() {
     console.log('[Main] Initializing application...');
 
+    bootstrapAuth();
     bootstrapCartDrawer();
     setupHeaderNavigation();
     bootstrapHomeProducts();
@@ -45,7 +26,12 @@ function initializeApp() {
 
 let cartInitialized = false;
 
-function bootstrapCartDrawer() {
+async function bootstrapAuth() {
+    // Auth module self-initializes on import and also drives header auth state.
+    await import('./auth.js');
+}
+
+async function bootstrapCartDrawer() {
     if (cartInitialized) {
         return;
     }
@@ -54,12 +40,14 @@ function bootstrapCartDrawer() {
         return;
     }
 
+    const { getShopConfig } = await import('./core/runtime-config.js');
     const shopConfig = getShopConfig();
     if (!shopConfig?.storeId) {
         return;
     }
 
     cartInitialized = true;
+    const { Cart } = await import('./cart.js');
     Cart.init(shopConfig);
 }
 
@@ -134,13 +122,14 @@ function setupHeaderNavigation() {
     syncMenuState();
 }
 
-function bootstrapProductDetail() {
+async function bootstrapProductDetail() {
     const productDetailRoot = document.getElementById('product-detail-container');
     const reviewRoot = document.getElementById('review-list');
     const qnaRoot = document.getElementById('qna-list');
     const productId = productDetailRoot?.dataset.productId || reviewRoot?.dataset.productId || qnaRoot?.dataset.productId;
 
     if (productDetailRoot) {
+        const { initProductDetailPage } = await import('./product-detail-page.js');
         initProductDetailPage();
     }
 
@@ -149,30 +138,43 @@ function bootstrapProductDetail() {
     }
 
     if (reviewRoot) {
+        const { Reviews } = await import('./reviews.js');
         Reviews.init(productId);
     }
 
     if (qnaRoot) {
+        const { QnA } = await import('./qna.js');
         QnA.init(productId);
     }
 }
 
-function bootstrapProfilePage() {
-    if (document.getElementById('profile-form') || document.getElementById('save-button')) {
+async function bootstrapProfilePage() {
+    if (document.getElementById('profile-form') || document.getElementById('save-button') || document.getElementById('order-history-list') || document.getElementById('tracking-modal')) {
+        const { Profile } = await import('./profile.js');
         Profile.init();
     }
 }
 
-function bootstrapHomeProducts() {
-    initHomeProducts();
+async function bootstrapHomeProducts() {
+    const homeProducts = document.querySelector('[data-home-products]');
+    if (homeProducts) {
+        const { initHomeProducts } = await import('./home-products.js');
+        initHomeProducts();
+    }
 }
 
-function bootstrapProductListPage() {
-    initProductListPage();
+async function bootstrapProductListPage() {
+    if (document.querySelector('[data-product-list-page]') || document.getElementById('product-list-container')) {
+        const { initProductListPage } = await import('./product-list-page.js');
+        initProductListPage();
+    }
 }
 
-function bootstrapReadingProgress() {
-    initReadingProgress();
+async function bootstrapReadingProgress() {
+    if (document.querySelector('article') || document.getElementById('reading-progress')) {
+        const { initReadingProgress } = await import('./blog-reading-progress.js');
+        initReadingProgress();
+    }
 }
 
 // DOMContentLoaded에서 초기화
@@ -182,24 +184,4 @@ if (document.readyState === 'loading') {
     initializeApp();
 }
 
-// ============================================
-// Exports for ES6 Module Usage
-// ============================================
-export {
-    // Core
-    pb,
-    getInstance,
-    isAdmin,
-    getUser,
-    isAuthenticated,
-    Utils,
-
-    // Features
-    Cart,
-    Auth,
-    ProductsApi,
-    productsApi,
-    Reviews,
-    QnA,
-    Profile
-};
+// No static exports - enables code splitting and tree-shaking

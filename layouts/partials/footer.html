@@ -25,9 +25,7 @@
 
 <!-- JS Plugins -->
 {{ range site.Params.plugins.js}}
-{{ if not (in .link "bootstrap.min.js") }}
 <script src="{{ .link | absURL }}"></script>
-{{ end }}
 {{ end }}
 
 <!-- Main Script -->
@@ -39,14 +37,14 @@
 "targetPath" "js/bundle.js"
 "minify" hugo.IsProduction
 "target" "es2020"
-"format" "iife"
-"globalName" "App"
+"format" "esm"
+"splitting" true
 }}
 {{ $js := resources.Get "js/main.js" | js.Build $opts }}
 {{ if hugo.IsProduction }}
 {{ $js = $js | fingerprint }}
 {{ end }}
-<script src="{{ $js.RelPermalink }}"></script>
+<script type="module" src="{{ $js.RelPermalink }}"></script>
 
 <!-- Auth Script -->
 <script>

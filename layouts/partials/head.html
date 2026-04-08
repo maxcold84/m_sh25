@@ -16,9 +16,7 @@
 
   {{ "<!-- plugins -->" | safeHTML }}
   {{ range site.Params.plugins.css }}
-  {{ if not (in .link "bootstrap.min.css") }}
   <link rel="stylesheet" href="{{ .link | absURL }}">
-  {{ end }}
   {{ end }}
 
   {{ "<!-- Main Stylesheet -->" | safeHTML }}
