@@ -9,9 +9,9 @@
         "sync": "node scripts/sync-products.js && node scripts/sync-posts.js",
         "lint": "eslint assets/js --ext .js",
         "lint:fix": "eslint assets/js --ext .js --fix",
-        "build": "node scripts/clean-server.mjs && .\\.tools\\hugo\\v0.160.0\\hugo.exe --gc --minify --destination server",
-        "build:drafts": "node scripts/clean-server.mjs && .\\.tools\\hugo\\v0.160.0\\hugo.exe --gc --minify --buildDrafts --buildExpired --buildFuture --destination server",
-        "dev": ".\\.tools\\hugo\\v0.160.0\\hugo.exe server --buildDrafts --destination .hugo-dev --disableFastRender",
+        "build": "node scripts/clean-server.mjs && hugo --gc --minify --destination server",
+        "build:drafts": "node scripts/clean-server.mjs && hugo --gc --minify --buildDrafts --buildExpired --buildFuture --destination server",
+        "dev": "hugo server --buildDrafts --destination .hugo-dev --disableFastRender",
         "clean:server": "node scripts/clean-server.mjs",
         "preflight:release": "node scripts/check-release-safety.mjs"
     },

@@ -1,26 +1,590 @@
-<!doctype html><html lang=ko-KR><head><meta charset=utf-8><title>상품 관리</title><meta http-equiv=Content-Security-Policy content="default-src 'self' * 'unsafe-inline' 'unsafe-eval' data: blob:;"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta name=description content="상품을 관리합니다"><meta name=author content="Themefisher"><meta name=generator content="Hugo 0.160.0"><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Droid+Serif:400%7cJosefin+Sans:300,400,600,700"><link rel=stylesheet href=/plugins/themefisher-font/themefisher-font.min.css><link rel=stylesheet href=/scss/style.min.css media=screen><link rel=stylesheet href=/scss/admin-shell.min.css media=screen><link rel=stylesheet href=/css/tailwind.51ce41d7b215ebdc0122cd95fc85f1e4c159be4d24476a7a920096f71553e457.css integrity="sha256-Uc5B17IV69wBIs2V/IXx5MFZvk0kR2p6kgCW9xVT5Fc=" crossorigin=anonymous media=screen><link rel=stylesheet href=/scss/admin-products.min.css media=screen><script src=/js/pocketbase.umd.js></script><script id=site-config type=application/json>{"pocketbaseUrl":"http://127.0.0.1:8090"}</script></head><body id=body class=admin-shell><main class=admin-shell__main><section class="section admin-shell"><div class=admin-shell__inner><div class=admin-surface><div class=admin-nav-container><div class=admin-nav-inner><div class=admin-nav-left><span class=admin-nav-brand>ADMIN</span></div><div class=admin-nav-center><a href=/ko/admin/products/ class="admin-nav-link active">상품 관리</a>
-<a href=/ko/admin/orders/ class=admin-nav-link>주문 관리</a>
-<a href=/ko/admin/posts/ class=admin-nav-link>블로그 관리</a></div><div class=admin-nav-right><button id=admin-logout-btn class=admin-nav-logout>로그아웃</button></div></div></div><style>.admin-nav-container{border-bottom:1px solid #eee;background:#fff;margin-bottom:2rem;padding:.75rem 0}.admin-nav-inner{max-width:1140px;margin:0 auto;padding:0 15px;display:flex;align-items:center;justify-content:space-between}.admin-nav-brand{font-weight:700;font-size:.9rem;letter-spacing:.1em;color:#111}.admin-nav-center{display:flex;gap:2rem}.admin-nav-link{color:#666;font-size:.875rem;font-weight:500;text-decoration:none;padding-bottom:4px;border-bottom:2px solid transparent;transition:all .2s ease}.admin-nav-link:hover{color:#111;text-decoration:none}.admin-nav-link.active{color:#111;border-bottom-color:#111}.admin-nav-logout{background:0 0;border:none;color:#999;font-size:.875rem;font-weight:500;cursor:pointer;padding:0;transition:color .2s}.admin-nav-logout:hover{color:#ff4757}@media(max-width:576px){.admin-nav-inner{flex-direction:column;gap:1rem;text-align:center}.admin-nav-center{gap:1rem;flex-wrap:wrap;justify-content:center}}</style><div class=admin-toolbar><div><h2 class=admin-toolbar__title>상품 관리</h2><p class=admin-toolbar__subtitle>상품 목록, 카테고리, 이미지 순서를 Bootstrap shell 없이 관리합니다.</p></div><div class=admin-actions><button id=add-product-btn class="admin-btn admin-btn--primary" type=button>
-<i class="tf-ion-plus admin-btn__icon"></i> 상품 추가
-</button>
-<button id=manage-categories-btn class="admin-btn admin-btn--outline" type=button>
-<i class="tf-ion-pricetag admin-btn__icon"></i> 카테고리 관리</button></div></div><div class=admin-info><strong>💡 안내:</strong>
-<span>상품 추가/수정 후 터미널에서 <code>pnpm sync</code>를 실행하여 상세페이지를 생성하세요.</span></div><div class="admin-card admin-filter-panel"><div class=admin-filter-row><label class=admin-filter-label for=filter-category>필터:</label>
-<select id=filter-category class=admin-select><option value>모든 카테고리</option></select></div></div><div id=admin-auth-check class="admin-notice admin-notice--warning" style=display:none role=alert>상품을 관리하려면 관리자로 로그인해야 합니다. <a href=/ko/admin/login>여기서 로그인하세요</a>.</div><div id=admin-product-list class=admin-table-wrap><table class=admin-data-table><thead><tr><th style=width:96px>이미지</th><th style=width:180px>카테고리</th><th>상품명</th><th style=width:150px>가격</th><th style=width:100px>재고</th><th style=width:120px>문의</th><th style=width:120px>상태</th><th style=width:160px>상세페이지</th><th style=width:280px>작업</th></tr></thead><tbody id=product-table-body><tr><td colspan=9 class=admin-empty-state>로딩 중...</td></tr></tbody></table><div id=loading-spinner class=admin-loading-state><div class=admin-spinner aria-hidden=true></div><span>상품 목록을 불러오는 중...</span></div></div></div></div></section><div class=admin-modal id=productModal hidden aria-hidden=true><div class=admin-modal__backdrop data-product-modal-close></div><section class=admin-modal__panel role=dialog aria-modal=true aria-labelledby=productModalLabel><header class=admin-modal__header><div><p class=admin-modal__eyebrow>Product editor</p><h5 class=admin-modal__title id=productModalLabel>상품 추가</h5><p class=admin-modal__subtitle>카테고리, 가격, 이미지와 상태를 한 번에 수정합니다.</p></div><button type=button class=admin-modal__close data-product-modal-close aria-label=닫기>
-&#215;</button></header><div class=admin-modal__body><form id=product-form><input type=hidden id=product-id><div class="admin-form-grid admin-form-grid--two"><div class=admin-field><label class=admin-field__label for=product-title>상품명</label>
-<input type=text class=admin-input id=product-title required></div><div class=admin-field><label class=admin-field__label for=product-category>카테고리</label>
-<select class=admin-select id=product-category><option value>카테고리 선택</option></select></div></div><div class=admin-field style=margin-top:1rem><label class=admin-field__label for=product-slug>슬러그 (URL)</label>
-<input type=text class=admin-input id=product-slug required placeholder="자동 생성됨 (수정 가능)"><div class=admin-field__hint>상품명 입력 시 자동 생성됩니다. 필요시 직접 수정하세요.</div></div><div class="admin-form-grid admin-form-grid--two" style=margin-top:1rem><div class=admin-field><label class=admin-field__label for=product-description>설명</label>
-<textarea class=admin-textarea id=product-description rows=3></textarea></div><div class=admin-field><label class=admin-field__label for=product-admin-memo><i class=tf-ion-ios-compose-outline></i> 관리 메모 (사용자에게 보이지 않음)
-</label><textarea class=admin-textarea id=product-admin-memo rows=3 placeholder="관리자용 메모를 입력하세요..."></textarea></div></div><div class="admin-form-grid admin-form-grid--three" style=margin-top:1rem><div class=admin-field><label class=admin-field__label for=product-price>가격</label>
-<input type=number class=admin-input id=product-price required></div><div class=admin-field><label class=admin-field__label for=product-discount>할인가</label>
-<input type=number class=admin-input id=product-discount></div><div class=admin-field><label class=admin-field__label for=product-stock>재고</label>
-<input type=number class=admin-input id=product-stock value=0></div><div class=admin-field><label class=admin-field__label for=product-order>정렬 순서</label>
-<input type=number class=admin-input id=product-order value=0></div></div><div class="admin-form-grid admin-form-grid--two" style=margin-top:1rem><div class=admin-field><label class=admin-field__label for=product-colors>색상 (쉼표로 구분)</label>
-<input type=text class=admin-input id=product-colors placeholder="빨강, 파랑, 초록"></div><div class=admin-field><label class=admin-field__label for=product-sizes>사이즈 (쉼표로 구분)</label>
-<input type=text class=admin-input id=product-sizes placeholder="S, M, L, XL"></div></div><div class=admin-field style=margin-top:1rem><label class=admin-field__label for=product-images>이미지 (드래그하여 순서 변경, 첫 번째 이미지가 대표 이미지)</label><div class=admin-image-picker><input type=file class=admin-image-picker__input id=product-images multiple accept=image/*><div class=admin-image-picker__hint>이미지를 여러 개 선택할 수 있습니다. 첫 번째 이미지가 대표 이미지가 됩니다.</div><div id=product-image-list class=admin-product-image-list><div class="admin-product-image-empty admin-empty-state">이미지가 없습니다</div></div></div></div><div class="admin-form-grid admin-form-grid--two" style=margin-top:1rem;align-items:end><label class=admin-toggle><input type=checkbox class=admin-toggle__input id=product-enabled checked>
-<span>활성화</span></label><div class=admin-field><label class=admin-field__label for=product-language>언어</label>
-<select class=admin-select id=product-language><option value=ko>한국어</option><option value=en>영어</option></select></div></div></form></div><footer class=admin-modal__footer><button type=button class="admin-btn admin-btn--outline" data-product-modal-close>닫기</button>
-<button type=submit form=product-form class="admin-btn admin-btn--primary">저장</button></footer></section></div><style>.admin-category-modal[hidden]{display:none!important}.admin-category-modal{position:fixed;inset:0;z-index:1050;display:grid;place-items:center;padding:1rem}.admin-category-modal__backdrop{position:absolute;inset:0;background:rgba(15,23,42,.58);backdrop-filter:blur(2px)}.admin-category-modal__panel{position:relative;z-index:1;width:min(560px,100%);max-height:min(760px,calc(100vh - 2rem));display:flex;flex-direction:column;overflow:hidden;border:1px solid rgba(148,163,184,.24);border-radius:20px;background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);box-shadow:0 24px 80px rgba(15,23,42,.28)}.admin-category-modal__header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1.25rem 1.25rem 1rem;border-bottom:1px solid #e2e8f0}.admin-category-modal__eyebrow{margin:0 0 .35rem;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748b}.admin-category-modal__title{margin:0;font-size:1.15rem;font-weight:700;color:#0f172a}.admin-category-modal__subtitle{margin:.35rem 0 0;font-size:.9rem;color:#64748b}.admin-category-modal__close{border:0;background:#e2e8f0;color:#0f172a;width:2.25rem;height:2.25rem;border-radius:999px;font-size:1.25rem;line-height:1;cursor:pointer;flex:none}.admin-category-modal__close:hover{background:#cbd5e1}.admin-category-modal__body{padding:1.25rem;overflow:auto}.admin-category-form{margin-bottom:1.25rem}.admin-category-form__row{display:flex;gap:.75rem;align-items:center}.admin-category-form__input{flex:auto;min-width:0;padding:.75rem .9rem;border:1px solid #cbd5e1;border-radius:12px;font-size:.95rem;background:#fff;color:#0f172a}.admin-category-form__input:focus{outline:none;border-color:#0f172a;box-shadow:0 0 0 3px rgba(15,23,42,8%)}.admin-category-form__button{flex:none;border:0;border-radius:12px;padding:.75rem 1rem;background:#0f172a;color:#fff;font-weight:600;cursor:pointer}.admin-category-form__button:hover{background:#1e293b}.admin-category-list__heading{margin:0 0 .75rem;font-size:.95rem;font-weight:700;color:#0f172a}#category-list{display:flex;flex-direction:column;gap:.625rem;max-height:300px;overflow-y:auto}.admin-category-item{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.85rem .95rem;border:1px solid #e2e8f0;border-radius:14px;background:#fff;color:#0f172a}.admin-category-item__name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.94rem;font-weight:500}.admin-category-item__delete{border:0;border-radius:10px;padding:.45rem .7rem;background:#fee2e2;color:#b91c1c;font-size:.9rem;font-weight:700;cursor:pointer;flex:none}.admin-category-item__delete:hover{background:#fecaca}.admin-category-state{padding:.85rem 1rem;border-radius:14px;background:#f8fafc;color:#64748b;text-align:center}.admin-category-state--error{background:#fef2f2;color:#b91c1c}@media(max-width:640px){.admin-category-modal{padding:.5rem}.admin-category-modal__header,.admin-category-modal__body{padding-left:1rem;padding-right:1rem}.admin-category-form__row{flex-direction:column;align-items:stretch}}</style><div id=categoryModal class=admin-category-modal hidden aria-hidden=true><div class=admin-category-modal__backdrop data-category-modal-close></div><section class=admin-category-modal__panel role=dialog aria-modal=true aria-labelledby=category-modal-title><header class=admin-category-modal__header><div><p class=admin-category-modal__eyebrow>Admin tools</p><h5 id=category-modal-title class=admin-category-modal__title>카테고리 관리</h5><p class=admin-category-modal__subtitle>새 카테고리를 추가하고 기존 항목을 정리할 수 있습니다.</p></div><button type=button class=admin-category-modal__close data-category-modal-close aria-label=닫기>
-&#215;</button></header><div class=admin-category-modal__body><form id=category-form class=admin-category-form><div class=admin-category-form__row><input type=text id=new-category-name class=admin-category-form__input placeholder="새 카테고리 이름" required>
-<button class=admin-category-form__button type=submit>추가</button></div></form><h6 class=admin-category-list__heading>등록된 카테고리</h6><div id=category-list><div class=admin-category-state>로딩 중...</div></div></div></section></div><script src=https://unpkg.com/htmx.org@1.9.10></script><script src=https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js></script><script src=/js/admin-products.bundle.8f994fcb3a5f76b2a3bb0f8f6cb2409c360c8a8938d7fecbf2a389c241f40e5c.js></script></main></body></html>
+<!DOCTYPE html>
+<html lang="ko-KR">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8">
+  <title>상품 관리</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' * 'unsafe-inline' 'unsafe-eval' data: blob:;">
+
+  <!-- mobile responsive meta -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description"
+    content="상품을 관리합니다">
+  
+  <meta name="author" content="Themefisher">
+  <meta name="generator" content="Hugo 0.160.0">
+
+  <!-- admin plugins -->
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid&#43;Serif:400%7cJosefin&#43;Sans:300,400,600,700">
+  
+  
+  
+  <link rel="stylesheet" href="//localhost:1313/plugins/themefisher-font/themefisher-font.min.css">
+  
+  
+
+  <!-- admin styles -->
+  
+  <link rel="stylesheet" href="//localhost:1313/scss/style.min.css" media="screen">
+  
+  <link rel="stylesheet" href="//localhost:1313/scss/admin-shell.min.css" media="screen">
+  
+    
+    
+      
+  <link rel="stylesheet" href="/css/tailwind.css" media="screen">
+      
+    
+  
+  
+
+<link rel="stylesheet" href="//localhost:1313/scss/admin-products.min.css" media="screen">
+
+
+  <!-- Site Configuration -->
+  <script src="//localhost:1313/js/pocketbase.umd.js"></script>
+  <script id="site-config" type="application/json">{"pocketbaseUrl":"http://127.0.0.1:8090"}</script>
+</head>
+
+<body id="body" class="admin-shell">
+  <main class="admin-shell__main">
+    
+
+<section class="section admin-shell">
+    <div class="admin-shell__inner">
+        <div class="admin-surface">
+            <div class="admin-nav-container">
+    <div class="admin-nav-inner">
+        <div class="admin-nav-left">
+            <span class="admin-nav-brand">ADMIN</span>
+        </div>
+        <div class="admin-nav-center">
+            <a href="/ko/admin/products/" class="admin-nav-link active">상품 관리</a>
+            <a href="/ko/admin/orders/" class="admin-nav-link ">주문 관리</a>
+            <a href="/ko/admin/posts/" class="admin-nav-link ">블로그 관리</a>
+        </div>
+        <div class="admin-nav-right">
+            <button id="admin-logout-btn" class="admin-nav-logout">로그아웃</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-nav-container {
+        border-bottom: 1px solid #eee;
+        background: #fff;
+        margin-bottom: 2rem;
+        padding: 0.75rem 0;
+    }
+
+    .admin-nav-inner {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .admin-nav-brand {
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 0.1em;
+        color: #111;
+    }
+
+    .admin-nav-center {
+        display: flex;
+        gap: 2rem;
+    }
+
+    .admin-nav-link {
+        color: #666;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        padding-bottom: 4px;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .admin-nav-link:hover {
+        color: #111;
+        text-decoration: none;
+    }
+
+    .admin-nav-link.active {
+        color: #111;
+        border-bottom-color: #111;
+    }
+
+    .admin-nav-logout {
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 0;
+        transition: color 0.2s;
+    }
+
+    .admin-nav-logout:hover {
+        color: #ff4757;
+    }
+
+    @media (max-width: 576px) {
+        .admin-nav-inner {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .admin-nav-center {
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
+</style>
+
+            <div class="admin-toolbar">
+                <div>
+                    <h2 class="admin-toolbar__title">상품 관리</h2>
+                    <p class="admin-toolbar__subtitle">상품 목록, 카테고리, 이미지 순서를 Bootstrap shell 없이 관리합니다.</p>
+                </div>
+                <div class="admin-actions">
+                    <button id="add-product-btn" class="admin-btn admin-btn--primary" type="button">
+                        <i class="tf-ion-plus admin-btn__icon"></i> 상품 추가
+                    </button>
+                    <button id="manage-categories-btn" class="admin-btn admin-btn--outline" type="button">
+                        <i class="tf-ion-pricetag admin-btn__icon"></i> 카테고리 관리
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-info">
+                <strong>💡 안내:</strong>
+                <span>상품 추가/수정 후 터미널에서 <code>pnpm sync</code>를 실행하여 상세페이지를 생성하세요.</span>
+            </div>
+
+            
+            <div class="admin-card admin-filter-panel">
+                <div class="admin-filter-row">
+                    <label class="admin-filter-label" for="filter-category">필터:</label>
+                    <select id="filter-category" class="admin-select">
+                        <option value="">모든 카테고리</option>
+                    </select>
+                </div>
+            </div>
+
+            
+            <div id="admin-auth-check" class="admin-notice admin-notice--warning" style="display: none;" role="alert">
+                상품을 관리하려면 관리자로 로그인해야 합니다. <a href="/ko/admin/login">여기서 로그인하세요</a>.
+            </div>
+
+            
+            <div id="admin-product-list" class="admin-table-wrap">
+                <table class="admin-data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 96px;">이미지</th>
+                            <th style="width: 180px;">카테고리</th>
+                            <th>상품명</th>
+                            <th style="width: 150px;">가격</th>
+                            <th style="width: 100px;">재고</th>
+                            <th style="width: 120px;">문의</th>
+                            <th style="width: 120px;">상태</th>
+                            <th style="width: 160px;">상세페이지</th>
+                            <th style="width: 280px;">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="product-table-body">
+                        
+                        <tr>
+                            <td colspan="9" class="admin-empty-state">로딩 중...</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="loading-spinner" class="admin-loading-state">
+                    <div class="admin-spinner" aria-hidden="true"></div>
+                    <span>상품 목록을 불러오는 중...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<div class="admin-modal" id="productModal" hidden aria-hidden="true">
+    <div class="admin-modal__backdrop" data-product-modal-close></div>
+    <section class="admin-modal__panel" role="dialog" aria-modal="true" aria-labelledby="productModalLabel">
+        <header class="admin-modal__header">
+            <div>
+                <p class="admin-modal__eyebrow">Product editor</p>
+                <h5 class="admin-modal__title" id="productModalLabel">상품 추가</h5>
+                <p class="admin-modal__subtitle">카테고리, 가격, 이미지와 상태를 한 번에 수정합니다.</p>
+            </div>
+            <button type="button" class="admin-modal__close" data-product-modal-close aria-label="닫기">
+                &times;
+            </button>
+        </header>
+        <div class="admin-modal__body">
+            <form id="product-form">
+                <input type="hidden" id="product-id">
+
+                <div class="admin-form-grid admin-form-grid--two">
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="product-title">상품명</label>
+                        <input type="text" class="admin-input" id="product-title" required>
+                    </div>
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="product-category">카테고리</label>
+                        <select class="admin-select" id="product-category">
+                            <option value="">카테고리 선택</option>
+                            
+                        </select>
+                    </div>
+                </div>
+
+                <div class="admin-field" style="margin-top: 1rem;">
+                    <label class="admin-field__label" for="product-slug">슬러그 (URL)</label>
+                    <input type="text" class="admin-input" id="product-slug" required placeholder="자동 생성됨 (수정 가능)">
+                    <div class="admin-field__hint">상품명 입력 시 자동 생성됩니다. 필요시 직접 수정하세요.</div>
+                </div>
+
+                <div class="admin-form-grid admin-form-grid--two" style="margin-top: 1rem;">
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="product-description">설명</label>
+                        <textarea class="admin-textarea" id="product-description" rows="3"></textarea>
+                    </div>
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="product-admin-memo">
+                            <i class="tf-ion-ios-compose-outline"></i> 관리 메모 (사용자에게 보이지 않음)
+                        </label>
+                        <textarea class="admin-textarea" id="product-admin-memo" rows="3" placeholder="관리자용 메모를 입력하세요..."></textarea>
+                    </div>
+                </div>
+
+                <div class="admin-form-grid admin-form-grid--three" style="margin-top: 1rem;">
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="product-price">가격</label>
+                        <input type="number" class="admin-input" id="product-price" required>
+                    </div>
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="product-discount">할인가</label>
+                        <input type="number" class="admin-input" id="product-discount">
+                    </div>
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="product-stock">재고</label>
+                        <input type="number" class="admin-input" id="product-stock" value="0">
+                    </div>
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="product-order">정렬 순서</label>
+                        <input type="number" class="admin-input" id="product-order" value="0">
+                    </div>
+                </div>
+
+                <div class="admin-form-grid admin-form-grid--two" style="margin-top: 1rem;">
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="product-colors">색상 (쉼표로 구분)</label>
+                        <input type="text" class="admin-input" id="product-colors" placeholder="빨강, 파랑, 초록">
+                    </div>
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="product-sizes">사이즈 (쉼표로 구분)</label>
+                        <input type="text" class="admin-input" id="product-sizes" placeholder="S, M, L, XL">
+                    </div>
+                </div>
+
+                <div class="admin-field" style="margin-top: 1rem;">
+                    <label class="admin-field__label" for="product-images">이미지 (드래그하여 순서 변경, 첫 번째 이미지가 대표 이미지)</label>
+                    <div class="admin-image-picker">
+                        <input type="file" class="admin-image-picker__input" id="product-images" multiple accept="image/*">
+                        <div class="admin-image-picker__hint">이미지를 여러 개 선택할 수 있습니다. 첫 번째 이미지가 대표 이미지가 됩니다.</div>
+                        <div id="product-image-list" class="admin-product-image-list">
+                            
+                            <div class="admin-product-image-empty admin-empty-state">이미지가 없습니다</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-form-grid admin-form-grid--two" style="margin-top: 1rem; align-items: end;">
+                    <label class="admin-toggle">
+                        <input type="checkbox" class="admin-toggle__input" id="product-enabled" checked>
+                        <span>활성화</span>
+                    </label>
+
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="product-language">언어</label>
+                        <select class="admin-select" id="product-language">
+                            <option value="ko">한국어</option>
+                            <option value="en">영어</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <footer class="admin-modal__footer">
+            <button type="button" class="admin-btn admin-btn--outline" data-product-modal-close>닫기</button>
+            <button type="submit" form="product-form" class="admin-btn admin-btn--primary">저장</button>
+        </footer>
+    </section>
+</div>
+
+<style>
+    .admin-category-modal[hidden] {
+        display: none !important;
+    }
+
+    .admin-category-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+    }
+
+    .admin-category-modal__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.58);
+        backdrop-filter: blur(2px);
+    }
+
+    .admin-category-modal__panel {
+        position: relative;
+        z-index: 1;
+        width: min(560px, 100%);
+        max-height: min(760px, calc(100vh - 2rem));
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        border-radius: 20px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+    }
+
+    .admin-category-modal__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.25rem 1.25rem 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .admin-category-modal__eyebrow {
+        margin: 0 0 0.35rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+    }
+
+    .admin-category-modal__title {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .admin-category-modal__subtitle {
+        margin: 0.35rem 0 0;
+        font-size: 0.9rem;
+        color: #64748b;
+    }
+
+    .admin-category-modal__close {
+        border: 0;
+        background: #e2e8f0;
+        color: #0f172a;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 999px;
+        font-size: 1.25rem;
+        line-height: 1;
+        cursor: pointer;
+        flex: 0 0 auto;
+    }
+
+    .admin-category-modal__close:hover {
+        background: #cbd5e1;
+    }
+
+    .admin-category-modal__body {
+        padding: 1.25rem;
+        overflow: auto;
+    }
+
+    .admin-category-form {
+        margin-bottom: 1.25rem;
+    }
+
+    .admin-category-form__row {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .admin-category-form__input {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 0.75rem 0.9rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        background: #fff;
+        color: #0f172a;
+    }
+
+    .admin-category-form__input:focus {
+        outline: none;
+        border-color: #0f172a;
+        box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+    }
+
+    .admin-category-form__button {
+        flex: 0 0 auto;
+        border: 0;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        background: #0f172a;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .admin-category-form__button:hover {
+        background: #1e293b;
+    }
+
+    .admin-category-list__heading {
+        margin: 0 0 0.75rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    #category-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .admin-category-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.85rem 0.95rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        background: #fff;
+        color: #0f172a;
+    }
+
+    .admin-category-item__name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.94rem;
+        font-weight: 500;
+    }
+
+    .admin-category-item__delete {
+        border: 0;
+        border-radius: 10px;
+        padding: 0.45rem 0.7rem;
+        background: #fee2e2;
+        color: #b91c1c;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        flex: 0 0 auto;
+    }
+
+    .admin-category-item__delete:hover {
+        background: #fecaca;
+    }
+
+    .admin-category-state {
+        padding: 0.85rem 1rem;
+        border-radius: 14px;
+        background: #f8fafc;
+        color: #64748b;
+        text-align: center;
+    }
+
+    .admin-category-state--error {
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+
+    @media (max-width: 640px) {
+        .admin-category-modal {
+            padding: 0.5rem;
+        }
+
+        .admin-category-modal__header,
+        .admin-category-modal__body {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .admin-category-form__row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+
+
+<div id="categoryModal" class="admin-category-modal" hidden aria-hidden="true">
+    <div class="admin-category-modal__backdrop" data-category-modal-close></div>
+    <section class="admin-category-modal__panel" role="dialog" aria-modal="true" aria-labelledby="category-modal-title">
+        <header class="admin-category-modal__header">
+            <div>
+                <p class="admin-category-modal__eyebrow">Admin tools</p>
+                <h5 id="category-modal-title" class="admin-category-modal__title">카테고리 관리</h5>
+                <p class="admin-category-modal__subtitle">새 카테고리를 추가하고 기존 항목을 정리할 수 있습니다.</p>
+            </div>
+            <button type="button" class="admin-category-modal__close" data-category-modal-close aria-label="닫기">
+                &times;
+            </button>
+        </header>
+        <div class="admin-category-modal__body">
+            <form id="category-form" class="admin-category-form">
+                <div class="admin-category-form__row">
+                    <input type="text" id="new-category-name" class="admin-category-form__input" placeholder="새 카테고리 이름" required>
+                    <button class="admin-category-form__button" type="submit">추가</button>
+                </div>
+            </form>
+
+            <h6 class="admin-category-list__heading">등록된 카테고리</h6>
+            <div id="category-list">
+                <div class="admin-category-state">로딩 중...</div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
+
+
+
+<script src="/js/admin-products.bundle.js"></script>
+
+
+  </main>
+</body>
+
+</html>

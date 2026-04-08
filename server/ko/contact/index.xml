@@ -1,1 +1,11 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>연락처 on Vex Hugo (Korean)</title><link>/ko/contact/</link><description>Recent content in 연락처 on Vex Hugo (Korean)</description><generator>Hugo</generator><language>ko-KR</language><atom:link href="/ko/contact/index.xml" rel="self" type="application/rss+xml"/></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>연락처 on Vex Hugo (Korean)</title>
+    <link>//localhost:1313/ko/contact/</link>
+    <description>Recent content in 연락처 on Vex Hugo (Korean)</description>
+    <generator>Hugo</generator>
+    <language>ko-KR</language>
+    <atom:link href="//localhost:1313/ko/contact/index.xml" rel="self" type="application/rss+xml" />
+  </channel>
+</rss>
